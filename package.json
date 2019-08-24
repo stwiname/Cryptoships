@@ -1,0 +1,24 @@
+{
+  "name": "battleship",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "generate": "truffle compile",
+    "prepare": "npm run generate",
+    "test": "truffle test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bn.js": "^5.0.0",
+    "ramda": "^0.26.1"
+  },
+  "devDependencies": {
+    "truffle": "^5.0.32",
+    "typescript": "^3.5.3"
+  }
+}
