@@ -1,6 +1,12 @@
 const Auction = artifacts.require('Auction');
 const BN = require('bn.js');
-const { advanceTimeAndBlock } = require('./util');
+const { advanceTimeAndBlock, assertAuctionBid } = require('./util');
+
+const result = {
+  unset: 0,
+  miss: 1,
+  hit: 2,
+};
 
 const DURATION = 1000;
 
@@ -30,10 +36,8 @@ contract('Auction', accounts => {
     const receipt = await instance.placeBid([0, 0], { from: accounts[0], value: 1 });
 
     const leadingBid = await instance.getLeadingBid();
-    assert.equal(leadingBid.move[0].toNumber(), 0);
-    assert.equal(leadingBid.move[1].toNumber(), 0);
-    assert.equal(leadingBid.amount.toNumber(), 1);
-    assert.equal(leadingBid.bidder, accounts[0]);
+
+    assertAuctionBid(leadingBid, { move: [0, 0], amount: 1, bidder: accounts[0] });
 
     const gas = await getGasInfo(receipt);
     const finalBalance = await getBalance(0);
@@ -45,10 +49,7 @@ contract('Auction', accounts => {
     const receipt = await instance.placeBid([1, 1], { from: accounts[1], value: 2 });
 
     const leadingBid = await instance.getLeadingBid();
-    assert.equal(leadingBid.move[0].toNumber(), 1);
-    assert.equal(leadingBid.move[1].toNumber(), 1);
-    assert.equal(leadingBid.amount.toNumber(), 2);
-    assert.equal(leadingBid.bidder, accounts[1]);
+    assertAuctionBid(leadingBid, { move: [1, 1], amount: 2, bidder: accounts[1] });
   });
 
   it('should be able to outbid an existing bid', async () => {
@@ -57,10 +58,7 @@ contract('Auction', accounts => {
       .catch(e => expect(e).to.not.be.null);
 
     const leadingBid = await instance.getLeadingBid();
-    assert.equal(leadingBid.move[0].toNumber(), 0);
-    assert.equal(leadingBid.move[1].toNumber(), 0);
-    assert.equal(leadingBid.amount.toNumber(), 2);
-    assert.equal(leadingBid.bidder, accounts[0]);
+    assertAuctionBid(leadingBid, { move: [0, 0], amount: 2, bidder: accounts[0] });
   });
 
   it('should be reject a matching bid', async () => {
@@ -69,10 +67,7 @@ contract('Auction', accounts => {
       .catch(e => expect(e).to.not.be.null);
 
     const leadingBid = await instance.getLeadingBid();
-    assert.equal(leadingBid.move[0].toNumber(), 0);
-    assert.equal(leadingBid.move[1].toNumber(), 0);
-    assert.equal(leadingBid.amount.toNumber(), 1);
-    assert.equal(leadingBid.bidder, accounts[0]);
+    assertAuctionBid(leadingBid, { move: [0, 0], amount: 1, bidder: accounts[0] });
   });
 
   it('should be able bid overwrite a bid and return the previous bid balance', async () => {
@@ -95,13 +90,41 @@ contract('Auction', accounts => {
     assert.equal(await instance.hasEnded(), true);
   });
 
-  it('should be able to check when the auction has ended', async () => {
+  it('should not be able to bid after the auction has ended', async () => {
     // Start the auction
     await instance.placeBid([0, 0], { from: accounts[0], value: 1 });
 
     await advanceTimeAndBlock(DURATION * 2);
 
     await instance.placeBid([0, 0], { from: accounts[1], value: 2 })
+      .catch(e => expect(e).to.not.be.null);
+  });
+
+  it('should not allow the owner to set the result before it has ended', async () => {
+    // Start the auction
+    await instance.placeBid([0, 0], { from: accounts[1], value: 1 });
+
+    await instance.setResult(result.hit, { from: accounts[0] })
+      .catch(e => expect(e).to.not.be.null);
+  });
+
+  it('should allow the owner to set the result once it has ended', async () => {
+    // Start the auction
+    await instance.placeBid([0, 0], { from: accounts[1], value: 1 });
+
+    await advanceTimeAndBlock(DURATION * 2);
+
+    await instance.setResult(result.hit, { from: accounts[0] });
+  });
+
+  it('should allow the owner to only set the result once', async () => {
+    // Start the auction
+    await instance.placeBid([0, 0], { from: accounts[1], value: 1 });
+
+    await advanceTimeAndBlock(DURATION * 2);
+
+    await instance.setResult(result.miss, { from: accounts[0] });
+    await instance.setResult(result.hit, { from: accounts[0] })
       .catch(e => expect(e).to.not.be.null);
   });
 });

@@ -1,3 +1,5 @@
+const { filter } = require('ramda');
+
 advanceTimeAndBlock = async (time) => {
     await advanceTime(time);
     await advanceBlock();
@@ -34,8 +36,43 @@ advanceBlock = () => {
     });
 }
 
+assertEvent = (contract, filter) => {
+    return new Promise((resolve, reject) => {
+        let event = contract[filter.event]((error, event) => {
+            console.log('YOYO');
+            if (error) {
+                return reject(error);
+            }
+            resolve(event.returnValues);
+        });
+
+        console.log("EVENT", event.unsubscribe);
+
+        // console.log('Yo', Object.keys(event));
+        // event.watch();
+        // event.get((error, logs) => {
+        //     var log = filter(filter, log);
+        //     if (log) {
+        //         resolve(log);
+        //     } else {
+        //         throw Error("Failed to find filtered event for " + filter.event);
+        //     }
+        // });
+        // event.stopWatching();
+    });
+}
+
+assertAuctionBid = (bid, expectedBid) => {
+    assert.equal(bid.move[0].toNumber(), expectedBid.move[0]);
+    assert.equal(bid.move[1].toNumber(), expectedBid.move[1]);
+    assert.equal(bid.amount.toNumber(), expectedBid.amount);
+    assert.equal(bid.bidder, expectedBid.bidder);
+}
+
 module.exports = {
     advanceTime,
     advanceBlock,
-    advanceTimeAndBlock
+    advanceTimeAndBlock,
+    assertEvent,
+    assertAuctionBid,
 }
