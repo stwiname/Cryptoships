@@ -27,7 +27,7 @@ contract Auction {
 
 
   modifier ownerOnly(){
-    require(msg.sender == owner);
+    require(msg.sender == owner, "Only the owner can call this");
     _;
   }
 
@@ -37,6 +37,7 @@ contract Auction {
     owner = msg.sender;
   }
 
+  // TODO should this be owner only?
   function placeBid(uint8[2] memory move) payable public returns(uint256){
     // Validate auction
     require(hasStarted(), "Auction has not started");
@@ -46,7 +47,6 @@ contract Auction {
 
     // Transfer the bid back to the previous bidder
     if (leadingBid.bidder != address(0)) {
-      // TODO this is a problem from Game
       leadingBid.bidder.transfer(leadingBid.amount);
     }
 
@@ -62,9 +62,13 @@ contract Auction {
     return endTime;
   }
 
+  function withdrawFunds() public ownerOnly returns (uint8) {
+    owner.transfer(address(this).balance);
+  }
+
   function setResult(bool hit) public ownerOnly {
-    require(result == Result.UNSET);
-    require(hasEnded());
+    require(hasEnded(), "Auction has not yet ended");
+    require(result == Result.UNSET, "Auction result already set");
     result = hit ? Result.HIT : Result.MISS;
   }
 

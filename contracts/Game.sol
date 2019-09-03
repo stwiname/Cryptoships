@@ -40,8 +40,10 @@ contract Game {
   function placeBid(Team team, uint8[2] memory move) payable public {
 
     // Validate input
-    require(move[0] < fieldSize, "Move cannot be outside of playing field");
-    require(move[1] < fieldSize, "Move cannot be outside of playing field");
+    require(
+      move[0] < fieldSize && move[1] < fieldSize,
+      "Move cannot be outside of playing field"
+    );
     require(!hasMoveBeenMade(team, move), "Move has already been made");
 
     uint teamId = uint(team);
@@ -74,12 +76,16 @@ contract Game {
     // Start the next auction for the team
     // TODO does it need to wait for the other team auction to start?
     createAuction(team, now);
+
+    //TODO withdraw auction funds to here to make it easier to payout at end
   }
 
   // Only contract initiator
-  function finalize() public ownerOnly {
+  function finalize(Team winner) public ownerOnly {
     // Reveal field to match proof
 
+
+    // Deal with a potential running of losing teams auction
     // Pay out 
   }
 

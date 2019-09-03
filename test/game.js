@@ -41,7 +41,7 @@ contract('Game', accounts => {
     });
 
     it('should be able to make a move', async () => {
-      await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: 1});
+      const tx = await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: 1});
 
       const auctionAddress = await instance.getCurrentAuction(teams.red);
       const auctionInstance = await Auction.at(auctionAddress);
@@ -49,6 +49,8 @@ contract('Game', accounts => {
       const leadingBid = await auctionInstance.getLeadingBid();
 
       assertAuctionBid(leadingBid, { move: [0, 0], amount: 1, bidder: accounts[1] });
+
+      return tx;
     });
 
     it('should be able to make a move for the other team before the auction has started', async () => {
