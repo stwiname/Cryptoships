@@ -26,7 +26,13 @@ contract Game {
     _;
   }
 
-  constructor(string memory _fieldProof, uint _fieldSize,  uint _fieldUnits, uint256 _auctionDuration) public {
+  constructor(
+    string memory _fieldProof,
+    uint _fieldSize,
+    uint _fieldUnits,
+    uint256 _auctionDuration,
+    Team startTeam
+  ) public {
     require(_fieldSize * _fieldSize > _fieldUnits);
     fieldProof = _fieldProof;
     fieldSize = _fieldSize;
@@ -34,9 +40,9 @@ contract Game {
     auctionDuration = _auctionDuration;
     owner = msg.sender;
 
+    createAuction(startTeam, now);
   }
 
-  // TODO make only the auction contract pay?
   function placeBid(Team team, uint8[2] memory move) payable public {
 
     // Validate input
@@ -45,16 +51,6 @@ contract Game {
       "Move cannot be outside of playing field"
     );
     require(!hasMoveBeenMade(team, move), "Move has already been made");
-
-    uint teamId = uint(team);
-
-    // The first bidder gets to chose what team goes first
-    if (auctionsCount[teamId] == 0) {
-      createAuction(team, now);
-
-      Team otherTeam = otherTeam(team);
-      createAuction(otherTeam, now + auctionDuration /2);
-    }
 
     // Get the auction for the right team to bid for
     Auction auction = getCurrentAuction(team);
@@ -65,19 +61,52 @@ contract Game {
     emit HighestBidPlaced(team, msg.sender, msg.value, move, endTime);
   }
 
+  // Gets called by the oracle when the first bid is made for an auction
+  function startAuction(Team team) public ownerOnly {
+
+    // We might be starting the first auction for the team
+    if (auctionsCount[uint(team)] > 0) {
+      require(
+        getCurrentAuction(team).hasEnded(),
+        "Cannot start an auction while one is already running"
+      );
+    }
+
+    Auction otherAuction = getCurrentAuction(otherTeam(team));
+
+    require(
+      otherAuction.getEndTime() > 0,
+      "First bid must be made on other auction first"
+    );
+
+    createAuction(team, otherAuction.getEndTime() - auctionDuration/2);
+  }
+
   function confirmMove(Team team, bool hit) public ownerOnly {
     Auction auction = getCurrentAuction(team);
 
-    require(auction.hasEnded());
+    require(auction.hasEnded(), "Auction has not yet ended");
 
     auction.setResult(hit);
 
-    Auction otherAuction = getCurrentAuction(otherTeam(team));
-    // Start the next auction for the team
-    // TODO does it need to wait for the other team auction to start?
-    createAuction(team, now);
+    // Withdraw funds to make it easier when finalising 
+    // TODO fix
+    // auction.withdrawFunds();
 
-    //TODO withdraw auction funds to here to make it easier to payout at end
+    // This auction has finished but the othe team has none,
+    // we can now create it though
+    if (auctionsCount[uint(otherTeam(team))] <= 0) {
+      startAuction(otherTeam(team));
+    }
+
+
+    Auction otherAuction = getCurrentAuction(otherTeam(team));
+
+    // Auction has ended or has had a bid (has an end time)
+    if (otherAuction.hasEnded() || otherAuction.getEndTime() > 0) {
+      // Start the next auction
+      startAuction(team);
+    }
   }
 
   // Only contract initiator
@@ -112,6 +141,8 @@ contract Game {
 
   function getCurrentAuction(Team team) public view returns(Auction) {
     uint teamId = uint(team);
+
+    require(auctionsCount[teamId] > 0, "No auction exists for this team");
 
     return auctions[teamId][auctionsCount[teamId] - 1];
   }

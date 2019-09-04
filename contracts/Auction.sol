@@ -62,7 +62,7 @@ contract Auction {
     return endTime;
   }
 
-  function withdrawFunds() public ownerOnly returns (uint8) {
+  function withdrawFunds() public ownerOnly {
     owner.transfer(address(this).balance);
   }
 

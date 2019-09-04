@@ -11,10 +11,12 @@ const teams = {
 
 contract('Game', accounts => {
 
+  const oracle = accounts[0];
+
 
   describe('initialisation', () => {
     it('should not be able to create a game with units greater than the field size', async () => {
-      await Game.new('asdf', 2, 5, AUCTION_TIME, { from: accounts[1] })
+      await Game.new('asdf', 2, 5, AUCTION_TIME, teams.red, { from: accounts[1] })
         .catch(e => expect(e).to.not.be.null);
     });
   });
@@ -23,7 +25,7 @@ contract('Game', accounts => {
     let instance = null;
 
     beforeEach(async () => {
-      instance = await Game.new('asdf', 2, 1, AUCTION_TIME, { from: accounts[0]});
+      instance = await Game.new('asdf', 2, 1, AUCTION_TIME, teams.red, { from: oracle});
     });
 
     it('should not be able to make a move outside the field', async () => {
@@ -53,6 +55,11 @@ contract('Game', accounts => {
       return tx;
     });
 
+    it('should not be able to start the auction for the 2nd team before 1st team bids', async () => {
+      await instance.startAuction(teams.blue, { from: oracle })
+        .catch(e => expect(e).not.to.be.null);
+    });
+
     it('should be able to make a move for the other team before the auction has started', async () => {
       await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: 1});
 
@@ -70,7 +77,18 @@ contract('Game', accounts => {
 
       await advanceTimeAndBlock(AUCTION_TIME);
 
+      await instance.startAuction(teams.blue, { from: oracle });
+
       await instance.placeBid(teams.blue, [0, 0], { from: accounts[2], value: 1 });
+    });
+
+    it('should not be able to make a move for the other team before half first auction time', async () => {
+      await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: 1});
+
+      await instance.startAuction(teams.blue, { from: oracle });
+
+      await instance.placeBid(teams.blue, [0, 0], { from: accounts[2], value: 1 })
+        .catch(e => expect(e).not.to.be.null);
     });
 
     it('should be able to make a move and emit an event', async () => {
@@ -91,19 +109,24 @@ contract('Game', accounts => {
       const advance = result.logs[0].args.endTime.toString() * 1000 - new Date().getTime();
       await advanceTimeAndBlock(advance);
 
-      await instance.confirmMove(teams.red, true, { from: accounts[0] });
-
+      await instance.confirmMove(teams.red, true, { from: oracle });
     });
 
-
-    it('should be able to set the auction result and play again', async () => {
+    it('should be able to set the auction result and play again, once the other team has played', async () => {
       const result = await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: 1});
 
       // Wait until the auction has finished
-      const advance = result.logs[0].args.endTime.toString() * 1000 - new Date().getTime();
-      await advanceTimeAndBlock(advance);
+      await advanceTimeAndBlock(AUCTION_TIME + 1);
 
-      await instance.confirmMove(teams.red, true, { from: accounts[0] });
+      // Starts blue auction
+      await instance.confirmMove(teams.red, true, { from: oracle });
+
+      await instance.placeBid(teams.blue, [0, 1], { from: accounts[2], value: 1});
+
+      // Red auction is now ready to start because blue bid
+      await instance.startAuction(teams.red, { from: oracle });
+
+      await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       await instance.placeBid(teams.red, [0, 1], { from: accounts[1], value: 1});
 
@@ -113,10 +136,15 @@ contract('Game', accounts => {
       const result = await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: 1});
 
       // Wait until the auction has finished
-      const advance = result.logs[0].args.endTime.toString() * 1000 - new Date().getTime();
-      await advanceTimeAndBlock(advance);
+      await advanceTimeAndBlock(AUCTION_TIME + 1);
 
-      await instance.confirmMove(teams.red, true, { from: accounts[0] });
+      // Starts blue auction
+      await instance.confirmMove(teams.red, true, { from: oracle });
+
+      await instance.placeBid(teams.blue, [0, 1], { from: accounts[2], value: 1});
+
+      // Red auction is now ready to start because blue bid
+      await instance.startAuction(teams.red, { from: oracle });
 
       await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: 1})
         .catch(e => expect(e).not.to.be.null);
