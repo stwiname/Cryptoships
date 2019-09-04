@@ -7,9 +7,10 @@
     "test": "test"
   },
   "scripts": {
-    "generate": "truffle compile",
+    "generate": "truffle compile && npm run typechain ",
     "prepare": "npm run generate",
-    "test": "truffle test"
+    "test": "truffle test",
+    "typechain": "typechain --target truffle \"build/**/*.json\""
   },
   "author": "",
   "license": "ISC",
@@ -20,6 +21,9 @@
   "devDependencies": {
     "eth-gas-reporter": "^0.2.11",
     "truffle": "^5.0.32",
+    "truffle-typings": "^1.0.8",
+    "ts-node": "^8.3.0",
+    "typechain": "^0.3.20",
     "typescript": "^3.5.3"
   }
 }

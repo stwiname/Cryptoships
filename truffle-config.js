@@ -1,3 +1,5 @@
+require("ts-node/register");
+
 module.exports = {
   // Uncommenting the defaults below 
   // provides for an easier quick-start with Ganache.
@@ -23,5 +25,6 @@ module.exports = {
     reporterOptions : {
       currency: 'nzd'
     }
-  }
+  },
+  test_file_extension_regexp: /.*\.ts$/,
 };
