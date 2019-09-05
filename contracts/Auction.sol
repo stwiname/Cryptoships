@@ -1,6 +1,8 @@
 pragma solidity >=0.4.25 <0.6.0;
 
-contract Auction {
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
+contract Auction is ReentrancyGuard {
 
   enum Result {
     UNSET,
@@ -38,7 +40,7 @@ contract Auction {
   }
 
   // TODO should this be owner only?
-  function placeBid(uint8[2] memory move) payable public returns(uint256){
+  function placeBid(uint8[2] memory move) payable public nonReentrant returns(uint256){
     // Validate auction
     require(hasStarted(), "Auction has not started");
     require(!hasEnded(), "Auction has ended");

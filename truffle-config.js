@@ -20,6 +20,11 @@ module.exports = {
   //   network_id: "*"
   // }
   // }
+  compilers: {
+    solc: {
+      version: '0.5.2'
+    }
+  },
   mocha: {
     reporter: 'eth-gas-reporter',
     reporterOptions : {
