@@ -11,3 +11,6 @@ npm-debug.log
 
 build/
 types/
+
+*.js
+*.js.map

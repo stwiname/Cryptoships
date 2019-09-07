@@ -5,6 +5,7 @@ import './Auction.sol';
 contract Game {
 
   event HighestBidPlaced(Team team, address bidder, uint amount, uint8[2] move, uint256 endTime);
+  event MoveConfirmed(Team team, bool hit, uint8[2] move);
 
   enum Team {
     RED,
@@ -22,7 +23,7 @@ contract Game {
   address owner;
 
   modifier ownerOnly(){
-    require(msg.sender == owner);
+    require(msg.sender == owner, 'Only the owner can call this');
     _;
   }
 
@@ -33,7 +34,7 @@ contract Game {
     uint256 _auctionDuration,
     Team startTeam
   ) public {
-    require(_fieldSize * _fieldSize > _fieldUnits);
+    require(_fieldSize * _fieldSize > _fieldUnits, "Cannot have more units that spaces available");
     fieldProof = _fieldProof;
     fieldSize = _fieldSize;
     fieldUnits = _fieldUnits;
@@ -62,7 +63,7 @@ contract Game {
   }
 
   // Gets called by the oracle when the first bid is made for an auction
-  function startAuction(Team team) public ownerOnly {
+  function startAuction(Team team) public ownerOnly returns(Auction) {
 
     // We might be starting the first auction for the team
     if (auctionsCount[uint(team)] > 0) {
@@ -79,7 +80,7 @@ contract Game {
       "First bid must be made on other auction first"
     );
 
-    createAuction(team, otherAuction.getEndTime() - auctionDuration/2);
+    return createAuction(team, otherAuction.getEndTime() - auctionDuration/2);
   }
 
   function confirmMove(Team team, bool hit) public ownerOnly {
@@ -107,6 +108,8 @@ contract Game {
       // Start the next auction
       startAuction(team);
     }
+
+    emit MoveConfirmed(team, hit, auction.getLeadingMove());
   }
 
   // Only contract initiator
@@ -147,11 +150,11 @@ contract Game {
     return auctions[teamId][auctionsCount[teamId] - 1];
   }
 
-  function createAuction(Team team, uint256 startTime) private {
+  function createAuction(Team team, uint256 startTime) private returns(Auction) {
     uint teamId = uint(team);
 
-    auctions[teamId][auctionsCount[teamId]] = new Auction(startTime, auctionDuration);
     auctionsCount[teamId] ++;
+    return auctions[teamId][auctionsCount[teamId]-1] = new Auction(startTime, auctionDuration);
   }
 
   function otherTeam(Team team) public pure returns(Team) {

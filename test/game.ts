@@ -1,10 +1,10 @@
 import { GameContract, GameInstance } from '../types/truffle-contracts';
-
+import Oracle from '../src/oracle';
 const Game: GameContract = artifacts.require('Game');
 const Auction = artifacts.require('Auction');
 const { advanceTimeAndBlock, assertEvent, assertAuctionBid } = require('./util');
 
-const AUCTION_TIME = 1000;
+const AUCTION_TIME = 10;
 
 const teams = {
   red: 0,
@@ -13,7 +13,7 @@ const teams = {
 
 contract('Game', accounts => {
 
-  const oracle = accounts[0];
+  const oracleAccount = accounts[0];
 
 
   describe('initialisation', () => {
@@ -23,11 +23,11 @@ contract('Game', accounts => {
     });
   });
 
-  describe('game', () => {
+  describe('game without oracle', () => {
     let instance: GameInstance = null;
 
     beforeEach(async () => {
-      instance = await Game.new('asdf', 2, 1, AUCTION_TIME, teams.red, { from: oracle});
+      instance = await Game.new('asdf', 2, 1, AUCTION_TIME, teams.red, { from: oracleAccount});
     });
 
     it('should not be able to make a move outside the field', async () => {
@@ -58,7 +58,7 @@ contract('Game', accounts => {
     });
 
     it('should not be able to start the auction for the 2nd team before 1st team bids', async () => {
-      await instance.startAuction(teams.blue, { from: oracle })
+      await instance.startAuction(teams.blue, { from: oracleAccount })
         .catch((e: Error) => expect(e).not.to.be.null);
     });
 
@@ -79,7 +79,7 @@ contract('Game', accounts => {
 
       await advanceTimeAndBlock(AUCTION_TIME);
 
-      await instance.startAuction(teams.blue, { from: oracle });
+      await instance.startAuction(teams.blue, { from: oracleAccount });
 
       await instance.placeBid(teams.blue, [0, 0], { from: accounts[2], value: '1' });
     });
@@ -87,7 +87,7 @@ contract('Game', accounts => {
     it('should not be able to make a move for the other team before half first auction time', async () => {
       await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: '1'});
 
-      await instance.startAuction(teams.blue, { from: oracle });
+      await instance.startAuction(teams.blue, { from: oracleAccount });
 
       await instance.placeBid(teams.blue, [0, 0], { from: accounts[2], value: '1' })
         .catch((e: Error) => expect(e).not.to.be.null);
@@ -111,7 +111,7 @@ contract('Game', accounts => {
       const advance = result.logs[0].args.endTime.toString() * 1000 - new Date().getTime();
       await advanceTimeAndBlock(advance);
 
-      await instance.confirmMove(teams.red, true, { from: oracle });
+      await instance.confirmMove(teams.red, true, { from: oracleAccount });
     });
 
     it('should be able to set the auction result and play again, once the other team has played', async () => {
@@ -121,12 +121,12 @@ contract('Game', accounts => {
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       // Starts blue auction
-      await instance.confirmMove(teams.red, true, { from: oracle });
+      await instance.confirmMove(teams.red, true, { from: oracleAccount });
 
       await instance.placeBid(teams.blue, [0, 1], { from: accounts[2], value: '1'});
 
       // Red auction is now ready to start because blue bid
-      await instance.startAuction(teams.red, { from: oracle });
+      await instance.startAuction(teams.red, { from: oracleAccount });
 
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
@@ -141,19 +141,53 @@ contract('Game', accounts => {
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       // Starts blue auction
-      await instance.confirmMove(teams.red, true, { from: oracle });
+      await instance.confirmMove(teams.red, true, { from: oracleAccount });
 
       await instance.placeBid(teams.blue, [0, 1], { from: accounts[2], value: '1'});
 
       // Red auction is now ready to start because blue bid
-      await instance.startAuction(teams.red, { from: oracle });
+      await instance.startAuction(teams.red, { from: oracleAccount });
 
       await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: '1'})
         .catch((e: Error) => expect(e).not.to.be.null);
     });
-
-
-
   });
-  
+
+  describe.only('game with oracle', () => {
+    let instance: GameInstance = null;
+    let oracle: Oracle = null;
+
+    beforeEach(async () => {
+      instance = await Game.new('asdf', 2, 1, AUCTION_TIME, teams.red, { from: oracleAccount });
+      oracle = Oracle.create(web3, instance.address, oracleAccount);
+    });
+
+    it('should have the oracle call "confirmMove"', async () => {
+      await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: '1'});
+
+      const event: any = await new Promise((resolve, reject) => {
+        (instance as any).MoveConfirmed((error: any, event: any) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(event.returnValues);
+        });
+      });
+
+      expect(event.team).to.equal(teams.red.toString());
+      expect(event.move[0]).to.equal('0');
+      expect(event.move[1]).to.equal('0');
+    });
+
+    it('should have the oracle call "startAuction"', async () => {
+      await instance.placeBid(teams.red, [0, 0], { from: accounts[1], value: '1'});
+
+      // Wait until blue auction has started
+      await new Promise((resolve) => {
+        setTimeout(resolve, AUCTION_TIME * 1500);
+      });
+
+      await instance.placeBid(teams.blue, [0, 0], { from: accounts[1], value: '1'});
+    });
+  });
 });
