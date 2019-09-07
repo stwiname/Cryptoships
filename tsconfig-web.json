@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2017",
+    "target": "es6",
+    "jsx": "react",
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitThis": true,
@@ -9,12 +10,10 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es2015", "esnext.asynciterable"],
+    "lib": ["es2015", "dom", "dom.iterable"],
     "sourceMap": true,
-    "typeRoots": ["./node_modules/@types", "./types"],
-    "types": ["node", "truffle-contracts"],
     "esModuleInterop": true,
   },
-  "include": ["**/*.ts"],
-  "exclude": ["node_modules", "example", "build", "src"]
+  "include": ["src"],
+  "exclude": ["node_modules", "example", "build", "lib"]
 }
