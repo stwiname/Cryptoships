@@ -10,3 +10,7 @@ npm-debug.log
 *.un~
 
 build/
+types/
+
+*.js
+*.js.map

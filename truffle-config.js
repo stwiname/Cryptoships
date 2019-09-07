@@ -1,3 +1,5 @@
+require("ts-node/register");
+
 module.exports = {
   // Uncommenting the defaults below 
   // provides for an easier quick-start with Ganache.
@@ -5,23 +7,30 @@ module.exports = {
   // see <http://truffleframework.com/docs/advanced/configuration>
   // for more details on how to specify configuration options!
   //
-  // networks: {
+  networks: {
   //  development: {
   //    host: "127.0.0.1",
   //    port: 9545,
   //    network_id: "*",
   //    websockets: true,
   //  },
-  // test: {
-  //   host: "127.0.0.1",
-  //   port: 7545,
-  //   network_id: "*"
-  // }
-  // }
+    test: {
+      host: "127.0.0.1",
+      port: 9545,
+      network_id: "*",
+      websockets: true,
+    }
+  },
+  compilers: {
+    solc: {
+      version: '0.5.2'
+    }
+  },
   mocha: {
     reporter: 'eth-gas-reporter',
     reporterOptions : {
       currency: 'nzd'
     }
-  }
+  },
+  test_file_extension_regexp: /.*\.ts$/,
 };
