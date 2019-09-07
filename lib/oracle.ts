@@ -106,8 +106,8 @@ export default class Oracle {
 
   private async confirmMove(auction: Auction, team: Team) {
     if (!await auction.methods.hasEnded().call()) {
-      const endTime = await auction.methods.getEndTime().call();
-      console.log(`Auction has not yet ended for ${Team[team]} team, cannot confirm`, Math.floor(Date.now()/1000) - endTime);
+      // const endTime: unknown = await auction.methods.getEndTime().call();
+      console.log(`Auction has not yet ended for ${Team[team]} team, cannot confirm`);
       // This should retry again
       return;
     }

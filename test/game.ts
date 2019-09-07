@@ -1,5 +1,5 @@
 import { GameContract, GameInstance } from '../types/truffle-contracts';
-import Oracle from '../src/oracle';
+import Oracle from '../lib/oracle';
 const Game: GameContract = artifacts.require('Game');
 const Auction = artifacts.require('Auction');
 const { advanceTimeAndBlock, assertEvent, assertAuctionBid } = require('./util');
@@ -23,7 +23,7 @@ contract('Game', accounts => {
     });
   });
 
-  describe('game without oracle', () => {
+  describe.only('game without oracle', () => {
     let instance: GameInstance = null;
 
     beforeEach(async () => {
@@ -153,7 +153,7 @@ contract('Game', accounts => {
     });
   });
 
-  describe.only('game with oracle', () => {
+  describe('game with oracle', () => {
     let instance: GameInstance = null;
     let oracle: Oracle = null;
 
