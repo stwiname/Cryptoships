@@ -3,6 +3,7 @@ import { Game } from '../types/web3-contracts/Game';
 import { Auction } from '../types/web3-contracts/Auction';
 import { Team, AuctionResult } from './contracts';
 import moment from 'moment';
+import State from './state';
 const { abi: gameAbi } = require('../build/contracts/Game.json');
 const { abi: auctionAbi } = require('../build/contracts/Auction.json');
 
@@ -14,16 +15,27 @@ export default class Oracle {
 
   private timeouts: Partial<Record<Team, NodeJS.Timeout>> = {};
 
-  public static create(web3: Web3, contractAddress: string, oracleAddress: string) {
+  public static create(
+    web3: Web3,
+    contractAddress: string,
+    oracleAddress: string,
+    state: State,
+  ) {
 
     return new Oracle(
       web3,
       new web3.eth.Contract(gameAbi, contractAddress) as Game,
-      oracleAddress
+      oracleAddress,
+      state
     );
   }
 
-  constructor(private web3: Web3, private instance: Game, private oracleAddress: string) {
+  constructor(
+    private web3: Web3,
+    private instance: Game,
+    private oracleAddress: string,
+    private state: State
+  ) {
     this.setup()
       .then(() => console.log('Setup success'))
       .catch(e => console.log('Setup failed', e));
@@ -50,6 +62,15 @@ export default class Oracle {
   }
 
   private async setupForTeam(team: Team) {
+
+    const { 0: moves, 1: results }: { 0: unknown[][], 1: unknown[]} = await this.instance.methods.getAllAuctionResults(team).call();
+
+    const auctionResults = moves.map((move, index) => (
+      { move: move as number[], result: results[index] as AuctionResult }
+    ));
+
+    this.state.setMovesMade(team, auctionResults);
+
     const auction = await this.getCurrentAuctionForTeam(team)
       .catch(e => null); // Swallow error, auction wont exist yet
 
@@ -113,10 +134,15 @@ export default class Oracle {
     }
 
     // Check if hit or miss
-    const leadingMove = await auction.methods.getLeadingMove().call();
+    const leadingMove: unknown[] = await auction.methods.getLeadingMove().call();
 
-    // TODO check leading move
-    const hit = false;
+    const hit = this.state.setMoveMade(
+      team,
+      leadingMove[0] as number,
+      leadingMove[1] as number
+    );
+
+    // TODO check if game is won
 
     // Set move on game and possibly start next auction
     await this.instance.methods.confirmMove(team, hit)

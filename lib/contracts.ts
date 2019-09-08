@@ -8,3 +8,5 @@ export enum AuctionResult {
   miss,
   hit,
 };
+
+export type BattleField<T =boolean> = T[][];

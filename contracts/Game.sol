@@ -150,6 +150,21 @@ contract Game {
     return auctions[teamId][auctionsCount[teamId] - 1];
   }
 
+  function getAllAuctionResults(Team team) public view returns (uint8[2][] memory, Auction.Result[] memory) {
+    uint teamId = uint(team);
+    uint count = auctionsCount[teamId];
+
+    uint8[2][] memory moves;
+    Auction.Result[] memory results;
+
+    for (uint i = 0; i < count; i++) {
+      moves[i] = auctions[teamId][i].getLeadingMove();
+      results[i] = auctions[teamId][i].result();
+    }
+
+    return (moves, results);
+  }
+
   function createAuction(Team team, uint256 startTime) private returns(Auction) {
     uint teamId = uint(team);
 
