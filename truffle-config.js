@@ -8,12 +8,12 @@ module.exports = {
   // for more details on how to specify configuration options!
   //
   networks: {
-  //  development: {
-  //    host: "127.0.0.1",
-  //    port: 9545,
-  //    network_id: "*",
-  //    websockets: true,
-  //  },
+   development: {
+     host: "127.0.0.1",
+     port: 9545,
+     network_id: "*",
+     websockets: true,
+   },
     test: {
       host: "127.0.0.1",
       port: 9545,
