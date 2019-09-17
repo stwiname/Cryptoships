@@ -36,8 +36,7 @@ const Home: React.FunctionComponent<Props> = (props) => {
   return <div>
 
     <TextField
-      id="standard-name"
-      label="Address"
+      label='Address'
       // className={classes.textField}
       value={address}
       onChange={handleAddressChange}

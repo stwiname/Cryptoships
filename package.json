@@ -18,7 +18,7 @@
     "build-web": "webpack",
     "watch-server": "tsc -w -p .",
     "watch-web": "webpack -w",
-    "serve": "npx serve -s",
+    "serve": "webpack-dev-server",
     "start": "node ./scripts/watch-task.js"
   },
   "author": "",
@@ -47,7 +47,6 @@
     "eth-gas-reporter": "^0.2.11",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "serve": "^11.1.0",
     "truffle": "^5.0.32",
     "truffle-typings": "^1.0.8",
     "ts-loader": "^6.0.4",
@@ -55,6 +54,7 @@
     "typechain": "^0.3.20",
     "typescript": "^3.5.3",
     "webpack": "^4.39.3",
-    "webpack-cli": "^3.3.8"
+    "webpack-cli": "^3.3.8",
+    "webpack-dev-server": "^3.8.1"
   }
 }

@@ -8,15 +8,15 @@ import {
   TableRow,
   Box
 } from '@material-ui/core';
-import { ThemeProvider, withStyles, WithStyles } from '@material-ui/styles';
+import { withStyles, WithStyles } from '@material-ui/styles';
 import { range } from 'ramda';
-
 import theme from '../theme';
 import FieldItem from './fieldItem';
 
 type Props = {
   size: number;
   trailingVHeader?: boolean;
+  onItemPress?: (x: number, y: number) => void;
 } & WithStyles<typeof styles>;
 
 class Field extends React.PureComponent<Props> {
@@ -25,62 +25,76 @@ class Field extends React.PureComponent<Props> {
     const n = range(1, this.props.size + 1);
 
     return (
-      <ThemeProvider theme={theme}>
-        <Paper className={this.props.classes.paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
+      <Paper className={this.props.classes.paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              { !this.props.trailingVHeader && 
                 <TableCell
                   key='x'
                   align='center'
                   padding='none'
                 ></TableCell>
-                {
-                  n.map(v => <TableCell key={v} align='center' padding='none'>{this.numToSSColumn(v)}</TableCell>)
-                }
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {n.map(i => this.renderRow(n, i))}
-            </TableBody>
-          </Table>
-        </Paper>
-      </ThemeProvider>
+              }
+              {
+                n.map(v => <TableCell key={v} align='center' padding='none'>{Field.numToSSColumn(v)}</TableCell>)
+              }
+              { this.props.trailingVHeader && 
+                <TableCell
+                  key='x'
+                  align='center'
+                  padding='none'
+                ></TableCell>
+              }
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {n.map(i => this.renderRow(n, i))}
+          </TableBody>
+        </Table>
+      </Paper>
     );
   }
 
-  private renderRow = (n: number[], index: number) => {
+  private renderRow = (n: number[], y: number) => {
     return (
-      <TableRow key={index} hover={true}>
+      <TableRow key={y} hover={true}>
         { !this.props.trailingVHeader &&
           <TableCell component="th" scope="row" padding='none' align='center'>
-            {index}
+            {y}
           </TableCell>
         }
-        { n.map(this.renderCell)}
+        { n.map((x) => this.renderCell(x, y))}
         { this.props.trailingVHeader &&
           <TableCell component="th" scope="row" padding='none' align='center'>
-            {index}
+            {y}
           </TableCell>
         }
       </TableRow>
     );
   }
 
-  private renderCell = (index: number) => {
+  private renderCell = (x: number, y: number) => {
+
+    const handlePress = () => {
+      if (this.props.onItemPress) {
+        this.props.onItemPress(x, y)
+      }
+    };
+
     return (
       <TableCell
-        key={index}
+        key={x}
         align='center'
         padding='none'
       >
-        {/*<FieldItem/>*/}
-        <Box color='primary'>x</Box>
+        <FieldItem onClick={handlePress}/>
+        {/*<Box color='primary'>x</Box>*/}
       </TableCell>
     );
   }
 
-  private numToSSColumn(num: number): string {
+  public static numToSSColumn(num: number): string {
     let s = '', t;
 
     while (num > 0) {
