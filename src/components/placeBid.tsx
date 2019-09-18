@@ -56,7 +56,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({ onClose, team, position, min
     <DialogContent>
       <DialogContentText>{`At postion: ${JSON.stringify(position)}`}</DialogContentText>
       <TextField
-        label='Amount'
+        label='Amount (wei)'
         value={amount}
         onChange={handleAmountChange}
         margin='normal'

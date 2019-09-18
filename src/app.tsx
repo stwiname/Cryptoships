@@ -3,6 +3,7 @@ import Web3Provider from 'web3-react';
 import connectors from './connectors';
 import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import { ThemeProvider } from '@material-ui/styles';
+import { CssBaseline } from '@material-ui/core';
 import Field from './components/field';
 import Game from './routes/game';
 import Home from './routes/home';
@@ -16,6 +17,7 @@ export default class App extends React.PureComponent<{}> {
         connectors={connectors}
       >
         <ThemeProvider theme={theme}>
+          <CssBaseline/>
           <Router>
             <Route exact path='/' component={Home}/>
             <Route path='/game/:address' component={Game}/>
