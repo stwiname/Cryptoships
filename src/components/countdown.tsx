@@ -13,7 +13,7 @@ const Countdown: React.FunctionComponent<Props> = (props) => {
 
   const duration: any = moment.duration(remainingMs);
   return <Typography variant='subtitle1'>
-    {moment.utc(duration.asMilliseconds()).format("HH:mm:ss.SSS")}
+    {moment.utc(duration.asMilliseconds()).format("HH:mm:ss")}
   </Typography>
 }
 

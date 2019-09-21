@@ -9,78 +9,35 @@ import {
   Box
 } from '@material-ui/core';
 import { withStyles, WithStyles } from '@material-ui/styles';
-import { range } from 'ramda';
+import { range, find } from 'ramda';
 import theme from '../theme';
 import FieldItem from './fieldItem';
+import { Game } from '../containers';
+import { Team, AuctionResult } from '../../lib/contracts';
 
 type Props = {
-  size: number;
+  team: Team;
   trailingVHeader?: boolean;
   onItemPress?: (x: number, y: number) => void;
 } & WithStyles<typeof styles>;
 
-class Field extends React.PureComponent<Props> {
+const Field: React.FunctionComponent<Props> = (props) => {
 
-  render() {
-    const n = range(1, this.props.size + 1);
+  const game = Game.useContainer();
+  const n = range(1, game.fieldSize + 1);
 
-    return (
-      <Paper className={this.props.classes.paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              { !this.props.trailingVHeader && 
-                <TableCell
-                  key='x'
-                  align='center'
-                  padding='none'
-                ></TableCell>
-              }
-              {
-                n.map(v => <TableCell key={v} align='center' padding='none'>{Field.numToSSColumn(v)}</TableCell>)
-              }
-              { this.props.trailingVHeader && 
-                <TableCell
-                  key='x'
-                  align='center'
-                  padding='none'
-                ></TableCell>
-              }
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {n.map(i => this.renderRow(n, i))}
-          </TableBody>
-        </Table>
-      </Paper>
-    );
-  }
-
-  private renderRow = (n: number[], y: number) => {
-    return (
-      <TableRow key={y} hover={true}>
-        { !this.props.trailingVHeader &&
-          <TableCell component="th" scope="row" padding='none' align='center'>
-            {y}
-          </TableCell>
-        }
-        { n.map((x) => this.renderCell(x, y))}
-        { this.props.trailingVHeader &&
-          <TableCell component="th" scope="row" padding='none' align='center'>
-            {y}
-          </TableCell>
-        }
-      </TableRow>
-    );
-  }
-
-  private renderCell = (x: number, y: number) => {
-
+  const renderCell = (x: number, y: number) => {
     const handlePress = () => {
-      if (this.props.onItemPress) {
-        this.props.onItemPress(x, y)
+      if (props.onItemPress) {
+        props.onItemPress(x, y)
       }
     };
+
+    const auctionResults = Team[props.team] === Team[Team.red]
+      ? game.redAuctionResults
+      : game.blueAuctionResults;
+    const { result } = find(m => m.move[0] === x && m.move[1] === y, auctionResults)
+     || { result: AuctionResult.unset };
 
     return (
       <TableCell
@@ -88,13 +45,15 @@ class Field extends React.PureComponent<Props> {
         align='center'
         padding='none'
       >
-        <FieldItem onClick={handlePress}/>
-        {/*<Box color='primary'>x</Box>*/}
+        <FieldItem
+          onClick={handlePress}
+          result={result}
+        />
       </TableCell>
     );
   }
 
-  public static numToSSColumn(num: number): string {
+  const numToSSColumn = (num: number): string => {
     let s = '', t;
 
     while (num > 0) {
@@ -104,6 +63,56 @@ class Field extends React.PureComponent<Props> {
     }
     return s || undefined;
   }
+
+  const renderRow = (n: number[], y: number) => {
+    return (
+      <TableRow key={y} hover={true}>
+        { !props.trailingVHeader &&
+          <TableCell component="th" scope="row" padding='none' align='center'>
+            {y}
+          </TableCell>
+        }
+        { n.map((x) => renderCell(x, y))}
+        { props.trailingVHeader &&
+          <TableCell component="th" scope="row" padding='none' align='center'>
+            {y}
+          </TableCell>
+        }
+      </TableRow>
+    );
+  }
+
+  return (
+    <Paper className={props.classes.paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            { !props.trailingVHeader && 
+              <TableCell
+                key='x'
+                align='center'
+                padding='none'
+              ></TableCell>
+            }
+            {
+              n.map(v => <TableCell key={v} align='center' padding='none'>{numToSSColumn(v)}</TableCell>)
+            }
+            { props.trailingVHeader && 
+              <TableCell
+                key='x'
+                align='center'
+                padding='none'
+              ></TableCell>
+            }
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {n.map(i => renderRow(n, i))}
+        </TableBody>
+      </Table>
+    </Paper>
+  );
+
 }
 
 const styles = {

@@ -1,73 +1,54 @@
 import * as React from 'react';
 import { Team } from '../../lib/contracts';
-import { Auction as AuctionInstance } from '../../types/ethers-contracts/Auction';
-
 import { Typography, Card, CardContent, CardActions, Button, Box } from '@material-ui/core';
 import Countdown from './countdown';
 
 type Props = {
-  team: Team;
-  auction: AuctionInstance;
+  container: any;
 }
 
 const Auction: React.FunctionComponent<Props> = (props: Props) => {
-  const [leadingBid, setLeadingBid] = React.useState(null);
-  const [startTime, setStartTime] = React.useState<Date>(null);
-  const [endTime, setEndTime] = React.useState<Date>(null);
-
-  React.useEffect(() => {
-    if (props.auction) {
-      props.auction.functions.getLeadingBid()
-        .then(setLeadingBid);
-
-      props.auction.functions.startTime()
-        .then(startBN => setStartTime(new Date(startBN.toNumber() * 1000)));
-
-      props.auction.functions.getEndTime()
-        .then((endBN) => !endBN.isZero() && setEndTime(new Date(endBN.toNumber() * 1000)));
-    }
-  }, [props.auction]);
-
+  const auction = props.container.useContainer();
 
   const renderNotCreated = () => {
-    if (!!props.auction) {
+    if (!!auction.auctionAddress) {
       return null;
     }
     return <Typography variant='subtitle1'>Auction not yet started</Typography>;
   }
 
   const renderStarting = () => {
-    if (startTime && Date.now() < startTime.getTime()) {
+    if (auction.startTime && Date.now() < auction.startTime.getTime()) {
       return <Box flexDirection='row' display='flex' alignItems='center'>
         <Typography variant='subtitle1'>Starts in: </Typography>
-        <Countdown endTime={startTime}/>
+        <Countdown endTime={auction.startTime}/>
       </Box>
     }
     return null;
   }
 
   const renderRunning = () => {
-    if (!endTime && startTime && Date.now() > startTime.getTime() ||
-        !!endTime && Date.now() < endTime.getTime()
+    if (!auction.endTime && auction.startTime && Date.now() > auction.startTime.getTime() ||
+        !!auction.endTime && Date.now() < auction.endTime.getTime()
     ) {
       return (
         <Box>
           <Box flexDirection='row' display='flex' alignItems='center'>
             {
-              !!leadingBid && !leadingBid.amount.isZero()
+              !!auction.leadingBid && !auction.leadingBid.amount.isZero()
                 ? <>
-                    <Typography variant='subtitle1'>Leading Bid: </Typography>
-                    <Typography variant='h5'>{leadingBid.amount.toString()}</Typography>
+                    <Typography variant='subtitle1'>Leading Bid:&nbsp;</Typography>
+                    <Typography variant='h5'>{auction.leadingBid.amount.toString()}</Typography>
                   </>
                 : <Typography variant='subtitle1'>No bids made</Typography>
             }
             
           </Box>
           {
-            !!endTime &&
+            !!auction.endTime &&
             <Box flexDirection='row' display='flex' alignItems='center'>
-              <Typography variant='subtitle1'>Ends in </Typography>
-              <Countdown endTime={endTime}/>
+              <Typography variant='subtitle1'>Ends in&nbsp;</Typography>
+              <Countdown endTime={auction.endTime}/>
             </Box>
           }
         </Box>
@@ -83,7 +64,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
 
   return <Card>
     <CardContent>
-      <Typography variant='h6'>{Team[props.team]}</Typography>
+      <Typography variant='h6'>{Team[auction.team]}</Typography>
       {
         renderNotCreated() ||
         renderStarting() ||

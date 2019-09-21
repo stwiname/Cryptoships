@@ -34,6 +34,7 @@
     "react-router-dom": "^5.0.1",
     "redux": "^4.0.4",
     "redux-saga": "^1.0.5",
+    "unstated-next": "^1.1.0",
     "web3": "^1.2.1",
     "web3-react": "^5.0.4"
   },
