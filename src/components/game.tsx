@@ -26,51 +26,50 @@ const Game: React.FunctionComponent<Props> = (props) => {
 
   return (
     <div>
-    <Typography variant='h4'>GAME</Typography>
-    <Grid
-      container
-      direction='row'
-      spacing={2}
-      justify='center'
-    >
-      <Grid key='red' item xs={6}>
-        <RedAuctionContainer.Provider initialState={Team.red}>
-          <Auction container={RedAuctionContainer}/>
-        </RedAuctionContainer.Provider>
+      <Typography variant='h4'>GAME</Typography>
+      <Grid
+        container
+        direction='row'
+        spacing={2}
+        justify='center'
+      >
+        <Grid key='red' item xs={6}>
+          <RedAuctionContainer.Provider initialState={Team.red}>
+            <Auction container={RedAuctionContainer}/>
+          </RedAuctionContainer.Provider>
+        </Grid>
+        <Grid key='blue' item xs={6}>
+          <BlueAuctionContainer.Provider initialState={Team.blue}>
+            <Auction container={BlueAuctionContainer}/>
+          </BlueAuctionContainer.Provider>
+        </Grid>
       </Grid>
-      <Grid key='blue' item xs={6}>
-        <BlueAuctionContainer.Provider initialState={Team.blue}>
-          <Auction container={BlueAuctionContainer}/>
-        </BlueAuctionContainer.Provider>
+      <Grid
+        container
+        direction='row'
+        spacing={2}
+        justify='center'
+      >
+        <Grid key='red' item xs={6}>
+          <Field
+            team={Team.red}
+            onItemPress={handleGridPress(Team.red)}
+          />
+        </Grid>
+        <Grid key='blue' item xs={6}>
+          <Field
+            team={Team.blue}
+            trailingVHeader
+            onItemPress={handleGridPress(Team.blue)}
+          />
+        </Grid>
       </Grid>
-    </Grid>
-    <Grid
-      container
-      direction='row'
-      spacing={2}
-      justify='center'
-    >
-      <Grid key='red' item xs={6}>
-        <Field
-          team={Team.red}
-          onItemPress={handleGridPress(Team.red)}
+      { dialogParams &&
+        <PlaceBid 
+          {...dialogParams}
+          onClose={closeDialog}
         />
-      </Grid>
-      <Grid key='blue' item xs={6}>
-        <Field
-          team={Team.blue}
-          trailingVHeader
-          onItemPress={handleGridPress(Team.blue)}
-        />
-      </Grid>
-    </Grid>
-    { dialogParams &&
-      <PlaceBid 
-        {...dialogParams}
-        onClose={closeDialog}
-        onSubmit={game.placeBid}
-      />
-    }
+      }
     </div>
   );
 }

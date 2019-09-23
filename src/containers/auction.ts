@@ -10,14 +10,14 @@ function useAuction(team: Team) {
   const context = useWeb3Context();
   const game = GameContainer.useContainer();
 
-  const auctionAddress = Team[team] === Team[Team.red]
-    ? game.redAuctionAddress
-    : game.blueAuctionAddress;
+  const auctionAddress = game.getTeamAuctionAddress(team);
+  const gameLeadingBid = game.getTeamLeadingBid(team);
 
-  const [autionInstance, setAuctionInstance] = useState<AuctionInstance>(null);
+  const [auctionInstance, setAuctionInstance] = useState<AuctionInstance>(null);
   const [leadingBid, setLeadingBid] = useState(null);
   const [startTime, setStartTime] = useState<Date>(null);
   const [endTime, setEndTime] = useState<Date>(null);
+  const [, updateState] = useState(); // Used to force a rerender
 
   useEffect(() => {
     if (auctionAddress) {
@@ -27,13 +27,57 @@ function useAuction(team: Team) {
       auction.functions.getLeadingBid()
         .then(setLeadingBid);
 
-      auction.functions.startTime()
-        .then(startBN => setStartTime(new Date(startBN.toNumber() * 1000)));
-
-      auction.functions.getEndTime()
-        .then((endBN) => !endBN.isZero() && setEndTime(new Date(endBN.toNumber() * 1000)));
+      getStartTime(auction);
+      getEndTime(auction);
     }
   }, [auctionAddress]);
+
+  useEffect(() => {
+    let timer: number = null;
+    if (startTime) {
+      timer = setTimeout(
+        () => updateState({}),
+        startTime.getTime() - Date.now()
+      );
+    }
+    return () => clearTimeout(timer);
+  }, [startTime]);
+
+  useEffect(() => {
+    let timer: number = null;
+    if (endTime) {
+      timer = setTimeout(
+        () => updateState({}),
+        endTime.getTime() - Date.now()
+      );
+    }
+    return () => clearTimeout(timer);
+  }, [endTime]);
+
+  const getStartTime = (auction: AuctionInstance) => {
+    auction.functions.startTime()
+        .then(startBN => setStartTime(new Date(startBN.toNumber() * 1000)));
+  }
+
+  const getEndTime = (auction: AuctionInstance) => {
+    auction.functions.getEndTime()
+        .then((endBN) => {
+          !endBN.isZero() && setEndTime(new Date(endBN.toNumber() * 1000))
+        });
+  }
+
+  useEffect(() => {
+    console.log('useAuction, leading bid');
+    setLeadingBid(gameLeadingBid);
+
+    if (!startTime && auctionInstance) {
+      getStartTime(auctionInstance);
+    }
+
+    if (!endTime && auctionInstance) {
+      getEndTime(auctionInstance);
+    }
+  }, [gameLeadingBid]);
 
   return {
     auctionAddress,

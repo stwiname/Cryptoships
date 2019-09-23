@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Team } from '../../lib/contracts';
 import { Typography, Card, CardContent, CardActions, Button, Box } from '@material-ui/core';
 import Countdown from './countdown';
+import { numToBase64 } from '../utils';
 
 type Props = {
   container: any;
@@ -39,6 +40,9 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
                 ? <>
                     <Typography variant='subtitle1'>Leading Bid:&nbsp;</Typography>
                     <Typography variant='h5'>{auction.leadingBid.amount.toString()}</Typography>
+                    <Typography variant='subtitle1'>
+                      {` wei @ ${numToBase64(auction.leadingBid.move[0])}, ${auction.leadingBid.move[1]}`}
+                    </Typography>
                   </>
                 : <Typography variant='subtitle1'>No bids made</Typography>
             }

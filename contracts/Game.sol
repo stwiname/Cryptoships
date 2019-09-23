@@ -6,6 +6,7 @@ contract Game {
 
   event HighestBidPlaced(Team team, address bidder, uint amount, uint8[2] move, uint256 endTime);
   event MoveConfirmed(Team team, bool hit, uint8[2] move);
+  event AuctionCreated(Team team, address auctionAddress);
 
   enum Team {
     RED,
@@ -143,33 +144,33 @@ contract Game {
   }
 
   function getCurrentAuction(Team team) public view returns(Auction) {
+    uint count = getAuctionsCount(team);
+    require(count > 0, "No auction exists for this team");
+
     uint teamId = uint(team);
 
-    require(auctionsCount[teamId] > 0, "No auction exists for this team");
-
-    return auctions[teamId][auctionsCount[teamId] - 1];
+    return auctions[teamId][count - 1];
   }
 
-  function getAllAuctionResults(Team team) public view returns (uint8[2][] memory, Auction.Result[] memory) {
+  function getAuctionsCount(Team team) public view returns(uint) {
     uint teamId = uint(team);
-    uint count = auctionsCount[teamId];
 
-    uint8[2][] memory moves;
-    Auction.Result[] memory results;
+    return auctionsCount[teamId];
+  }
 
-    for (uint i = 0; i < count; i++) {
-      moves[i] = auctions[teamId][i].getLeadingMove();
-      results[i] = auctions[teamId][i].result();
-    }
+  function getAuctionByIndex(Team team, uint index) public view returns(Auction) {
+    uint teamId = uint(team);
 
-    return (moves, results);
+    return auctions[teamId][index];
   }
 
   function createAuction(Team team, uint256 startTime) private returns(Auction) {
     uint teamId = uint(team);
 
     auctionsCount[teamId] ++;
-    return auctions[teamId][auctionsCount[teamId]-1] = new Auction(startTime, auctionDuration);
+    Auction auction = auctions[teamId][auctionsCount[teamId]-1] = new Auction(startTime, auctionDuration);
+    emit AuctionCreated(team, address(auction));
+    return auction;
   }
 
   function otherTeam(Team team) public pure returns(Team) {

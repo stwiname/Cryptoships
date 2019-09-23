@@ -2,6 +2,7 @@ import { GameContract, GameInstance } from '../types/truffle-contracts';
 import Oracle from '../lib/oracle';
 import State from '../lib/state';
 import { Team } from '../lib/contracts';
+import * as ethers from 'ethers';
 const Game: GameContract = artifacts.require('Game');
 const Auction = artifacts.require('Auction');
 const { advanceTimeAndBlock, assertEvent, assertAuctionBid } = require('./util');
@@ -89,6 +90,17 @@ contract('Game', accounts => {
         .catch((e: Error) => expect(e).not.to.be.null);
     });
 
+    it('should be able to get the end time after a bid has been placed', async () => {
+      await instance.placeBid(Team.red, [0, 0], { from: accounts[1], value: '1'});
+
+      const auctionAddress = await instance.getCurrentAuction(Team.red);
+      const auction = await Auction.at(auctionAddress);
+      const endTime = await auction.getEndTime();
+
+      expect(!endTime.isZero());
+      expect(endTime.toNumber() * 1000).to.be.gt(Date.now());
+    });
+
     it('should be able to make a move and emit an event', async () => {
       const result = await instance.placeBid(Team.red, [0, 0], { from: accounts[1], value: '1'});
 
@@ -147,6 +159,15 @@ contract('Game', accounts => {
       await instance.placeBid(Team.red, [0, 0], { from: accounts[1], value: '1'})
         .catch((e: Error) => expect(e).not.to.be.null);
     });
+
+    it('should be able to get the number of auctions and get one of them', async () => {
+      const count = await instance.getAuctionsCount(Team.red);
+
+
+      const auction = await instance.getAuctionByIndex(Team.red, count.toNumber() - 1);
+
+      expect(auction).not.to.be.null;
+    })
   });
 
   describe('game with oracle', () => {
@@ -159,7 +180,8 @@ contract('Game', accounts => {
         [Team.red]: [[ false, false ], [ false, false ]],
         [Team.blue]: [[ false, false ], [ false, false ]]
       });
-      oracle = Oracle.create(web3, instance.address, oracleAccount, state);
+      const provider = new ethers.providers.Web3Provider(web3.currentProvider)
+      oracle = Oracle.create(provider, instance.address, state);
     });
 
     it('should have the oracle call "confirmMove"', async () => {

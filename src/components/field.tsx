@@ -14,6 +14,7 @@ import theme from '../theme';
 import FieldItem from './fieldItem';
 import { Game } from '../containers';
 import { Team, AuctionResult } from '../../lib/contracts';
+import { numToBase64 } from '../utils';
 
 type Props = {
   team: Team;
@@ -33,11 +34,11 @@ const Field: React.FunctionComponent<Props> = (props) => {
       }
     };
 
-    const auctionResults = Team[props.team] === Team[Team.red]
-      ? game.redAuctionResults
-      : game.blueAuctionResults;
+    const auctionResults = game.getTeamAuctionResults(props.team);
+    const leadingBid = game.getTeamLeadingBid(props.team);
     const { result } = find(m => m.move[0] === x && m.move[1] === y, auctionResults)
-     || { result: AuctionResult.unset };
+      || leadingBid && leadingBid.move[0] === x && leadingBid.move[1] === y && { result: null }
+      || { result: AuctionResult.unset };
 
     return (
       <TableCell
@@ -53,16 +54,7 @@ const Field: React.FunctionComponent<Props> = (props) => {
     );
   }
 
-  const numToSSColumn = (num: number): string => {
-    let s = '', t;
-
-    while (num > 0) {
-      t = (num - 1) % 26;
-      s = String.fromCharCode(65 + t) + s;
-      num = (num - t)/26 | 0;
-    }
-    return s || undefined;
-  }
+  
 
   const renderRow = (n: number[], y: number) => {
     return (
@@ -95,7 +87,7 @@ const Field: React.FunctionComponent<Props> = (props) => {
               ></TableCell>
             }
             {
-              n.map(v => <TableCell key={v} align='center' padding='none'>{numToSSColumn(v)}</TableCell>)
+              n.map(v => <TableCell key={v} align='center' padding='none'>{numToBase64(v)}</TableCell>)
             }
             { props.trailingVHeader && 
               <TableCell

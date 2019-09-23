@@ -36,7 +36,8 @@
     "redux-saga": "^1.0.5",
     "unstated-next": "^1.1.0",
     "web3": "^1.2.1",
-    "web3-react": "^5.0.4"
+    "web3-react": "^5.0.4",
+    "yargs": "^14.0.0"
   },
   "devDependencies": {
     "@types/ramda": "^0.26.21",
@@ -44,6 +45,7 @@
     "@types/react-dom": "^16.9.0",
     "@types/react-router-dom": "^4.3.5",
     "@types/web3": "^1.0.19",
+    "@types/yargs": "^13.0.2",
     "concurrently": "^4.1.2",
     "eth-gas-reporter": "^0.2.11",
     "react": "^16.9.0",

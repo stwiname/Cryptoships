@@ -1,59 +1,49 @@
 import Web3 from 'web3';
-import { Game } from '../types/web3-contracts/Game';
-import { Auction } from '../types/web3-contracts/Auction';
 import { Team, AuctionResult } from './contracts';
 import moment from 'moment';
+import { range } from 'ramda';
+import { utils, Signer } from 'ethers';
+import { Provider } from 'ethers/providers';
 import State from './state';
 const { abi: gameAbi } = require('../build/contracts/Game.json');
 const { abi: auctionAbi } = require('../build/contracts/Auction.json');
 
-const ORACLE_ACCOUNT = '0x57c75395a513a3462b3e22b6d49b1ff2bc9da8d1';
-
-const web3 = new Web3('ws://localhost:9545');
+import { GameFactory } from '../types/ethers-contracts/GameFactory';
+import { Game } from '../types/ethers-contracts/Game';
+import { AuctionFactory } from '../types/ethers-contracts/AuctionFactory';
+import { Auction } from '../types/ethers-contracts/Auction';
 
 export default class Oracle {
 
   private timeouts: Partial<Record<Team, NodeJS.Timeout>> = {};
 
   public static create(
-    web3: Web3,
+    signerOrProvider: Signer | Provider,
     contractAddress: string,
-    oracleAddress: string,
     state: State,
   ) {
 
     return new Oracle(
-      web3,
-      new web3.eth.Contract(gameAbi, contractAddress) as Game,
-      oracleAddress,
+      GameFactory.connect(contractAddress, signerOrProvider),
       state
     );
   }
 
   constructor(
-    private web3: Web3,
     private instance: Game,
-    private oracleAddress: string,
     private state: State
   ) {
+    console.log(`Running oracle for game at ${instance.address}`)
     this.setup()
       .then(() => console.log('Setup success'))
       .catch(e => console.log('Setup failed', e));
 
+    instance.on('HighestBidPlaced', (team: Team, bidder: string, amount: utils.BigNumber, move: [number, number], endTime: utils.BigNumber) => {
+      console.log("HigestBidPlaced");
 
-    instance.events.HighestBidPlaced({}, (error, event) => {
-      if (error) {
-        console.log('HigestBidPlaced error', error);
-        return;
-      }
-
-      console.log("HigestBidPlaced"/*, event.returnValues*/);
-
-      // Bad ts definition for numbers
-      const { team, endTime }: { team: unknown, endTime: unknown} = event.returnValues;
-
-      this.handleBidPlaced(team as number, endTime as number * 1000);
+      this.handleBidPlaced(team, endTime.toNumber() * 1000);
     });
+
   }
 
   private async setup() {
@@ -63,11 +53,22 @@ export default class Oracle {
 
   private async setupForTeam(team: Team) {
 
-    const { 0: moves, 1: results }: { 0: unknown[][], 1: unknown[]} = await this.instance.methods.getAllAuctionResults(team).call();
+    const auctionsCount = await this.instance.functions.getAuctionsCount(team);
 
-    const auctionResults = moves.map((move, index) => (
-      { move: move as number[], result: results[index] as AuctionResult }
-    ));
+    const auctionAddresses = await Promise.all(
+      range(0, auctionsCount.toNumber()).map(n => this.instance.functions.getAuctionByIndex(team, n))
+    );
+
+    const auctionResults = await Promise.all(auctionAddresses.map( async (address) => {
+      const auction = this.getAuctionAtAddress(address);
+
+      const [move, result] = await Promise.all([
+        auction.functions.getLeadingMove(),
+        auction.functions.result()
+      ]);
+
+      return { move, result: result as AuctionResult };
+    }));
 
     this.state.setMovesMade(team, auctionResults);
 
@@ -82,8 +83,16 @@ export default class Oracle {
       this.confirmMove(auction, team);
     }
     else {
-      const endTime: unknown = await auction.methods.getEndTime().call();
-      await this.createPendingConfirmation(team, auction, endTime as number * 1000);
+      const endTime = await auction.functions.getEndTime();
+      console.log('END TIME', endTime.toString(), endTime.toNumber());
+      if (endTime.isZero()) {// Auction not yet started
+        console.log(
+          `Running auction (${auction.address})for team ${Team[team]} has not yet got an end time`,
+          await auction.functions.hasEnded(),
+        );
+        return;
+      }
+      await this.createPendingConfirmation(team, auction, endTime.toNumber() * 1000);
     }
   }
 
@@ -96,9 +105,9 @@ export default class Oracle {
     const otherAuction = await this.getCurrentAuctionForTeam(otherTeam)
       .catch(e => null); // Swallow error, auction wont exist yet
 
-    if (!otherAuction || await otherAuction.methods.hasEnded().call()) {
-      console.log(`Starting auction for other team (${Team[otherTeam]})`, await this.instance.methods.startAuction(otherTeam).estimateGas());
-      await this.instance.methods.startAuction(otherTeam).send({ from: this.oracleAddress, gas: 1000000 })
+    if (!otherAuction || await otherAuction.functions.hasEnded()) {
+      console.log(`Starting auction for other team (${Team[otherTeam]})`, (await this.instance.estimate.startAuction(otherTeam)));
+      await this.instance.functions.startAuction(otherTeam)
         .catch((e) => {
           console.log('Failed to start auction for other team', e);
           throw e;
@@ -126,27 +135,31 @@ export default class Oracle {
 
 
   private async confirmMove(auction: Auction, team: Team) {
-    if (!await auction.methods.hasEnded().call()) {
-      // const endTime: unknown = await auction.methods.getEndTime().call();
-      console.log(`Auction has not yet ended for ${Team[team]} team, cannot confirm`);
-      // This should retry again
-      return;
-    }
+
+    // For some reason this is thinking it hasn't ended
+
+    // if (!await auction.functions.hasEnded()) {
+    //   const endTime = await auction.functions.getEndTime();
+    //   console.log('END TIME', endTime.toNumber(), Date.now()/1000);
+    //   console.log(`Auction has not yet ended for ${Team[team]} team, cannot confirm`);
+    //   // TODO need to limit recursion
+    //   // this.createPendingConfirmation(team, auction, endTime.toNumber() * 1000);
+    //   return;
+    // }
 
     // Check if hit or miss
-    const leadingMove: unknown[] = await auction.methods.getLeadingMove().call();
+    const leadingMove = await auction.functions.getLeadingMove();
 
     const hit = this.state.setMoveMade(
       team,
-      leadingMove[0] as number,
-      leadingMove[1] as number
+      leadingMove[0],
+      leadingMove[1]
     );
 
     // TODO check if game is won
 
     // Set move on game and possibly start next auction
-    await this.instance.methods.confirmMove(team, hit)
-      .send({ from: this.oracleAddress })
+    await this.instance.functions.confirmMove(team, hit)
       .catch(e => {
         console.log('Failed to confirm move', e);
         throw e;
@@ -156,17 +169,17 @@ export default class Oracle {
   }
 
   private getAuctionAtAddress(address: string) {
-    return new this.web3.eth.Contract(auctionAbi, address) as Auction;
+    return AuctionFactory.connect(address, this.instance.signer || this.instance.provider);
   }
 
   private async getCurrentAuctionForTeam(team: Team): Promise<Auction> {
-    const auctionAddress = await this.instance.methods.getCurrentAuction(team).call();
+    const auctionAddress = await this.instance.functions.getCurrentAuction(team);
     return this.getAuctionAtAddress(auctionAddress);
   }
 
   private async auctionNeedsToHaveMovedConfirmed(auction: Auction): Promise<boolean> {
-    return await auction.methods.hasEnded().call() &&
-          (await auction.methods.result().call()).toNumber() === AuctionResult.unset
+    return await auction.functions.hasEnded() &&
+          (await auction.functions.result()) === AuctionResult.unset
   }
 
   private otherTeam(team: Team): Team {
