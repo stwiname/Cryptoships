@@ -65,7 +65,7 @@ async function getOrInitGame(signer: ethers.Signer) {
     'test',
     argv.fieldSize,
     sum(SHIPS),
-    300, // 300s, 5min
+    60, // 300s, 5min
     Team.red
   );
 

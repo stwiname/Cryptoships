@@ -1,7 +1,7 @@
-
 import { useRef, useEffect } from 'react';
+import { Contract } from 'ethers';
 
-const useEventListener = (eventName: string, handler: (...args: any[]) => void, element: any) => {
+const useEventListener = (eventName: string, handler: (...args: any[]) => void, element: Contract) => {
   const savedHandler = useRef<typeof handler>();
 
   useEffect(() => {
@@ -10,13 +10,13 @@ const useEventListener = (eventName: string, handler: (...args: any[]) => void, 
 
   useEffect(
     () => {
-      const isSupported = element && element.addEventListener;
+      const isSupported = element && element.addListener;
       if (!isSupported) return;
 
       const eventListener = (...args: any[]) => savedHandler.current(...args);
-      element.addEventListener(eventName, eventListener);
+      element.addListener(eventName, eventListener);
       return () => {
-        element.removeEventListener(eventName, eventListener);
+        element.removeListener(eventName, eventListener);
       };
     },
     [eventName, element]

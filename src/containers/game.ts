@@ -6,7 +6,7 @@ import { AuctionFactory } from '../../types/ethers-contracts/AuctionFactory';
 import { Game as GameInstance } from '../../types/ethers-contracts/Game';
 import { Team, AuctionResult } from '../../lib/contracts';
 import { utils } from 'ethers';
-import { range } from 'ramda';
+import { range, append, uniqBy } from 'ramda';
 import useEventListener from '../hooks/useEventListener';
 
 type AuctionMove = {
@@ -72,54 +72,27 @@ function useGame(contractAddress: string) {
       .catch(e => console.log('Failed to get auction results for blue team', e));
 
     // TODO get leading bid for each team
-
-    game.on('HighestBidPlaced', (team: Team, bidder: string, amount: utils.BigNumber, move: [number, number], endTime: utils.BigNumber) => {
-      console.log('Highest bid placed', Team[team]);
-      const setLeadingBid = Team[team] === Team[Team.red] ? setRedLeadingBid : setBlueLeadingBid;
-      setLeadingBid({ bidder, amount, move });
-    });
-
-    game.on('MoveConfirmed', (team: Team, hit: boolean, move: [number, number]) => {
-      const setAuctionResults = Team[team] === Team[Team.red] ? setRedAuctionResults : setBlueAuctionResults;
-      const auctionResults = getTeamAuctionResults(team);
-      console.log('Move confirmed', auctionResults, redAuctionResults, { move, result: hit ? AuctionResult.hit : AuctionResult.miss });
-
-      // Why is auction results always empty?
-      setAuctionResults([...auctionResults, { move, result: hit ? AuctionResult.hit : AuctionResult.miss }]);
-    });
-
-    game.on('AuctionCreated', (team: Team, newAuctionAddress: string) => {
-      const setAuctionAddress = Team[team] === Team[Team.red] ? setRedAuctionAddress : setBlueAuctionAddress;
-      console.log(`Auction created ${Team[team]} ${newAuctionAddress}`);
-      setAuctionAddress(newAuctionAddress);
-    });
-
-    return () => {
-      game.removeAllListeners('HighestBidPlaced');
-      game.removeAllListeners('MoveConfimed');
-      game.removeAllListeners('AuctionCreated');
-    }
   }, [contractAddress]);
 
-  // useEventListener('HighestBidPlaced', (team: Team, bidder: string, amount: utils.BigNumber, move: [number, number], endTime: utils.BigNumber) => {
-  //   console.log('Highest bid placed', Team[team]);
-  //   const setLeadingBid = Team[team] === Team[Team.red] ? setRedLeadingBid : setBlueLeadingBid;
-  //   setLeadingBid({ bidder, amount, move });
-  // }, gameInstance);
+  useEventListener('HighestBidPlaced', (team: Team, bidder: string, amount: utils.BigNumber, move: [number, number], endTime: utils.BigNumber) => {
+    console.log('Highest bid placed', Team[team]);
+    const setLeadingBid = Team[team] === Team[Team.red] ? setRedLeadingBid : setBlueLeadingBid;
+    setLeadingBid({ bidder, amount, move });
+  }, gameInstance);
 
-  // useEventListener('MoveConfirmed', (team: Team, hit: boolean, move: [number, number]) => {
-  //   const setAuctionResults = Team[team] === Team[Team.red] ? setRedAuctionResults : setBlueAuctionResults;
-  //   const auctionResults = getTeamAuctionResults(team);
-  //   console.log('Move confirmed', auctionResults, redAuctionResults, { move, result: hit ? AuctionResult.hit : AuctionResult.miss });
+  useEventListener('MoveConfirmed', (team: Team, hit: boolean, move: [number, number]) => {
+    const setAuctionResults = Team[team] === Team[Team.red] ? setRedAuctionResults : setBlueAuctionResults;
+    const auctionResults = getTeamAuctionResults(team);
+    const auctionMove: AuctionMove = { move, result: hit ? AuctionResult.hit : AuctionResult.miss };
+    console.log('Move confirmed', auctionMove);
+    setAuctionResults(uniqBy((a) => a.move, append(auctionMove, auctionResults)));
+  }, gameInstance);
 
-  //   // setAuctionResults([...auctionResults, { move, result: hit ? AuctionResult.hit : AuctionResult.miss }]);
-  // }, gameInstance);
-
-  // useEventListener('AuctionCreated', (team: Team, newAuctionAddress: string) => {
-  //   const setAuctionAddress = Team[team] === Team[Team.red] ? setRedAuctionAddress : setBlueAuctionAddress;
-  //   console.log(`Auction created ${Team[team]} ${newAuctionAddress}`);
-  //   setAuctionAddress(newAuctionAddress);
-  // }, gameInstance);
+  useEventListener('AuctionCreated', (team: Team, newAuctionAddress: string) => {
+    const setAuctionAddress = Team[team] === Team[Team.red] ? setRedAuctionAddress : setBlueAuctionAddress;
+    console.log(`Auction created ${Team[team]} ${newAuctionAddress}`);
+    setAuctionAddress(newAuctionAddress);
+  }, gameInstance);
 
   const getAllResultsForTeam = async (game: GameInstance, team: Team): Promise<AuctionMove[]> => {
     const auctionsCount = await game.functions.getAuctionsCount(team);
@@ -148,6 +121,8 @@ function useGame(contractAddress: string) {
 
     console.log('Place bid', position, value.toNumber());
     return gameInstance.functions.placeBid(team, [position.x, position.y], { value });
+
+    // TODO set leading bid
   }
 
   const getTeamAuctionAddress = (team: Team) => Team[team] === Team[Team.red]
