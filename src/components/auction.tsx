@@ -63,7 +63,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
   }
 
   const renderFinished = () => {
-    return <Typography variant='subtitle1'>Auction has finished</Typography>;
+    return <Typography variant='subtitle1'>Auction has finished, waiting for other team to make a move</Typography>;
   }
 
   return <Card>

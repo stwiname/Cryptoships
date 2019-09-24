@@ -62,7 +62,7 @@ function useAuction(team: Team) {
   const getEndTime = (auction: AuctionInstance) => {
     auction.functions.getEndTime()
         .then((endBN) => {
-          !endBN.isZero() && setEndTime(new Date(endBN.toNumber() * 1000))
+          setEndTime(endBN.isZero() ? null : new Date(endBN.toNumber() * 1000))
         });
   }
 
