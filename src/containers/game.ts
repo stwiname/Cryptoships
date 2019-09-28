@@ -55,13 +55,16 @@ function useGame(contractAddress: string) {
     setGameInstance(game);
 
     game.functions.fieldSize()
-      .then(sizeBN => setFieldSize(sizeBN.toNumber()));
+      .then(sizeBN => setFieldSize(sizeBN.toNumber()))
+      .catch(e => console.log('Failed to get field size', e));
 
     game.functions.getCurrentAuction(Team.red)
-      .then(setRedAuctionAddress);
+      .then(setRedAuctionAddress)
+      .catch(e => console.log(`Failed to get auction for red team`));
 
     game.functions.getCurrentAuction(Team.blue)
-      .then(setBlueAuctionAddress);
+      .then(setBlueAuctionAddress)
+      .catch(e => console.log(`Failed to get auction for blue team`));
 
     getAllResultsForTeam(game, Team.red)
       .then(setRedAuctionResults)

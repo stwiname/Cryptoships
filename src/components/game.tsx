@@ -25,52 +25,57 @@ const Game: React.FunctionComponent<Props> = (props) => {
   const closeDialog = () => setDialogParams(null);
 
   return (
-    <div>
-      <Typography variant='h4'>GAME</Typography>
-      <Grid
-        container
-        direction='row'
-        spacing={2}
-        justify='center'
-      >
-        <Grid key='red' item xs={6}>
-          <RedAuctionContainer.Provider initialState={Team.red}>
+    <RedAuctionContainer.Provider initialState={Team.red}>
+      <BlueAuctionContainer.Provider initialState={Team.blue}>
+        <Typography variant='h4'>GAME</Typography>
+        <Grid
+          container
+          direction='row'
+          spacing={2}
+          justify='center'
+        >
+          <Grid key='red' item xs={6}>
             <Auction container={RedAuctionContainer}/>
-          </RedAuctionContainer.Provider>
-        </Grid>
-        <Grid key='blue' item xs={6}>
-          <BlueAuctionContainer.Provider initialState={Team.blue}>
+          </Grid>
+          <Grid key='blue' item xs={6}>
             <Auction container={BlueAuctionContainer}/>
-          </BlueAuctionContainer.Provider>
+          </Grid>
         </Grid>
-      </Grid>
-      <Grid
-        container
-        direction='row'
-        spacing={2}
-        justify='center'
-      >
-        <Grid key='red' item xs={6}>
-          <Field
-            team={Team.red}
-            onItemPress={handleGridPress(Team.red)}
+        <Grid
+          container
+          direction='row'
+          spacing={2}
+          justify='center'
+        >
+          <Grid key='red' item xs={6}>
+            <Field
+              team={Team.red}
+              onItemPress={handleGridPress(Team.red)}
+              container={RedAuctionContainer}
+            />
+          </Grid>
+          <Grid key='blue' item xs={6}>
+            <Field
+              team={Team.blue}
+              trailingVHeader
+              onItemPress={handleGridPress(Team.blue)}
+              container={BlueAuctionContainer}
+            />
+          </Grid>
+        </Grid>
+        { dialogParams &&
+          <PlaceBid
+            {...dialogParams}
+            auctionContainer={
+              Team[dialogParams.team] === Team[Team.red]
+                ? RedAuctionContainer
+                : BlueAuctionContainer
+              }
+            onClose={closeDialog}
           />
-        </Grid>
-        <Grid key='blue' item xs={6}>
-          <Field
-            team={Team.blue}
-            trailingVHeader
-            onItemPress={handleGridPress(Team.blue)}
-          />
-        </Grid>
-      </Grid>
-      { dialogParams &&
-        <PlaceBid 
-          {...dialogParams}
-          onClose={closeDialog}
-        />
-      }
-    </div>
+        }
+      </BlueAuctionContainer.Provider>
+    </RedAuctionContainer.Provider>
   );
 }
 

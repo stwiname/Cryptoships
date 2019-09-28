@@ -14,17 +14,18 @@ import theme from '../theme';
 import FieldItem from './fieldItem';
 import { Game } from '../containers';
 import { Team, AuctionResult } from '../../lib/contracts';
-import { numToBase64 } from '../utils';
+import { numToBase64, movesEqual } from '../utils';
 
 type Props = {
   team: Team;
+  container: any;
   trailingVHeader?: boolean;
   onItemPress?: (x: number, y: number) => void;
 } & WithStyles<typeof styles>;
 
 const Field: React.FunctionComponent<Props> = (props) => {
-
   const game = Game.useContainer();
+  const auction = props.container.useContainer();
   const n = range(1, game.fieldSize + 1);
 
   const renderCell = (x: number, y: number) => {
@@ -35,9 +36,9 @@ const Field: React.FunctionComponent<Props> = (props) => {
     };
 
     const auctionResults = game.getTeamAuctionResults(props.team);
-    const leadingBid = game.getTeamLeadingBid(props.team);
-    const { result } = find(m => m.move[0] === x && m.move[1] === y, auctionResults)
-      || leadingBid && leadingBid.move[0] === x && leadingBid.move[1] === y && { result: null }
+    const { result } =
+      !! auction.leadingBid && movesEqual(auction.leadingBid.move, [x, y]) && !auction.hasEnded() && { result: null }
+      || find(m => movesEqual(m.move, [x, y]), auctionResults)
       || { result: AuctionResult.unset };
 
     return (
@@ -53,8 +54,6 @@ const Field: React.FunctionComponent<Props> = (props) => {
       </TableCell>
     );
   }
-
-  
 
   const renderRow = (n: number[], y: number) => {
     return (

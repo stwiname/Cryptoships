@@ -126,7 +126,7 @@ export default class Oracle {
 
     console.log(`Creating pending confirmation for ${Team[team]} team`);
     this.timeouts[team] = setTimeout(() => {
-      console.log(`Confirming move for ${Team[team]} team`, Date.now(), endTime);
+      console.log(`Confirming move for ${Team[team]} team, now: ${Date.now()}, endTime: ${endTime}`);
       this.confirmMove(auction, team);
 
       delete this.timeouts[team];

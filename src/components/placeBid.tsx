@@ -24,17 +24,19 @@ type Position = {
 export type Props = {
   team: Team;
   position: Position;
+  auctionContainer: any;
   onClose: () => void;
 }
 
-const PlaceBid: React.FunctionComponent<Props> = ({ onClose, team, position }) => {
+const PlaceBid: React.FunctionComponent<Props> = ({ onClose, team, position, auctionContainer }) => {
   const game = Container.useContainer();
+  const auction = auctionContainer.useContainer();
   const classes = useStyles();
   // const gameLeadingBid = Team[team] === Team[Team.red]
   //   ? game.redLeadingBid
   //   : game.blueLeadingBid;
   // console.log("YOYO", gameLeadingBid, game.redLeadingBid, game.blueLeadingBid, team);
-  const [amount, setAmount] = React.useState<string>((/*gameLeadingBid.amount.toString() ||*/ '0').toString());
+  const [amount, setAmount] = React.useState<string>((auction.leadingBid.amount.toString() || '0').toString());
   const [loading, setLoading] = React.useState(false);
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {

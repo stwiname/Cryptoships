@@ -29,8 +29,8 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
   }
 
   const renderRunning = () => {
-    if (!auction.endTime && auction.startTime && Date.now() > auction.startTime.getTime() ||
-        !!auction.endTime && Date.now() < auction.endTime.getTime()
+    if (!auction.endTime && auction.hasStarted() ||
+        !auction.hasEnded()
     ) {
       return (
         <Box>

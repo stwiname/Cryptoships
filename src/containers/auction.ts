@@ -25,6 +25,10 @@ function useAuction(team: Team) {
       setAuctionInstance(auction);
 
       auction.functions.getLeadingBid()
+        .then(b => {
+          console.log('leading bid',b);
+          return { bidder: b.bidder, amount: b.amount, move: b.move };
+        })
         .then(setLeadingBid);
 
       getStartTime(auction);
@@ -66,8 +70,11 @@ function useAuction(team: Team) {
         });
   }
 
+  const hasStarted = () => startTime && Date.now() > startTime.getTime();
+  const hasEnded = () => endTime && Date.now() > endTime.getTime();
+
   useEffect(() => {
-    console.log('useAuction, leading bid');
+    console.log('useAuction, leading bid', gameLeadingBid);
     setLeadingBid(gameLeadingBid);
 
     if (!startTime && auctionInstance) {
@@ -85,6 +92,8 @@ function useAuction(team: Team) {
     leadingBid,
     startTime,
     endTime,
+    hasStarted,
+    hasEnded,
   }
 }
 
