@@ -1,7 +1,7 @@
 import { BattleField } from './contracts';
 
 // TODO generate ships for any size
-const SHIPS = [5, 4, 3, 3, 2]; // Works for 10x10
+export const SHIPS = [5, 4, 3, 3, 2]; // Works for 10x10
 
 export function generateBattlefield(size: number = 10, ships = SHIPS): BattleField {
 
@@ -69,6 +69,7 @@ export function generateEmptyField<T = boolean>(
 
 
 // const bf = generateBattlefield();
+// console.log(bf);
 
 // bf.map(row => console.log(row.map(x => x ? 'x' : 'o')));
 

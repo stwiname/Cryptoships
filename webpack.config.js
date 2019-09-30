@@ -14,7 +14,8 @@ module.exports = {
   // Where to compile the bundle
   // By default the output directory is `dist`
   output: {
-    filename: "bundle.js"
+    filename: "bundle.js",
+    publicPath: '/'
   },
 
   // Supported file loaders
@@ -33,5 +34,15 @@ module.exports = {
   // File extensions to support resolving
   resolve: {
     extensions: [".ts", ".tsx", ".js"]
+  },
+
+  externals: {
+    react: 'React',
+    'react-dom': 'ReactDOM',
+    'ethers': 'ethers',
+  },
+
+  devServer: {
+    historyApiFallback: true,
   }
 };
