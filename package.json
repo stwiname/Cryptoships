@@ -37,6 +37,7 @@
     "unstated-next": "^1.1.0",
     "web3": "^1.2.1",
     "web3-react": "^5.0.4",
+    "winston": "^3.2.1",
     "yargs": "^14.0.0"
   },
   "devDependencies": {
