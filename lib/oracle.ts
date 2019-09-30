@@ -155,7 +155,7 @@ export default class Oracle {
   }
 
 
-  private async confirmMove(auction: Auction, team: Team) {
+  private async confirmMove(auction: Auction, team: Team, retries = 1) {
 
     // For some reason this is thinking it hasn't ended
 
@@ -181,8 +181,18 @@ export default class Oracle {
 
     // Set move on game and possibly start next auction
     await this.instance.functions.confirmMove(team, hit)
-      .catch(e => {
-        logger.error('Failed to confirm move', e);
+      .catch(async e => {
+        // TODO try to filter by e.message === 'Failed to confirm move', needs testing on mainnet
+        if (retries > 0) {
+          // Wait 10% of auction time to try again
+          const time = (await this.instance.functions.auctionDuration()).toNumber() * 100 /* 1000 / 10 */
+          await new Promise(resolve => {
+            setTimeout(resolve, time);
+          });
+
+          return this.confirmMove(auction, team, retries - 1);
+        }
+        logger.error('Failed to confirm move', e.message, e);
         throw e;
       });
 
