@@ -24,6 +24,19 @@ const Game: React.FunctionComponent<Props> = (props) => {
 
   const closeDialog = () => setDialogParams(null);
 
+  const renderTeam = (team: Team, container: any) => {
+    return (
+      <Grid key={team} item xs={6}>
+        <Auction container={container}/>
+        <Field
+          team={team}
+          onItemPress={handleGridPress(team)}
+          container={container}
+        />
+      </Grid>
+    );
+  }
+
   return (
     <RedAuctionContainer.Provider initialState={Team.red}>
       <BlueAuctionContainer.Provider initialState={Team.blue}>
@@ -34,34 +47,8 @@ const Game: React.FunctionComponent<Props> = (props) => {
           spacing={2}
           justify='center'
         >
-          <Grid key='red' item xs={6}>
-            <Auction container={RedAuctionContainer}/>
-          </Grid>
-          <Grid key='blue' item xs={6}>
-            <Auction container={BlueAuctionContainer}/>
-          </Grid>
-        </Grid>
-        <Grid
-          container
-          direction='row'
-          spacing={2}
-          justify='center'
-        >
-          <Grid key='red' item xs={6}>
-            <Field
-              team={Team.red}
-              onItemPress={handleGridPress(Team.red)}
-              container={RedAuctionContainer}
-            />
-          </Grid>
-          <Grid key='blue' item xs={6}>
-            <Field
-              team={Team.blue}
-              trailingVHeader
-              onItemPress={handleGridPress(Team.blue)}
-              container={BlueAuctionContainer}
-            />
-          </Grid>
+          { renderTeam(Team.red, RedAuctionContainer) }
+          { renderTeam(Team.blue, BlueAuctionContainer) }
         </Grid>
         { dialogParams &&
           <PlaceBid

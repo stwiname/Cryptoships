@@ -29,17 +29,17 @@ const Field: React.FunctionComponent<Props> = (props) => {
   const n = range(1, game.fieldSize + 1);
 
   const renderCell = (x: number, y: number) => {
-    const handlePress = () => {
-      if (props.onItemPress) {
-        props.onItemPress(x, y)
-      }
-    };
-
     const auctionResults = game.getTeamAuctionResults(props.team);
     const { result } =
       !! auction.leadingBid && movesEqual(auction.leadingBid.move, [x, y]) && !auction.hasEnded() && { result: null }
       || find(m => movesEqual(m.move, [x, y]), auctionResults)
       || { result: AuctionResult.unset };
+
+    const handlePress = () => {
+      if (props.onItemPress) {
+        props.onItemPress(x, y)
+      }
+    };
 
     return (
       <TableCell
