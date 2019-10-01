@@ -4,10 +4,4 @@ import Field from './field';
 import FieldItem from './fieldItem';
 import PlaceBid from './placeBid';
 
-export {
-  Auction,
-  Countdown,
-  Field,
-  FieldItem,
-  PlaceBid,
-};
+export { Auction, Countdown, Field, FieldItem, PlaceBid };

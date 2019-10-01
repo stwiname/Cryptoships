@@ -19,7 +19,11 @@
     "watch-server": "tsc -w -p .",
     "watch-web": "webpack -w",
     "serve": "webpack-dev-server",
-    "start": "node ./scripts/watch-task.js"
+    "start": "node ./scripts/watch-task.js",
+    "lint": "tslint --fix -c tslint.json src/**/*.{ts,tsx} {lib,test}/**/*.ts",
+    "tslint-check": "tslint-config-prettier-check ./tslint.json",
+    "prettier": "prettier --config ./.prettierrc --write '{src,lib,test}/**/*.{ts,tsx}'",
+    "stage": "lint-staged"
   },
   "author": "",
   "license": "ISC",
@@ -49,16 +53,35 @@
     "@types/yargs": "^13.0.2",
     "concurrently": "^4.1.2",
     "eth-gas-reporter": "^0.2.11",
+    "husky": "^3.0.7",
+    "lint-staged": "^9.4.1",
+    "prettier": "^1.18.2",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "truffle": "^5.0.32",
     "truffle-typings": "^1.0.8",
     "ts-loader": "^6.0.4",
     "ts-node": "^8.3.0",
+    "tslint": "^5.20.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-no-unused-expression-chai": "^0.1.4",
+    "tslint-react": "^4.1.0",
     "typechain": "^0.3.20",
     "typescript": "^3.5.3",
     "webpack": "^4.39.3",
     "webpack-cli": "^3.3.8",
     "webpack-dev-server": "^3.8.1"
+  },
+  "lint-staged": {
+    "{src,lib,test}/**/*.{ts,tsx}": [
+      "tslint --fix -c tslint.json",
+      "prettier --config .prettierrc --write",
+      "git add"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
   }
 }

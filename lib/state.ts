@@ -1,19 +1,17 @@
-import {generateBattlefield, generateEmptyField } from './generator';
-import { BattleField, Team, AuctionResult } from './contracts';
+import { AuctionResult, BattleField, Team } from './contracts';
+import { generateBattlefield, generateEmptyField } from './generator';
 
 export default class State {
-
   private battleFields: Record<Team, BattleField>;
   private movesMade: Record<Team, BattleField<AuctionResult>>;
 
   constructor(battleFields?: Record<Team, BattleField>, ships?: number[]) {
-
     this.battleFields = battleFields || {
       [Team.red]: generateBattlefield(),
-      [Team.blue]: generateBattlefield()
+      [Team.blue]: generateBattlefield(),
     };
 
-    const size = this.getSize()
+    const size = this.getSize();
 
     this.movesMade = {
       [Team.red]: generateEmptyField(size, AuctionResult.unset),
@@ -21,7 +19,10 @@ export default class State {
     };
   }
 
-  public setMovesMade(team: Team, auctionResults: { move: number[] , result: AuctionResult }[]) {
+  public setMovesMade(
+    team: Team,
+    auctionResults: Array<{ move: number[]; result: AuctionResult }>
+  ) {
     const field = generateEmptyField(this.getSize(), AuctionResult.unset);
 
     auctionResults.map(result => {

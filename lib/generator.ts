@@ -3,8 +3,10 @@ import { BattleField } from './contracts';
 // TODO generate ships for any size
 export const SHIPS = [5, 4, 3, 3, 2]; // Works for 10x10
 
-export function generateBattlefield(size: number = 10, ships = SHIPS): BattleField {
-
+export function generateBattlefield(
+  size: number = 10,
+  ships = SHIPS
+): BattleField {
   const field: BattleField = generateEmptyField(size, false);
 
   const placeShip = (shipSize: number): void => {
@@ -14,41 +16,47 @@ export function generateBattlefield(size: number = 10, ships = SHIPS): BattleFie
     const y = Math.floor(Math.random() * (size - shipSize + 1));
 
     if (!checkPlace(horizontal, x, y, shipSize)) {
-
       // TODO add a basecase, check that ships take up less than some % of map (20%???)
       return placeShip(shipSize);
     }
 
     return setPlace(horizontal, x, y, shipSize);
-  }
+  };
 
-
-  const checkPlace = (horizontal: boolean, x: number, y: number, shipSize: number): boolean => {
+  const checkPlace = (
+    horizontal: boolean,
+    x: number,
+    y: number,
+    shipSize: number
+  ): boolean => {
     for (let i = 0; i < shipSize; i++) {
       if (horizontal) {
         if (field[x + i][y]) {
           return false;
         }
-      }
-      else {
+      } else {
         if (field[x][y + i]) {
           return false;
         }
       }
     }
     return true;
-  }
+  };
 
-  const setPlace = (horizontal: boolean, x: number, y: number, shipSize: number) => {
+  const setPlace = (
+    horizontal: boolean,
+    x: number,
+    y: number,
+    shipSize: number
+  ) => {
     for (let i = 0; i < shipSize; i++) {
       if (horizontal) {
         field[x + i][y] = true;
-      }
-      else {
+      } else {
         field[x][y + i] = true;
       }
     }
-  }
+  };
 
   ships.map(placeShip);
 
@@ -60,18 +68,14 @@ export function generateEmptyField<T = boolean>(
   fillValue?: T
 ): BattleField<T> {
   const field = new Array(size);
-  for(let i = 0; i < size; i++) {
-    field[i] =  new Array(size).fill(fillValue);
+  for (let i = 0; i < size; i++) {
+    field[i] = new Array(size).fill(fillValue);
   }
 
   return field;
 }
 
-
 // const bf = generateBattlefield();
 // console.log(bf);
 
 // bf.map(row => console.log(row.map(x => x ? 'x' : 'o')));
-
-
-

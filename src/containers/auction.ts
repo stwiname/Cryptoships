@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3Context } from 'web3-react';
 import { Team } from '../../lib/contracts';
-import { AuctionFactory } from '../../types/ethers-contracts/AuctionFactory';
 import { Auction as AuctionInstance } from '../../types/ethers-contracts/Auction';
+import { AuctionFactory } from '../../types/ethers-contracts/AuctionFactory';
 import GameContainer from './game';
 
 function useAuction(team: Team) {
@@ -21,12 +21,16 @@ function useAuction(team: Team) {
 
   useEffect(() => {
     if (auctionAddress) {
-      const auction = AuctionFactory.connect(auctionAddress, context.library.getSigner(context.account));
+      const auction = AuctionFactory.connect(
+        auctionAddress,
+        context.library.getSigner(context.account)
+      );
       setAuctionInstance(auction);
 
-      auction.functions.getLeadingBid()
+      auction.functions
+        .getLeadingBid()
         .then(b => {
-          console.log('leading bid',b);
+          console.log('leading bid', b);
           return { bidder: b.bidder, amount: b.amount, move: b.move };
         })
         .then(setLeadingBid);
@@ -50,25 +54,22 @@ function useAuction(team: Team) {
   useEffect(() => {
     let timer: number = null;
     if (endTime) {
-      timer = setTimeout(
-        () => updateState({}),
-        endTime.getTime() - Date.now()
-      );
+      timer = setTimeout(() => updateState({}), endTime.getTime() - Date.now());
     }
     return () => clearTimeout(timer);
   }, [endTime]);
 
   const getStartTime = (auction: AuctionInstance) => {
-    auction.functions.startTime()
-        .then(startBN => setStartTime(new Date(startBN.toNumber() * 1000)));
-  }
+    auction.functions
+      .startTime()
+      .then(startBN => setStartTime(new Date(startBN.toNumber() * 1000)));
+  };
 
   const getEndTime = (auction: AuctionInstance) => {
-    auction.functions.getEndTime()
-        .then((endBN) => {
-          setEndTime(endBN.isZero() ? null : new Date(endBN.toNumber() * 1000))
-        });
-  }
+    auction.functions.getEndTime().then(endBN => {
+      setEndTime(endBN.isZero() ? null : new Date(endBN.toNumber() * 1000));
+    });
+  };
 
   const hasStarted = () => startTime && Date.now() > startTime.getTime();
   const hasEnded = () => endTime && Date.now() > endTime.getTime();
@@ -94,9 +95,8 @@ function useAuction(team: Team) {
     endTime,
     hasStarted,
     hasEnded,
-  }
+  };
 }
-
 
 const createAuctionContainer = () => createContainer(useAuction);
 

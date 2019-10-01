@@ -1,0 +1,23 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended",
+        "tslint-react",
+        "tslint-config-prettier",
+        "tslint-no-unused-expression-chai"
+    ],
+    "jsRules": {},
+    "rules": {
+      "quotemark": ["single"],
+      "no-var-requires": false,
+      "jsx-wrap-multiline": false,
+      "interface-over-type-literal": false,
+      "arrow-parens": false,
+      "object-literal-sort-keys": false,
+      "no-unsafe-finally": false,
+      "interface-name": false,
+      "no-console": false,
+      "no-bitwise": false
+    },
+    "rulesDirectory": []
+}

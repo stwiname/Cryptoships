@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
-import yargs from 'yargs';
-import Web3 from 'web3';
 import * as ethers from 'ethers';
-import Oracle from './oracle';
-import { GameFactory } from '../types/ethers-contracts/GameFactory';
-import { generateBattlefield, SHIPS } from './generator';
-import { Team } from './contracts';
-import State from './state';
 import { sum } from 'ramda';
+import Web3 from 'web3';
+import yargs from 'yargs';
+import { GameFactory } from '../types/ethers-contracts/GameFactory';
+import { Team } from './contracts';
+import { generateBattlefield, SHIPS } from './generator';
+import Oracle from './oracle';
+import State from './state';
 
 const { abi: gameAbi } = require('../build/contracts/Game.json');
 
@@ -20,7 +20,7 @@ const { argv } = yargs
   })
   .option('gameAddress', {
     description: 'a contract address to an existing game',
-    type: 'string'
+    type: 'string',
   })
   .option('web3Endpoint', {
     description: 'endpoint for web3 gateway (overwrites network usage)',
@@ -28,7 +28,7 @@ const { argv } = yargs
   })
   .option('network', {
     description: 'ethers.js network names',
-    default: 'homestead' //Ethers default
+    default: 'homestead', // Ethers default
   })
   .option('fieldSize', {
     description: 'fieldSize to be used for new games',
@@ -37,25 +37,26 @@ const { argv } = yargs
   .strict(true);
 
 const provider = argv.web3Endpoint
-  ? new ethers.providers.Web3Provider(new Web3(argv.web3Endpoint).currentProvider)
+  ? new ethers.providers.Web3Provider(
+      new Web3(argv.web3Endpoint).currentProvider
+    )
   : ethers.getDefaultProvider(argv.network);
 
 const wallet = new ethers.Wallet(argv.secretKey, provider);
 
 async function getOrInitGame(signer: ethers.Signer) {
-
   if (argv.gameAddress) {
-    //TODO somehow need the battlefield
+    // TODO somehow need the battlefield
     return {
       gameInstance: GameFactory.connect(argv.gameAddress, signer),
       state: new State({
         [Team.red]: require('../test_field_red.json'),
-        [Team.blue]: require('../test_field_blue.json')
+        [Team.blue]: require('../test_field_blue.json'),
       }),
     };
   }
 
-  const state =  new State({
+  const state = new State({
     [Team.red]: generateBattlefield(argv.fieldSize),
     [Team.blue]: generateBattlefield(argv.fieldSize),
   });
@@ -73,16 +74,10 @@ async function getOrInitGame(signer: ethers.Signer) {
 
   return {
     gameInstance,
-    state
+    state,
   };
 }
 
-getOrInitGame(wallet)
-  .then(({ gameInstance, state }) => {
-    return new Oracle(
-      gameInstance,
-      state,
-    );
-  });
-
-
+getOrInitGame(wallet).then(({ gameInstance, state }) => {
+  return new Oracle(gameInstance, state);
+});

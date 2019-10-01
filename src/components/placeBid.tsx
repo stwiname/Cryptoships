@@ -1,20 +1,20 @@
-import * as React from 'react';
 import {
+  Button,
+  CircularProgress,
   Dialog,
-  DialogTitle,
   DialogActions,
   DialogContent,
   DialogContentText,
-  Typography,
-  Button,
+  DialogTitle,
   TextField,
-  CircularProgress
+  Typography,
 } from '@material-ui/core';
-import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import { Team } from '../../lib/contracts';
-import{ Game as Container } from '../containers';
-import { utils } from 'ethers';
 import { green } from '@material-ui/core/colors';
+import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import { utils } from 'ethers';
+import * as React from 'react';
+import { Team } from '../../lib/contracts';
+import { Game as Container } from '../containers';
 
 type Position = {
   x: number;
@@ -26,9 +26,14 @@ export type Props = {
   position: Position;
   auctionContainer: any;
   onClose: () => void;
-}
+};
 
-const PlaceBid: React.FunctionComponent<Props> = ({ onClose, team, position, auctionContainer }) => {
+const PlaceBid: React.FunctionComponent<Props> = ({
+  onClose,
+  team,
+  position,
+  auctionContainer,
+}) => {
   const game = Container.useContainer();
   const auction = auctionContainer.useContainer();
   const classes = useStyles();
@@ -36,12 +41,14 @@ const PlaceBid: React.FunctionComponent<Props> = ({ onClose, team, position, auc
   //   ? game.redLeadingBid
   //   : game.blueLeadingBid;
   // console.log("YOYO", gameLeadingBid, game.redLeadingBid, game.blueLeadingBid, team);
-  const [amount, setAmount] = React.useState<string>((auction.leadingBid.amount.toString() || '0').toString());
+  const [amount, setAmount] = React.useState<string>(
+    (auction.leadingBid.amount.toString() || '0').toString()
+  );
   const [loading, setLoading] = React.useState(false);
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(event.target.value);
-  }
+  };
 
   const handlePlaceBid = async () => {
     try {
@@ -49,55 +56,55 @@ const PlaceBid: React.FunctionComponent<Props> = ({ onClose, team, position, auc
       await game.placeBid(team, position, new utils.BigNumber(amount));
 
       setTimeout(onClose, 500);
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
-  }
+  };
 
   const isValid = () => {
     try {
-      new utils.BigNumber(amount);
-      return true;
-    }
-    catch(e) {
+      return !new utils.BigNumber(amount).isZero();
+    } catch (e) {
       console.log('Invalid bid', amount, e);
       return false;
     }
-  }
+  };
 
-  return <Dialog
-    onClose={onClose}
-    open={true}
-  >
-    <DialogTitle>{`Place bid for ${Team[team] || ''} team`}</DialogTitle>
-    <DialogContent>
-      <DialogContentText>{`At postion: ${JSON.stringify(position)}`}</DialogContentText>
-      <TextField
-        label='Amount (wei)'
-        value={amount}
-        onChange={handleAmountChange}
-        margin='normal'
-        type='number'
-        error={!isValid()}
-        // min={minimumAmount || 0}
-      />
-    </DialogContent>
-    <DialogActions>
-      <div className={classes.wrapper}>
-      <Button
-        variant='contained'
-        color='primary'
-        onClick={handlePlaceBid}
-        disabled={loading}
-      >
-        Place Bid!
-      </Button>
-      { loading && <CircularProgress size={24} className={classes.buttonProgress}/>}
-      </div>
-    </DialogActions>
-  </Dialog>;
-}
+  return (
+    <Dialog onClose={onClose} open={true}>
+      <DialogTitle>{`Place bid for ${Team[team] || ''} team`}</DialogTitle>
+      <DialogContent>
+        <DialogContentText>{`At postion: ${JSON.stringify(
+          position
+        )}`}</DialogContentText>
+        <TextField
+          label="Amount (wei)"
+          value={amount}
+          onChange={handleAmountChange}
+          margin="normal"
+          type="number"
+          error={!isValid()}
+          // min={minimumAmount || 0}
+        />
+      </DialogContent>
+      <DialogActions>
+        <div className={classes.wrapper}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handlePlaceBid}
+            disabled={loading}
+          >
+            Place Bid!
+          </Button>
+          {loading && (
+            <CircularProgress size={24} className={classes.buttonProgress} />
+          )}
+        </div>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -113,7 +120,7 @@ const useStyles = makeStyles((theme: Theme) =>
       marginTop: -12,
       marginLeft: -12,
     },
-  }),
+  })
 );
 
 export default PlaceBid;
