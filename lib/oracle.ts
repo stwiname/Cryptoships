@@ -1,19 +1,19 @@
-import { Signer, utils } from 'ethers';
-import { Provider } from 'ethers/providers';
+import {Signer, utils} from 'ethers';
+import {Provider} from 'ethers/providers';
 import moment from 'moment';
-import { range } from 'ramda';
+import {range} from 'ramda';
 import Web3 from 'web3';
-import winston, { format } from 'winston';
-import { AuctionResult, Team } from './contracts';
+import winston, {format} from 'winston';
+import {AuctionResult, Team} from './contracts';
 import State from './state';
 
-const { abi: gameAbi } = require('../build/contracts/Game.json');
-const { abi: auctionAbi } = require('../build/contracts/Auction.json');
+const {abi: gameAbi} = require('../build/contracts/Game.json');
+const {abi: auctionAbi} = require('../build/contracts/Auction.json');
 
-import { Auction } from '../types/ethers-contracts/Auction';
-import { AuctionFactory } from '../types/ethers-contracts/AuctionFactory';
-import { Game } from '../types/ethers-contracts/Game';
-import { GameFactory } from '../types/ethers-contracts/GameFactory';
+import {Auction} from '../types/ethers-contracts/Auction';
+import {AuctionFactory} from '../types/ethers-contracts/AuctionFactory';
+import {Game} from '../types/ethers-contracts/Game';
+import {GameFactory} from '../types/ethers-contracts/GameFactory';
 
 export const logger = winston.createLogger({
   transports: [
@@ -89,10 +89,10 @@ export default class Oracle {
 
         const [move, result] = await Promise.all([
           auction.functions.getLeadingMove(),
-          auction.functions.result(),
+          auction.functions.getResult(),
         ]);
 
-        return { move, result: result as AuctionResult };
+        return {move, result: result as AuctionResult};
       })
     );
 
@@ -239,7 +239,7 @@ export default class Oracle {
   ): Promise<boolean> {
     return (
       (await auction.functions.hasEnded()) &&
-      (await auction.functions.result()) === AuctionResult.unset
+      (await auction.functions.getResult()) === AuctionResult.unset
     );
   }
 

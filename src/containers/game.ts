@@ -1,12 +1,12 @@
-import { utils } from 'ethers';
-import { append, range, uniqBy } from 'ramda';
-import { useEffect, useState } from 'react';
-import { createContainer } from 'unstated-next';
-import { useWeb3Context } from 'web3-react';
-import { AuctionResult, Team } from '../../lib/contracts';
-import { AuctionFactory } from '../../types/ethers-contracts/AuctionFactory';
-import { Game as GameInstance } from '../../types/ethers-contracts/Game';
-import { GameFactory } from '../../types/ethers-contracts/GameFactory';
+import {utils} from 'ethers';
+import {append, range, uniqBy} from 'ramda';
+import {useEffect, useState} from 'react';
+import {createContainer} from 'unstated-next';
+import {useWeb3Context} from 'web3-react';
+import {AuctionResult, Team} from '../../lib/contracts';
+import {AuctionFactory} from '../../types/ethers-contracts/AuctionFactory';
+import {Game as GameInstance} from '../../types/ethers-contracts/Game';
+import {GameFactory} from '../../types/ethers-contracts/GameFactory';
 import useEventListener from '../hooks/useEventListener';
 
 type AuctionMove = {
@@ -104,7 +104,7 @@ function useGame(contractAddress: string) {
       console.log('Highest bid placed', Team[team]);
       const setLeadingBid =
         Team[team] === Team[Team.red] ? setRedLeadingBid : setBlueLeadingBid;
-      setLeadingBid({ bidder, amount, move });
+      setLeadingBid({bidder, amount, move});
     },
     gameInstance
   );
@@ -163,17 +163,17 @@ function useGame(contractAddress: string) {
 
         const [move, result] = await Promise.all([
           auction.functions.getLeadingMove(),
-          auction.functions.result(),
+          auction.functions.getResult(),
         ]);
 
-        return { move, result: result as AuctionResult };
+        return {move, result: result as AuctionResult};
       })
     );
   };
 
   const placeBid = async (
     team: Team,
-    position: { x: number; y: number },
+    position: {x: number; y: number},
     value: utils.BigNumber
   ) => {
     if (!gameInstance) {

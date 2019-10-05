@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { createContainer } from 'unstated-next';
-import { useWeb3Context } from 'web3-react';
-import { Team } from '../../lib/contracts';
-import { Auction as AuctionInstance } from '../../types/ethers-contracts/Auction';
-import { AuctionFactory } from '../../types/ethers-contracts/AuctionFactory';
+import {useEffect, useState} from 'react';
+import {createContainer} from 'unstated-next';
+import {useWeb3Context} from 'web3-react';
+import {Team} from '../../lib/contracts';
+import {Auction as AuctionInstance} from '../../types/ethers-contracts/Auction';
+import {AuctionFactory} from '../../types/ethers-contracts/AuctionFactory';
 import GameContainer from './game';
 
 function useAuction(team: Team) {
@@ -31,7 +31,7 @@ function useAuction(team: Team) {
         .getLeadingBid()
         .then(b => {
           console.log('leading bid', b);
-          return { bidder: b.bidder, amount: b.amount, move: b.move };
+          return {bidder: b.bidder, amount: b.amount, move: b.move};
         })
         .then(setLeadingBid);
 
@@ -61,7 +61,7 @@ function useAuction(team: Team) {
 
   const getStartTime = (auction: AuctionInstance) => {
     auction.functions
-      .startTime()
+      .getStartTime()
       .then(startBN => setStartTime(new Date(startBN.toNumber() * 1000)));
   };
 

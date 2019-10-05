@@ -2,31 +2,14 @@ pragma solidity >=0.4.25 <0.6.0;
 
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
+import './AuctionLib.sol';
+
 contract Auction is ReentrancyGuard {
+  using AuctionLib for AuctionLib.Data;
 
-  enum Result {
-    UNSET,
-    MISS,
-    HIT
-  }
+  AuctionLib.Data data;
 
-  struct Bid {
-    address payable bidder;
-    uint amount;
-    uint8[2] move;
-  }
-
-  Bid public leadingBid;
-  Result public result;
   address payable owner;
-
-  // Start the auction at a later point in time
-  uint256 public startTime;
-  // How long the auction runs after the first bid
-  uint256 public duration;
-  // When the auction ends
-  uint256 public endTime;
-
 
   modifier ownerOnly(){
     require(msg.sender == owner, "Only the owner can call this");
@@ -34,34 +17,14 @@ contract Auction is ReentrancyGuard {
   }
 
   constructor(uint256 _startTime, uint256 _duration) public {
-    startTime = _startTime;
-    duration = _duration;
+    data.startTime = _startTime;
+    data.duration = _duration;
     owner = msg.sender;
   }
 
   // TODO should this be owner only?
   function placeBid(uint8[2] memory move) payable public nonReentrant returns(uint256){
-    // Validate auction
-    require(hasStarted(), "Auction has not started");
-    require(!hasEnded(), "Auction has ended");
-    // Validate input
-    require(msg.value > leadingBid.amount, "Bid must be greater than current bid");
-
-    // Transfer the bid back to the previous bidder
-    if (leadingBid.bidder != address(0)) {
-      leadingBid.bidder.transfer(leadingBid.amount);
-    }
-
-    // Transfer the bid to the account
-    // owner.send(msg.value);
-    leadingBid = Bid(tx.origin, msg.value, move);
-
-    // First bid, auction is started and will end after duration from now
-    if (endTime == 0) {
-      endTime = now + duration;
-    }
-
-    return endTime;
+    return data.placeBid(move);
   }
 
   function withdrawFunds() public ownerOnly {
@@ -69,33 +32,39 @@ contract Auction is ReentrancyGuard {
   }
 
   function setResult(bool hit) public ownerOnly {
-    require(hasEnded(), "Auction has not yet ended");
-    require(result == Result.UNSET, "Auction result already set");
-    result = hit ? Result.HIT : Result.MISS;
+    data.setResult(hit);
   }
 
   function hasStarted() public view returns(bool) {
-    return now >= startTime;
+    return data.hasStarted();
   }
 
   function hasEnded() public view returns(bool) {
-    return endTime != 0 && now > endTime;
+    return data.hasEnded();
   }
 
   function getLeadingBid() public view returns(address bidder, uint amount, uint8[2] memory move) {
-    return (leadingBid.bidder, leadingBid.amount, leadingBid.move);
+    return (data.leadingBid.bidder, data.leadingBid.amount, data.leadingBid.move);
   }
 
   function getLeadingMove() public view returns(uint8[2] memory move) {
-    return leadingBid.move;
+    return data.leadingBid.move;
+  }
+
+  function getEndTime() public view returns(uint256) {
+    return data.endTime;
+  }
+
+  function getStartTime() public view returns(uint256) {
+    return data.startTime;
+  }
+
+  function getResult() public view returns(AuctionLib.Result) {
+    return data.result;
   }
 
   /* DEV ONLY*/
   function getBalance() public view returns(uint balance) {
       return address(this).balance;
-  }
-
-  function getEndTime() public view returns(uint256) {
-      return endTime;
   }
 }
