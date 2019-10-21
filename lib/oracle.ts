@@ -114,7 +114,7 @@ export default class Oracle {
       if (endTime.isZero()) {
         // Auction not yet started
         logger.info(
-          `Running auction (${auction.address})for team ${Team[team]} has not yet got an end time`,
+          `Running auction (${currentAuction.address})for team ${Team[team]} has not yet got an end time`,
           await currentAuction.functions.hasEnded()
         );
         return;
