@@ -3,11 +3,11 @@ import {
   Paper,
   Table,
   TableBody,
-  TableCell,
   TableHead,
   TableRow,
 } from '@material-ui/core';
-import { withStyles, WithStyles } from '@material-ui/styles';
+import { makeStyles } from '@material-ui/core/styles';
+import TableCell, { TableCellProps } from '@material-ui/core/TableCell';
 import { find, range } from 'ramda';
 import * as React from 'react';
 import { AuctionResult, Team } from '../../lib/contracts';
@@ -21,10 +21,39 @@ type Props = {
   container: any;
   trailingVHeader?: boolean;
   onItemPress?: (x: number, y: number) => void;
-} & WithStyles<typeof styles>;
+};
+
+const useStyles = makeStyles({
+  paper: {
+    margin: theme.spacing(3),
+    // width: '50%',
+    // overflowX: 'auto',
+    marginBottom: theme.spacing(2),
+  },
+  cell: {
+    width: 50,
+    height: 50,
+    border: '3px solid white',
+  },
+});
+
+const Cell: React.FunctionComponent<TableCellProps> = props => {
+  const classes = useStyles({});
+  return (
+    <TableCell
+      align="center"
+      padding="none"
+      className={classes.cell}
+      {...props}
+    >
+      {props.children}
+    </TableCell>
+  );
+};
 
 const Field: React.FunctionComponent<Props> = props => {
   const game = Game.useContainer();
+  const classes = useStyles({});
   const auction = props.container.useContainer();
   const n = range(1, game.fieldSize + 1);
 
@@ -44,9 +73,9 @@ const Field: React.FunctionComponent<Props> = props => {
     };
 
     return (
-      <TableCell key={x} align="center" padding="none">
+      <Cell key={x}>
         <FieldItem onClick={handlePress} result={result} />
-      </TableCell>
+      </Cell>
     );
   };
 
@@ -54,36 +83,30 @@ const Field: React.FunctionComponent<Props> = props => {
     return (
       <TableRow key={y} hover={true}>
         {!props.trailingVHeader && (
-          <TableCell component="th" scope="row" padding="none" align="center">
+          <Cell component="th" scope="row">
             {y}
-          </TableCell>
+          </Cell>
         )}
         {xs.map(x => renderCell(x, y))}
         {props.trailingVHeader && (
-          <TableCell component="th" scope="row" padding="none" align="center">
+          <Cell component="th" scope="row">
             {y}
-          </TableCell>
+          </Cell>
         )}
       </TableRow>
     );
   };
 
   return (
-    <Paper className={props.classes.paper}>
+    <Paper className={classes.paper}>
       <Table>
         <TableHead>
           <TableRow>
-            {!props.trailingVHeader && (
-              <TableCell key="x" align="center" padding="none" />
-            )}
+            {!props.trailingVHeader && <Cell key="x" />}
             {n.map(v => (
-              <TableCell key={v} align="center" padding="none">
-                {numToBase64(v)}
-              </TableCell>
+              <Cell key={v}>{numToBase64(v)}</Cell>
             ))}
-            {props.trailingVHeader && (
-              <TableCell key="x" align="center" padding="none" />
-            )}
+            {props.trailingVHeader && <Cell key="x" />}
           </TableRow>
         </TableHead>
         <TableBody>{n.map(i => renderRow(n, i))}</TableBody>
@@ -92,13 +115,4 @@ const Field: React.FunctionComponent<Props> = props => {
   );
 };
 
-const styles = {
-  paper: {
-    margin: theme.spacing(3),
-    width: '50%',
-    // overflowX: 'auto',
-    marginBottom: theme.spacing(2),
-  },
-};
-
-export default withStyles(styles)(Field);
+export default Field;

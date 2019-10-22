@@ -36,7 +36,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
 }) => {
   const game = Container.useContainer();
   const auction = auctionContainer.useContainer();
-  const classes = useStyles();
+  const classes = useStyles({});
   // const gameLeadingBid = Team[team] === Team[Team.red]
   //   ? game.redLeadingBid
   //   : game.blueLeadingBid;

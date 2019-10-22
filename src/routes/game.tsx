@@ -2,6 +2,7 @@ import * as React from 'react';
 import { match } from 'react-router-dom';
 import { useWeb3Context } from 'web3-react';
 import { Team } from '../../lib/contracts';
+import { ErrorBoundary } from '../components';
 import View from '../components/game';
 import { Game as Container } from '../containers';
 
@@ -28,9 +29,11 @@ const Game: React.FunctionComponent<Props> = props => {
   }
 
   return (
-    <Container.Provider initialState={props.match.params.address}>
-      <View />
-    </Container.Provider>
+    <ErrorBoundary>
+      <Container.Provider initialState={props.match.params.address}>
+        <View />
+      </Container.Provider>
+    </ErrorBoundary>
   );
 };
 

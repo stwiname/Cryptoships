@@ -66,6 +66,7 @@ function useGame(contractAddress: string) {
       .fieldSize()
       .then(sizeBN => setFieldSize(sizeBN.toNumber()))
       .catch(e => console.log('Failed to get field size', e));
+    // TODO find way to throw this error
 
     game.functions
       .getCurrentAuction(Team.red)
@@ -87,6 +88,7 @@ function useGame(contractAddress: string) {
         console.log('Failed to get auction results for blue team', e)
       );
 
+    // throw new Error('test');
     // TODO get leading bid for each team
   }, [contractAddress]);
 

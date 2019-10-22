@@ -6,13 +6,10 @@ export default createMuiTheme({
     type: 'dark',
     primary: blue,
     secondary: blueGrey,
-    tertiary: { backgroundColor: '#ff1744' },
-  },
-  overrides: {
-    MuiTableCell: {
-      root: {
-        border: '1px solid rgb(224, 224, 224)',
-      },
+    tertiary: {
+      light: '#ff4569',
+      main: '#ff1744',
+      dark: '#b2102f',
     },
   },
 });
