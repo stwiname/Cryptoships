@@ -15,6 +15,7 @@ import { utils } from 'ethers';
 import * as React from 'react';
 import { Team } from '../../lib/contracts';
 import { Game as Container } from '../containers';
+import { numToBase64 } from '../utils';
 
 type Position = {
   x: number;
@@ -74,9 +75,9 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     <Dialog onClose={onClose} open={true}>
       <DialogTitle>{`Place bid for ${Team[team] || ''} team`}</DialogTitle>
       <DialogContent>
-        <DialogContentText>{`At postion: ${JSON.stringify(
-          position
-        )}`}</DialogContentText>
+        <DialogContentText>
+          {`At postion: ${numToBase64(position.x)}${position.y}`}
+        </DialogContentText>
         <TextField
           label="Amount (wei)"
           value={amount}

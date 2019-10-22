@@ -1,11 +1,13 @@
 import ButtonBase from '@material-ui/core/ButtonBase';
 import { blue, grey, red } from '@material-ui/core/colors';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
+import { Theme } from '@material-ui/core/styles/createMuiTheme';
+import { PaletteColor } from '@material-ui/core/styles/createPalette';
 import * as React from 'react';
 import { AuctionResult } from '../../lib/contracts';
 import theme from '../theme';
 
-const useStyles = makeStyles({
+const useStyles = makeStyles<Theme, { color: PaletteColor }>({
   button: {
     display: 'flex',
     width: '100%',
