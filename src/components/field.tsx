@@ -20,7 +20,7 @@ type Props = {
   team: Team;
   container: any;
   trailingVHeader?: boolean;
-  onItemPress?: (x: number, y: number) => void;
+  onItemPress?: (x: number, y: number, result?: AuctionResult) => void;
 };
 
 const useStyles = makeStyles({
@@ -66,9 +66,13 @@ const Field: React.FunctionComponent<Props> = props => {
         result: AuctionResult.unset,
       };
 
+    if (result == null) {
+      console.log('NULL RESULT', x, y);
+    }
+
     const handlePress = () => {
       if (props.onItemPress) {
-        props.onItemPress(x, y);
+        props.onItemPress(x, y, result);
       }
     };
 
