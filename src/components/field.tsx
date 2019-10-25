@@ -1,14 +1,13 @@
-import {
-  Box,
-  Paper,
-  Table,
-  TableBody,
-  TableHead,
-  TableRow,
-} from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Paper from '@material-ui/core/Paper';
 import { makeStyles } from '@material-ui/core/styles';
+import Table from '@material-ui/core/Table';
+import TableBody from '@material-ui/core/TableBody';
 import TableCell, { TableCellProps } from '@material-ui/core/TableCell';
-import { find, range } from 'ramda';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import find from 'ramda/src/find';
+import range from 'ramda/src/range';
 import * as React from 'react';
 import { AuctionResult, Team } from '../../lib/contracts';
 import { Game } from '../containers';

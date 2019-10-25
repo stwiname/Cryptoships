@@ -1,5 +1,7 @@
 import { utils } from 'ethers';
-import { append, range, uniqBy } from 'ramda';
+import append from 'ramda/src/append';
+import range from 'ramda/src/range';
+import uniqBy from 'ramda/src/uniqBy';
 import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3Context } from 'web3-react';

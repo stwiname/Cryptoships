@@ -1,8 +1,10 @@
-import { DialogContentText, TextField, Typography } from '@material-ui/core';
 import { green } from '@material-ui/core/colors';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
+import TextField from '@material-ui/core/TextField';
+import Typography from '@material-ui/core/Typography';
 import { utils } from 'ethers';
-import { path } from 'ramda';
+import path from 'ramda/src/path';
 import * as React from 'react';
 import { Team } from '../../lib/contracts';
 import { Game as Container } from '../containers';

@@ -1,10 +1,14 @@
-import { Grid, Typography } from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import CardContent from '@material-ui/core/CardContent';
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { AuctionResult, Team } from '../../lib/contracts';
 import { Auction, Field } from '../components';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
 import PlacedMove, { Props as PlacedMoveProps } from '../components/placedMove';
 import { createAuctionContainer, Game as Container } from '../containers';
+import theme from '../theme';
 import { numToBase64 } from '../utils';
 
 type Props = {};
@@ -45,12 +49,23 @@ const Game: React.FunctionComponent<Props> = props => {
   const renderTeam = (team: Team, container: any) => {
     return (
       <Grid key={team} item={true} xs={6}>
-        <Auction container={container} />
-        <Field
-          team={team}
-          onItemPress={handleGridPress(team)}
-          container={container}
-        />
+        <Card
+          style={{
+            backgroundColor:
+              team === Team.red
+                ? theme.palette.tertiary.light
+                : theme.palette.primary.light,
+          }}
+        >
+          <CardContent>
+            <Auction container={container} />
+            <Field
+              team={team}
+              onItemPress={handleGridPress(team)}
+              container={container}
+            />
+          </CardContent>
+        </Card>
       </Grid>
     );
   };
@@ -58,7 +73,7 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <RedAuctionContainer.Provider initialState={Team.red}>
       <BlueAuctionContainer.Provider initialState={Team.blue}>
-        <Typography variant="h4">GAME</Typography>
+        <Typography variant="h4">Battleship</Typography>
         <Grid container={true} direction="row" spacing={2} justify="center">
           {renderTeam(Team.red, RedAuctionContainer)}
           {renderTeam(Team.blue, BlueAuctionContainer)}

@@ -1,3 +1,5 @@
+import Grid from '@material-ui/core/Grid';
+import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { match } from 'react-router-dom';
 import { useWeb3Context } from 'web3-react';
@@ -5,8 +7,6 @@ import { Team } from '../../lib/contracts';
 import { ErrorBoundary } from '../components';
 import View from '../components/game';
 import { Game as Container } from '../containers';
-
-import { Grid, Typography } from '@material-ui/core';
 
 type Props = {
   match: match<{ address: string }>;

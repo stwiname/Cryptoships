@@ -1,8 +1,7 @@
+import Typography from '@material-ui/core/Typography';
 import * as moment from 'moment';
 import * as React from 'react';
 import useCountdown from '../hooks/useCountdown';
-
-import { Typography } from '@material-ui/core';
 
 type Props = {
   endTime: Date;

@@ -1,11 +1,10 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardActions,
-  CardContent,
-  Typography,
-} from '@material-ui/core';
+import Box from '@material-ui/core/Box';
+import Button from '@material-ui/core/Button';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import Typography from '@material-ui/core/Typography';
+import { capitalize } from '@material-ui/core/utils/helpers';
 import * as React from 'react';
 import { Team } from '../../lib/contracts';
 import { numToBase64 } from '../utils';
@@ -82,7 +81,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
   return (
     <Card>
       <CardContent>
-        <Typography variant="h6">{Team[auction.team]}</Typography>
+        <Typography variant="h6">{capitalize(Team[auction.team])}</Typography>
         {renderNotCreated() ||
           renderStarting() ||
           renderRunning() ||
