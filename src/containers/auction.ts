@@ -4,17 +4,18 @@ import { useWeb3Context } from 'web3-react';
 import { Team } from '../../lib/contracts';
 import { Auction as AuctionInstance } from '../../types/ethers-contracts/Auction';
 import { AuctionFactory } from '../../types/ethers-contracts/AuctionFactory';
+import { LeadingBid } from '../contracts';
 import GameContainer from './game';
 
-function useAuction(team: Team) {
+function useAuction({ team, address }: { team: Team; address?: string }) {
   const context = useWeb3Context();
   const game = GameContainer.useContainer();
 
-  const auctionAddress = game.getTeamAuctionAddress(team);
+  const auctionAddress = address || game.getTeamAuctionAddress(team);
   const gameLeadingBid = game.getTeamLeadingBid(team);
 
   const [auctionInstance, setAuctionInstance] = useState<AuctionInstance>(null);
-  const [leadingBid, setLeadingBid] = useState(null);
+  const [leadingBid, setLeadingBid] = useState<LeadingBid>(null);
   const [startTime, setStartTime] = useState<Date>(null);
   const [endTime, setEndTime] = useState<Date>(null);
   const [, updateState] = useState(); // Used to force a rerender

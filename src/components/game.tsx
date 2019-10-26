@@ -30,10 +30,11 @@ const Game: React.FunctionComponent<Props> = props => {
   const handleGridPress = (team: Team) => (
     x: number,
     y: number,
-    result: AuctionResult
+    result: AuctionResult,
+    address?: string
   ) => {
     if (result || result !== AuctionResult.unset) {
-      setDialogParamsPlaced({ result });
+      setDialogParamsPlaced({ result, address });
     } else {
       setDialogParams({ team, position: { x, y } });
     }
@@ -71,8 +72,8 @@ const Game: React.FunctionComponent<Props> = props => {
   };
 
   return (
-    <RedAuctionContainer.Provider initialState={Team.red}>
-      <BlueAuctionContainer.Provider initialState={Team.blue}>
+    <RedAuctionContainer.Provider initialState={{ team: Team.red }}>
+      <BlueAuctionContainer.Provider initialState={{ team: Team.blue }}>
         <Typography variant="h4">Battleship</Typography>
         <Grid container={true} direction="row" spacing={2} justify="center">
           {renderTeam(Team.red, RedAuctionContainer)}

@@ -9,30 +9,13 @@ import { AuctionResult, Team } from '../../lib/contracts';
 import { AuctionFactory } from '../../types/ethers-contracts/AuctionFactory';
 import { Game as GameInstance } from '../../types/ethers-contracts/Game';
 import { GameFactory } from '../../types/ethers-contracts/GameFactory';
+import { LeadingBid } from '../contracts';
 import useEventListener from '../hooks/useEventListener';
 
 type AuctionMove = {
   move: number[];
   result: AuctionResult;
-};
-
-type LeadingBid = {
-  bidder: string;
-  amount: utils.BigNumber;
-  move: number[];
-};
-
-const formatAuctionResults = ({
-  0: moves,
-  1: results,
-}: {
-  0: ((number)[])[];
-  1: (number)[];
-}): AuctionMove[] => {
-  return moves.map((move, index) => ({
-    move: move as [number, number],
-    result: results[index] as AuctionResult,
-  }));
+  address: string; // Auction address
 };
 
 function useGame(contractAddress: string) {
@@ -106,6 +89,7 @@ function useGame(contractAddress: string) {
       console.log('Highest bid placed', Team[team]);
       const setLeadingBid =
         Team[team] === Team[Team.red] ? setRedLeadingBid : setBlueLeadingBid;
+
       setLeadingBid({ bidder, amount, move });
     },
     gameInstance
@@ -113,7 +97,12 @@ function useGame(contractAddress: string) {
 
   useEventListener(
     'MoveConfirmed',
-    (team: Team, hit: boolean, move: [number, number]) => {
+    (
+      team: Team,
+      hit: boolean,
+      move: [number, number],
+      auctionAddress: string
+    ) => {
       const setAuctionResults =
         Team[team] === Team[Team.red]
           ? setRedAuctionResults
@@ -122,6 +111,7 @@ function useGame(contractAddress: string) {
       const auctionMove: AuctionMove = {
         move,
         result: hit ? AuctionResult.hit : AuctionResult.miss,
+        address: auctionAddress,
       };
       console.log('Move confirmed', auctionMove);
       setAuctionResults(
@@ -168,7 +158,7 @@ function useGame(contractAddress: string) {
           auction.functions.result(),
         ]);
 
-        return { move, result: result as AuctionResult };
+        return { move, result: result as AuctionResult, address };
       })
     );
   };

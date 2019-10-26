@@ -8,7 +8,7 @@ import path from 'ramda/src/path';
 import * as React from 'react';
 import { Team } from '../../lib/contracts';
 import { Game as Container } from '../containers';
-import { numToBase64 } from '../utils';
+import { moveToString } from '../utils';
 
 import Dialog from './dialog';
 
@@ -79,7 +79,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
       <>
         {position && (
           <DialogContentText>
-            {`At postion: ${numToBase64(position.x)}${position.y}`}
+            {`At postion: ${moveToString(position.x, position.y)}`}
           </DialogContentText>
         )}
         <TextField

@@ -19,7 +19,12 @@ type Props = {
   team: Team;
   container: any;
   trailingVHeader?: boolean;
-  onItemPress?: (x: number, y: number, result?: AuctionResult) => void;
+  onItemPress?: (
+    x: number,
+    y: number,
+    result?: AuctionResult,
+    address?: string
+  ) => void;
 };
 
 const useStyles = makeStyles({
@@ -54,13 +59,18 @@ const Field: React.FunctionComponent<Props> = props => {
   const game = Game.useContainer();
   const classes = useStyles({});
   const auction = props.container.useContainer();
-  const n = range(1, game.fieldSize + 1);
+  const n = range(0, game.fieldSize);
 
   const renderCell = (x: number, y: number) => {
+    // For display perposes the numbers start at 0
     const auctionResults = game.getTeamAuctionResults(props.team);
-    const { result } = (!!auction.leadingBid &&
+    const {
+      result,
+      address,
+    }: { result: AuctionResult; address?: string } = (!!auction.leadingBid &&
       movesEqual(auction.leadingBid.move, [x, y]) &&
-      !auction.hasEnded() && { result: null }) ||
+      !auction.hasEnded() &&
+      !auction.leadingBid.amount.isZero() && { result: null, address: null }) ||
       find(m => movesEqual(m.move, [x, y]), auctionResults) || {
         result: AuctionResult.unset,
       };
@@ -71,7 +81,7 @@ const Field: React.FunctionComponent<Props> = props => {
 
     const handlePress = () => {
       if (props.onItemPress) {
-        props.onItemPress(x, y, result);
+        props.onItemPress(x, y, result, address);
       }
     };
 
@@ -87,13 +97,13 @@ const Field: React.FunctionComponent<Props> = props => {
       <TableRow key={y} hover={true}>
         {!props.trailingVHeader && (
           <Cell component="th" scope="row">
-            {y}
+            {y + 1}
           </Cell>
         )}
         {xs.map(x => renderCell(x, y))}
         {props.trailingVHeader && (
           <Cell component="th" scope="row">
-            {y}
+            {y + 1}
           </Cell>
         )}
       </TableRow>
@@ -107,7 +117,7 @@ const Field: React.FunctionComponent<Props> = props => {
           <TableRow>
             {!props.trailingVHeader && <Cell key="x" />}
             {n.map(v => (
-              <Cell key={v}>{numToBase64(v)}</Cell>
+              <Cell key={v}>{numToBase64(v + 1)}</Cell>
             ))}
             {props.trailingVHeader && <Cell key="x" />}
           </TableRow>

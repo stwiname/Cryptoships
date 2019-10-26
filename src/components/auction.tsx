@@ -7,7 +7,7 @@ import Typography from '@material-ui/core/Typography';
 import { capitalize } from '@material-ui/core/utils/helpers';
 import * as React from 'react';
 import { Team } from '../../lib/contracts';
-import { numToBase64 } from '../utils';
+import { moveToString } from '../utils';
 import Countdown from './countdown';
 
 type Props = {
@@ -48,9 +48,10 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
                   {auction.leadingBid.amount.toString()}
                 </Typography>
                 <Typography variant="subtitle1">
-                  {` wei @ ${numToBase64(auction.leadingBid.move[0])}, ${
+                  {` wei @ ${moveToString(
+                    auction.leadingBid.move[0],
                     auction.leadingBid.move[1]
-                  }`}
+                  )}`}
                 </Typography>
               </>
             ) : (

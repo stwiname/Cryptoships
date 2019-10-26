@@ -5,7 +5,7 @@ import './Auction.sol';
 contract Game {
 
   event HighestBidPlaced(Team team, address bidder, uint amount, uint8[2] move, uint256 endTime);
-  event MoveConfirmed(Team team, bool hit, uint8[2] move);
+  event MoveConfirmed(Team team, bool hit, uint8[2] move, address auctionAddress);
   event AuctionCreated(Team team, address auctionAddress);
 
   enum Team {
@@ -110,7 +110,7 @@ contract Game {
       startAuction(team);
     }
 
-    emit MoveConfirmed(team, hit, auction.getLeadingMove());
+    emit MoveConfirmed(team, hit, auction.getLeadingMove(), address(auction));
   }
 
   // Only contract initiator

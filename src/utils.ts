@@ -13,3 +13,7 @@ export const numToBase64 = (num: number): string => {
 export const movesEqual = (a: number[], b: number[]) => {
   return a.length === b.length && a[0] === b[0] && a[1] === b[1];
 };
+
+export const moveToString = (x: number, y: number) => {
+  return `${numToBase64(x + 1)}${y + 1}`;
+};
