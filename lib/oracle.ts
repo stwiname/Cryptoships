@@ -96,6 +96,17 @@ export default class Oracle {
       })
     );
 
+    // Check if any auctions need to be confirmed
+    await Promise.all(
+      auctionAddresses.map(async address => {
+        const auction = this.getAuctionAtAddress(address);
+
+        if (await this.auctionNeedsToHaveMovedConfirmed(auction)) {
+          await this.confirmMove(auction, team);
+        }
+      })
+    );
+
     this.state.setMovesMade(team, auctionResults);
 
     const currentAuction = await this.getCurrentAuctionForTeam(team).catch(
@@ -106,9 +117,7 @@ export default class Oracle {
       return;
     }
 
-    if (await this.auctionNeedsToHaveMovedConfirmed(currentAuction)) {
-      this.confirmMove(currentAuction, team);
-    } else if (!(await currentAuction.functions.hasEnded())) {
+    if (!(await currentAuction.functions.hasEnded())) {
       const endTime = await currentAuction.functions.getEndTime();
       logger.debug('END TIME', endTime.toString(), endTime.toNumber());
       if (endTime.isZero()) {
@@ -181,6 +190,7 @@ export default class Oracle {
   }
 
   private async confirmMove(auction: Auction, team: Team, retries = 1) {
+    logger.info(`Confirming move for ${auction.address}`);
     // For some reason this is thinking it hasn't ended
 
     // if (!await auction.functions.hasEnded()) {
