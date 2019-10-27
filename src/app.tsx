@@ -2,7 +2,6 @@ import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/styles';
 import * as React from 'react';
-import { hot } from 'react-hot-loader/root';
 import { BrowserRouter as Router, Link, Route } from 'react-router-dom';
 import Web3Provider from 'web3-react';
 import Field from './components/field';
@@ -29,4 +28,4 @@ class App extends React.PureComponent<{}> {
   }
 }
 
-export default hot(App);
+export default App;

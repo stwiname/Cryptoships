@@ -1,6 +1,7 @@
 "use strict";
 
 const path = require("path");
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
   mode: 'development',
@@ -9,7 +10,7 @@ module.exports = {
   devtool: "inline-source-map",
 
   // The application entry point
-  entry: "./src/index.tsx",
+  entry: ["./src/index.tsx"],
 
   // Where to compile the bundle
   // By default the output directory is `dist`
@@ -38,11 +39,15 @@ module.exports = {
 
   externals: {
     react: 'React',
-    'react-dom': 'ReactDOM',
     'ethers': 'ethers',
   },
 
   devServer: {
     historyApiFallback: true,
-  }
+    hot: true,
+  },
+
+  plugins: [
+    // new BundleAnalyzerPlugin()
+  ]
 };
