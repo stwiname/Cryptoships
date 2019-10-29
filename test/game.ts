@@ -24,7 +24,7 @@ contract('Game', accounts => {
     });
   });
 
-  describe.only('game without oracle', () => {
+  describe('game without oracle', () => {
     let instance: GameInstance = null;
 
     beforeEach(async () => {

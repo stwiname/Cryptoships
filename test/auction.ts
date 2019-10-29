@@ -171,4 +171,27 @@ contract('Auction', accounts => {
       .setResult(result.hit, { from: accounts[0] })
       .catch((e: Error) => expect(e).to.not.be.null);
   });
+
+  it('should be able to cancel an auction and return the funds', async () => {
+    await instance.placeBid([0, 0], { from: accounts[1], value: '1' });
+
+    const initBalance = await getBalance(1);
+
+    await instance.cancel({ from: accounts[0] });
+
+    const leadingBid = await instance.getLeadingBid();
+
+    assertAuctionBid(leadingBid, {
+      move: [0, 0],
+      amount: 0,
+      bidder: '0x0000000000000000000000000000000000000000',
+    });
+
+    const finalBalance = await getBalance(1);
+
+    assert.equal(
+      initBalance.add(new BN(1)).toString(),
+      finalBalance.toString()
+    );
+  });
 });

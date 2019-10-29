@@ -39,7 +39,7 @@ contract Auction is ReentrancyGuard {
     owner = msg.sender;
   }
 
-  // TODO should this be owner only?
+  // TODO should this be owner only? It would break tests
   function placeBid(uint8[2] memory move) payable public nonReentrant returns(uint256){
     // Validate auction
     require(hasStarted(), "Auction has not started");
@@ -74,6 +74,22 @@ contract Auction is ReentrancyGuard {
     result = hit ? Result.HIT : Result.MISS;
   }
 
+  /* End the auction immediately,
+     this is used when the other team wins to stop it instantly,
+     return the funds to the leading bidder
+   */
+  function cancel() public ownerOnly {
+    if (!hasEnded()) {
+      endTime = now;
+    }
+
+    if (leadingBid.bidder != address(0)) {
+      leadingBid.bidder.transfer(leadingBid.amount);
+
+      leadingBid = Bid(address(0), 0, [0, 0]);
+    }
+  }
+
   function hasStarted() public view returns(bool) {
     return now >= startTime;
   }
@@ -92,10 +108,10 @@ contract Auction is ReentrancyGuard {
 
   /* DEV ONLY*/
   function getBalance() public view returns(uint balance) {
-      return address(this).balance;
+    return address(this).balance;
   }
 
   function getEndTime() public view returns(uint256) {
-      return endTime;
+    return endTime;
   }
 }
