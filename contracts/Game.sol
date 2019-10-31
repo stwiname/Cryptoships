@@ -1,8 +1,11 @@
 pragma solidity >=0.4.25 <0.6.0;
 
+import "@openzeppelin/contracts/math/SafeMath.sol";
 import './Auction.sol';
 
 contract Game {
+
+  using SafeMath for uint256;
 
   event HighestBidPlaced(Team team, address bidder, uint amount, uint8[2] move, uint256 endTime);
   event MoveConfirmed(Team team, bool hit, uint8[2] move, address auctionAddress);
@@ -21,7 +24,7 @@ contract Game {
   mapping(uint => Auction)[2] auctions;
   uint[2] auctionsCount;
 
-  address owner;
+  address payable owner;
 
   modifier ownerOnly(){
     require(msg.sender == owner, 'Only the owner can call this');
@@ -92,15 +95,13 @@ contract Game {
     auction.setResult(hit);
 
     // Withdraw funds to make it easier when finalising 
-    // TODO fix
-    // auction.withdrawFunds();
+    auction.withdrawFunds();
 
     // This auction has finished but the othe team has none,
     // we can now create it though
     if (auctionsCount[uint(otherTeam(team))] <= 0) {
       startAuction(otherTeam(team));
     }
-
 
     Auction otherAuction = getCurrentAuction(otherTeam(team));
 
@@ -115,11 +116,38 @@ contract Game {
 
   // Only contract initiator
   function finalize(Team winner) public ownerOnly {
-    // Reveal field to match proof
+    // TODO Reveal field to match proof
+    // TODO guard against being called before game won
 
+    // TODO can we confirm the winning team last auction here?
 
-    // Deal with a potential running of losing teams auction
-    // Pay out 
+    // /* Stop current auction of losing team, return funds to latest bidder */
+    Auction losingAuction = getCurrentAuction(otherTeam(winner));
+    losingAuction.cancel();
+
+    // Calculate total amount of rewards
+    uint256 rewardPool = 0;
+    for (uint i = 0; i < getAuctionsCount(otherTeam(winner)); i++) {
+      (, uint256 amount, ) = getAuctionByIndex(otherTeam(winner), i).getLeadingBid();
+      rewardPool += amount;
+    }
+
+    // Save 10% for owner
+    // TODO see if percentage covers oracle costs
+    uint256 reward = rewardPool.div(10).mul(9).div(getAuctionsCount(winner));
+
+    /* Return move cost + reward to each player on the winning team */
+    for (uint i = 0; i < getAuctionsCount(winner); i++) {
+      (address payable bidder, uint256 amount, ) = getAuctionByIndex(winner, i).getLeadingBid();
+
+      // Everyone that played gets the same reward for now
+      bidder.transfer(reward.add(amount));
+    }
+
+    /* Pay the owner to cover oracle costs */
+    owner.transfer(address(this).balance);
+
+    // TODO emit event
   }
 
   function hasMoveBeenMade(Team team, uint8[2] memory move) public view returns (bool) {
@@ -133,7 +161,7 @@ contract Game {
         continue;
       }
 
-      (address bidder, uint amount, uint8[2] memory leadingMove) = auction.getLeadingBid();
+      (address bidder, , uint8[2] memory leadingMove) = auction.getLeadingBid();
 
       if (bidder != address(0) && leadingMove[0] == move[0] && leadingMove[1] == move[1]) {
         return true;
@@ -176,4 +204,7 @@ contract Game {
   function otherTeam(Team team) public pure returns(Team) {
     return team == Team.BLUE ? Team.RED : Team.BLUE;
   }
+
+  // Required in order to transfer funds from Auctions
+  function() external payable { }
 }

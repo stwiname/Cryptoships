@@ -98,7 +98,7 @@ contract Auction is ReentrancyGuard {
     return endTime != 0 && now > endTime;
   }
 
-  function getLeadingBid() public view returns(address bidder, uint amount, uint8[2] memory move) {
+  function getLeadingBid() public view returns(address payable bidder, uint amount, uint8[2] memory move) {
     return (leadingBid.bidder, leadingBid.amount, leadingBid.move);
   }
 
