@@ -207,7 +207,9 @@ export default class Oracle {
 
     const hit = this.state.setMoveMade(team, leadingMove[0], leadingMove[1]);
 
-    // TODO check if game is won
+    if (this.state.checkAllShipsHit(team)) {
+      // TODO check if game is won
+    }
 
     // Set move on game and possibly start next auction
     await this.instance.functions.confirmMove(team, hit).catch(async e => {

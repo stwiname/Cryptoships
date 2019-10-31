@@ -2,6 +2,7 @@ import { AuctionResult, BattleField, Team } from './contracts';
 import { generateBattlefield, generateEmptyField } from './generator';
 
 export default class State {
+  /* TODO look at storing just the ship locations as an easier way to check if all ships hit */
   private battleFields: Record<Team, BattleField>;
   private movesMade: Record<Team, BattleField<AuctionResult>>;
 
@@ -35,6 +36,24 @@ export default class State {
       ? AuctionResult.hit
       : AuctionResult.miss;
     return this.battleFields[team][x][y];
+  }
+
+  public checkAllShipsHit(team: Team): boolean {
+    const battleField = this.battleFields[team];
+    const movesMade = this.movesMade[team];
+
+    for (let x = 0; x < battleField.length; x++) {
+      for (let y = 0; y < battleField.length; y++) {
+        if (
+          battleField[x][y] === true &&
+          movesMade[x][y] !== AuctionResult.hit
+        ) {
+          return false;
+        }
+      }
+    }
+
+    return true;
   }
 
   private getSize() {
