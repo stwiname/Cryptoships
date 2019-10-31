@@ -248,7 +248,11 @@ contract('Game', accounts => {
         [Team.blue]: [[false, false], [false, false]],
       });
       const provider = new ethers.providers.Web3Provider(web3.currentProvider);
-      oracle = Oracle.create(provider, instance.address, state);
+      oracle = Oracle.create(
+        provider.getSigner(accounts[0]),
+        instance.address,
+        state
+      );
     });
 
     it('should have the oracle call "confirmMove"', async () => {
