@@ -10,13 +10,14 @@ contract Game {
   event HighestBidPlaced(Team team, address bidder, uint amount, uint8[2] move, uint256 endTime);
   event MoveConfirmed(Team team, bool hit, uint8[2] move, address auctionAddress);
   event AuctionCreated(Team team, address auctionAddress);
+  event GameCompleted(Team winningTeam);
 
   enum Team {
     RED,
     BLUE
   }
 
-  string public fieldProof;
+  mapping(uint => bytes32) fieldHashes;
   uint public fieldSize;
   uint public fieldUnits;
   uint256 public auctionDuration;
@@ -31,15 +32,20 @@ contract Game {
     _;
   }
 
+  /*
+   * Field hash is a Keccak-256 hash of a 2d array with the unit locations + a salt (probably a timestamp)
+   */
   constructor(
-    string memory _fieldProof,
+    bytes32 _redFieldHash,
+    bytes32 _blueFieldHash,
     uint _fieldSize,
     uint _fieldUnits,
     uint256 _auctionDuration,
     Team startTeam
   ) public {
     require(_fieldSize * _fieldSize > _fieldUnits, "Cannot have more units that spaces available");
-    fieldProof = _fieldProof;
+    fieldHashes[uint(Team.RED)] = _redFieldHash;
+    fieldHashes[uint(Team.BLUE)] = _blueFieldHash;
     fieldSize = _fieldSize;
     fieldUnits = _fieldUnits;
     auctionDuration = _auctionDuration;
@@ -115,9 +121,14 @@ contract Game {
   }
 
   // Only contract initiator
-  function finalize(Team winner) public ownerOnly {
-    // TODO Reveal field to match proof
+  function finalize(Team winner, bytes32 fieldData, bytes32 salt) public ownerOnly {
+
+    // TODO can we compute fieldData from auction results
     // TODO guard against being called before game won
+    require(
+      keccak256(abi.encodePacked(fieldData, salt)) == fieldHashes[uint(winner)],
+      'Invalid verification of field'
+    );
 
     // TODO can we confirm the winning team last auction here?
 
@@ -147,7 +158,7 @@ contract Game {
     /* Pay the owner to cover oracle costs */
     owner.transfer(address(this).balance);
 
-    // TODO emit event
+    emit GameCompleted(winner);
   }
 
   function hasMoveBeenMade(Team team, uint8[2] memory move) public view returns (bool) {

@@ -1,3 +1,6 @@
+import { Buffer } from 'buffer';
+import { utils } from 'ethers';
+import { flatten } from 'ramda';
 import { BattleField } from './contracts';
 
 // TODO generate ships for any size
@@ -74,6 +77,22 @@ export function generateEmptyField<T = boolean>(
 
   return field;
 }
+
+export function computeFieldHash(field: BattleField, salt?: string): string {
+  const x = flatten(field)
+    .map(b => Number(b))
+    .join('');
+  let buffer = Buffer.from(x, 'binary');
+
+  if (salt) {
+    buffer = Buffer.concat([buffer, Buffer.from(salt)]);
+  }
+
+  return utils.keccak256(buffer);
+}
+
+// const hash = computeFieldHash(generateBattlefield(), new Date().toString());
+// console.log('HASH', hash);
 
 // const bf = generateBattlefield();
 // console.log(bf);

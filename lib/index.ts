@@ -6,7 +6,7 @@ import Web3 from 'web3';
 import yargs from 'yargs';
 import { GameFactory } from '../types/ethers-contracts/GameFactory';
 import { Team } from './contracts';
-import { generateBattlefield, SHIPS } from './generator';
+import { computeFieldHash, generateBattlefield, SHIPS } from './generator';
 import Oracle from './oracle';
 import State from './state';
 
@@ -56,14 +56,18 @@ async function getOrInitGame(signer: ethers.Signer) {
     };
   }
 
+  const redField = generateBattlefield(argv.fieldSize);
+  const blueField = generateBattlefield(argv.fieldSize);
+
   const state = new State({
-    [Team.red]: generateBattlefield(argv.fieldSize),
-    [Team.blue]: generateBattlefield(argv.fieldSize),
+    [Team.red]: redField,
+    [Team.blue]: blueField,
   });
   const factory = new GameFactory(signer);
 
   const gameInstance = await factory.deploy(
-    'test',
+    computeFieldHash(redField),
+    computeFieldHash(blueField),
     argv.fieldSize,
     sum(SHIPS),
     60, // 300s, 5min
