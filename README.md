@@ -29,12 +29,12 @@ Currently only the contracts package has tests
 
 1. Run a local ethereum blockchain in a separate terminal `truffle develop`
 1. Start the Oracle `node packages/oracle --secretKey <secret-key> --web3Endpoint ws://localhost:8545`
-  - The secret key is one of the private keys that is logged by truffle
-  - This will create a new game
+    - The secret key is one of the private keys that is logged by truffle
+    - This will create a new game
 1. Start serving the website `yarn start`
 1. Setup metamask
-  - If not installed install the metamask browser extension
-  - Import one of the private keys from step one, preferably not the same one as the Oracle
+    - If not installed install the metamask browser extension
+    - Import one of the private keys from step one, preferably not the same one as the Oracle
 1. Navigate to `http://localhost:8000/<game-address>` in your browser
-  - The game address should be logged by the oracle
+    - The game address should be logged by the oracle
 
