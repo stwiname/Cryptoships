@@ -1,0 +1,8 @@
+{
+ "extends": "../../tsconfig.json",
+ "lib": ["es2015", "esnext.asynciterable", "node"],
+ "include": [
+   "./lib"
+ ],
+}
+

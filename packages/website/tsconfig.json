@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "lib": ["es2016", "dom", "dom.iterable"],
+  "include": [
+    "./lib"
+  ],
+  "compilerOptions": {
+    "jsx": "react"
+  }
+}
+

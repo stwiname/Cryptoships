@@ -1,0 +1,38 @@
+{
+  "name": "oracle",
+  "version": "0.0.0",
+  "description": "Blockchain oracle that runs games",
+  "author": "Scott Twiname <skott.twiname@gmail.com>",
+  "homepage": "https://github.com/stwiname/Battleship/tree/master/packages/oracle#readme",
+  "license": "ISC",
+  "main": "lib/index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stwiname/Battleship.git"
+  },
+  "scripts": {
+    "start": "node ./lib/index",
+    "build": "tsc -p .",
+    "watch": "tsc -w -p ."
+  },
+  "bugs": {
+    "url": "https://github.com/stwiname/Battleship/issues"
+  },
+  "dependencies": {
+    "@types/web3": "^1.2.2",
+    "contracts": "0.0.0",
+    "ethers": "^4.0.39",
+    "winston": "^3.2.1",
+    "yargs": "^14.2.0"
+  },
+  "devDependencies": {
+    "@types/yargs": "^13.0.3"
+  }
+}

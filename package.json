@@ -1,78 +1,43 @@
 {
   "name": "battleship",
   "version": "0.0.0",
-  "description": "",
+  "description": "Battleship Ethereum game monorepo",
+  "private": true,
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
-    "generate": "truffle compile && npm run typechain ",
-    "prepare": "npm run generate",
-    "test": "truffle test",
-    "typechain": "npm run typechain-truffle && npm run typechain-web3 && npm run typechain-ethers",
-    "typechain-truffle": "typechain --target truffle \"build/**/*.json\"",
-    "typechain-web3": "typechain --target web3-1.0.0 \"build/**/*.json\"",
-    "typechain-ethers": "typechain --target ethers \"build/**/*.json\"",
-    "build-server": "generate && tsc -p .",
-    "build-web": "webpack",
-    "watch-server": "tsc -w -p .",
-    "watch-web": "webpack -w",
-    "serve": "webpack-dev-server --hot --mode development",
-    "start": "node ./scripts/watch-task.js",
-    "lint": "tslint --fix -c tslint.json src/**/*.{ts,tsx} {lib,test}/**/*.ts",
-    "tslint-check": "tslint-config-prettier-check ./tslint.json",
-    "prettier": "prettier --config ./.prettierrc --write '{src,lib,test}/**/*.{ts,tsx}'",
-    "stage": "lint-staged"
+    "test": "lerna run test",
+    "build": "lerna run build",
+    "watch": "lerna run --parallel watch"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stwiname/Battleship.git"
+  },
+  "author": "Scott Twiname",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stwiname/Battleship/issues"
+  },
+  "homepage": "https://github.com/stwiname/Battleship#readme",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@types/ramda": "^0.26.33",
+    "@types/yargs": "^13.0.3",
+    "husky": "^3.0.9",
+    "lerna": "^3.18.3",
+    "lint-staged": "^9.4.2",
+    "truffle-typings": "^1.0.8",
+    "typescript": "^3.7.2"
+  },
   "dependencies": {
-    "@material-ui/core": "^4.4.1",
-    "@material-ui/icons": "^4.5.1",
-    "@openzeppelin/contracts": "^2.4.0",
     "bn.js": "^5.0.0",
-    "ethers": "^4.0.37",
+    "ethers": "^4.0.39",
     "moment": "^2.24.0",
     "ramda": "^0.26.1",
-    "react-redux": "^7.1.1",
-    "react-router-dom": "^5.0.1",
-    "redux": "^4.0.4",
-    "redux-saga": "^1.0.5",
-    "unstated-next": "^1.1.0",
-    "web3": "^1.2.1",
-    "web3-react": "^5.0.4",
-    "winston": "^3.2.1",
-    "yargs": "^14.0.0"
-  },
-  "devDependencies": {
-    "@types/ramda": "^0.26.21",
-    "@types/react": "^16.9.2",
-    "@types/react-dom": "^16.9.0",
-    "@types/react-router-dom": "^4.3.5",
-    "@types/web3": "^1.0.19",
-    "@types/yargs": "^13.0.2",
-    "concurrently": "^4.1.2",
-    "eth-gas-reporter": "^0.2.11",
-    "husky": "^3.0.7",
-    "lint-staged": "^9.4.1",
-    "prettier": "^1.18.2",
-    "react": "^16.9.0",
-    "react-dom": "^16.9.0",
-    "truffle": "^5.0.32",
-    "truffle-typings": "^1.0.8",
-    "ts-loader": "^6.0.4",
-    "ts-node": "^8.3.0",
-    "tslint": "^5.20.0",
-    "tslint-config-prettier": "^1.18.0",
-    "tslint-no-unused-expression-chai": "^0.1.4",
-    "tslint-react": "^4.1.0",
-    "typechain": "^0.3.20",
-    "typescript": "^3.5.3",
-    "webpack": "^4.39.3",
-    "webpack-bundle-analyzer": "^3.6.0",
-    "webpack-cli": "^3.3.8",
-    "webpack-dev-server": "^3.8.1"
+    "ts-node": "^8.4.1",
+    "web3": "^1.2.2"
   },
   "lint-staged": {
     "{src,lib,test}/**/*.{ts,tsx}": [
