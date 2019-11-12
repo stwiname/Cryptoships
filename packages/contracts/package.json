@@ -1,0 +1,41 @@
+{
+  "name": "contracts",
+  "version": "0.0.0",
+  "description": "Ethereum contracts for game",
+  "author": "Scott Twiname <skott.twiname@gmail.com>",
+  "homepage": "https://github.com/stwiname/Battleship/tree/master/packages/contracts#readme",
+  "license": "ISC",
+  "main": "lib/contracts.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stwiname/Battleship.git"
+  },
+  "scripts": {
+    "build": "truffle compile && yarn typechain && tsc",
+    "prepare": "yarn build",
+    "test": "truffle test",
+    "typechain": "yarn typechain-truffle && yarn typechain-ethers",
+    "typechain-truffle": "typechain --target truffle \"build/**/*.json\"",
+    "typechain-ethers": "typechain --target ethers \"build/**/*.json\""
+  },
+  "bugs": {
+    "url": "https://github.com/stwiname/Battleship/issues"
+  },
+  "devDependencies": {
+    "eth-gas-reporter": "^0.2.12",
+    "truffle": "^5.0.43",
+    "typechain": "^1.0.3",
+    "typechain-target-ethers": "^1.0.1",
+    "typechain-target-truffle": "^1.0.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.4.0"
+  }
+}

@@ -1,19 +1,40 @@
+# Battleship
+
+A blockchain based take on the classic battleship game
+
+## Packages
+
+- [Contacts](packages/contracts/) Ethereum contracts
+- [Oracle](packges/oracle/) Ethreum Oracle
+- [Website](packages/website/) Front end for the game
+
+
 ## Development
 
-### Setup
+### Getting started
 
-1. Setup local development blockchain
-    1. Install [truffle](https://github.com/trufflesuite/truffle): `npm i -g truffle`
-    1. Run truffle: `truffle develop`
-1. Compile code
-    1. `npm run start`. This will watch for changes and recompile, serve up the website
-1. Run the Oracle
-    1. Get one of the secret/private keys from `truffle develop` output
-    1. Run `node ./lib/index.js --secretKey <secret-key> --web3Endpoint ws://localhost:8545` to create a game. This will use a random field. The `web3Endpoint` is logged by `truffle develop`
-    1. You can run the oracle again for the same address by adding `--gameAddress <Address>` this will use hard coded fields
+1. Clone the repo
+1. Install dependencies with `yarn`
+1. Build the source files with `yarn build`
+1. Install [truffle](https://github.com/trufflesuite/truffle): `npm i -g truffle`
+
+### Running tests
+
+Currently only the contracts package has tests
+
+1. `yarn test`
+
+
+### Running locally
+
+1. Run a local ethereum blockchain in a separate terminal `truffle develop`
+1. Start the Oracle `node packages/oracle --secretKey <secret-key> --web3Endpoint ws://localhost:8545`
+    - The secret key is one of the private keys that is logged by truffle
+    - This will create a new game
+1. Start serving the website `yarn start`
 1. Setup metamask
-    1. Import one of the private keys from `truffle develop`
-    1. Chose the localhost 8545 network
-    1. You should see 100Eth in your account if it works
-1. Load the website at http://localhost:8000
+    - If not installed install the metamask browser extension
+    - Import one of the private keys from step one, preferably not the same one as the Oracle
+1. Navigate to `http://localhost:8000/<game-address>` in your browser
+    - The game address should be logged by the oracle
 
