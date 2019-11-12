@@ -18,7 +18,7 @@
     "url": "git+https://github.com/stwiname/Battleship.git"
   },
   "scripts": {
-    "buildz": "truffle compile && yarn typechain && tsc",
+    "build": "truffle compile && yarn typechain && tsc",
     "prepare": "yarn build",
     "test": "truffle test",
     "typechain": "yarn typechain-truffle && yarn typechain-ethers",
