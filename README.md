@@ -22,12 +22,13 @@ A blockchain based take on the classic battleship game
 
 Currently only the contracts package has tests
 
+1. Run `npx truffle develop` from `packages/contracts` directory
 1. `yarn test`
 
 
 ### Running locally
 
-1. Run a local ethereum blockchain in a separate terminal `truffle develop`
+1. Run a local ethereum blockchain in a separate terminal `truffle develop` from `packages/contracts` directory
 1. Start the Oracle `node packages/oracle --secretKey <secret-key> --web3Endpoint ws://localhost:8545`
     - The secret key is one of the private keys that is logged by truffle
     - This will create a new game

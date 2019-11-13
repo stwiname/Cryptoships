@@ -1,8 +1,11 @@
-pragma solidity >=0.4.25 <0.6.0;
+pragma solidity ^0.5.5;
 
+import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 contract Auction is ReentrancyGuard {
+
+  using Address for address payable;
 
   enum Result {
     UNSET,
@@ -49,7 +52,7 @@ contract Auction is ReentrancyGuard {
 
     // Transfer the bid back to the previous bidder
     if (leadingBid.bidder != address(0)) {
-      leadingBid.bidder.transfer(leadingBid.amount);
+      leadingBid.bidder.sendValue(leadingBid.amount);
     }
 
     // Transfer the bid to the account
@@ -65,7 +68,7 @@ contract Auction is ReentrancyGuard {
   }
 
   function withdrawFunds() public ownerOnly {
-    owner.transfer(address(this).balance);
+    owner.sendValue(address(this).balance);
   }
 
   function setResult(bool hit) public ownerOnly {
@@ -84,7 +87,7 @@ contract Auction is ReentrancyGuard {
     }
 
     if (leadingBid.bidder != address(0)) {
-      leadingBid.bidder.transfer(leadingBid.amount);
+      leadingBid.bidder.sendValue(leadingBid.amount);
 
       leadingBid = Bid(address(0), 0, [0, 0]);
     }

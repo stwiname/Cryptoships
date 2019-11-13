@@ -1,10 +1,12 @@
-pragma solidity >=0.4.25 <0.6.0;
+pragma solidity ^0.5.0;
+
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import './Auction.sol';
 
 contract Game {
-
+  using Address for address payable;
   using SafeMath for uint256;
 
   event HighestBidPlaced(Team team, address bidder, uint amount, uint8[2] move, uint256 endTime);
@@ -152,11 +154,11 @@ contract Game {
       (address payable bidder, uint256 amount, ) = getAuctionByIndex(winner, i).getLeadingBid();
 
       // Everyone that played gets the same reward for now
-      bidder.transfer(reward.add(amount));
+      bidder.sendValue(reward.add(amount));
     }
 
     /* Pay the owner to cover oracle costs */
-    owner.transfer(address(this).balance);
+    owner.sendValue(address(this).balance);
 
     emit GameCompleted(winner);
   }

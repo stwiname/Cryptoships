@@ -5,11 +5,11 @@ import * as ethers from 'ethers';
 import { GameContract, GameInstance } from '../types/truffle-contracts';
 const Game: GameContract = artifacts.require('Game');
 const Auction = artifacts.require('Auction');
-const {
+import {
   advanceTimeAndBlock,
   assertEvent,
   assertAuctionBid,
-} = require('./util');
+} from './util';
 
 const redHash = '0x1c52bbe55064a17b192216c08296e3311fb6c8289040cb61161fff1e245e040a';
 const blueHash = '0x809541b3ce61d542eb72f8d2a8351513e78617c1b15d544e44d40b33c582f37c';
