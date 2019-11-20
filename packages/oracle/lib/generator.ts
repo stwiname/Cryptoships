@@ -78,20 +78,34 @@ export function generateEmptyField<T = boolean>(
   return field;
 }
 
-export function computeFieldHash(field: BattleField, salt?: string): string {
+export const battleFieldToBuffer = (field: BattleField): Buffer => {
+  const bufferSize = 32;
   const x = flatten(field)
     .map(b => Number(b))
     .join('');
-  let buffer = Buffer.from(x, 'binary');
 
-  if (salt) {
-    buffer = Buffer.concat([buffer, Buffer.from(salt)]);
+  if (x.length / 8 < bufferSize) {
+    console.warn('Battlefield to large to be encoded into 32 bytes');
   }
+
+  const buffer =  Buffer.alloc(bufferSize);
+  buffer.write(x, 'binary');
+
+  return buffer;
+}
+
+export function computeFieldHash(field: BattleField, salt = ''): string {
+  const buffer = utils.concat([
+    battleFieldToBuffer(field),
+    utils.formatBytes32String(salt)
+  ]);
 
   return utils.keccak256(buffer);
 }
 
-// const hash = computeFieldHash(generateBattlefield(), new Date().toString());
+
+
+// const hash = computeFieldHash([[false, true], [true, false]]);
 // console.log('HASH', hash);
 
 // const bf = generateBattlefield();

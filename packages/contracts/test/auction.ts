@@ -1,7 +1,7 @@
 import { AuctionContract, AuctionInstance } from '../types/truffle-contracts';
 
 const Auction: AuctionContract = artifacts.require('Auction');
-const BN = require('bn.js');
+import BN from 'bn.js';
 const { advanceTimeAndBlock, assertAuctionBid } = require('./util');
 
 const result = {

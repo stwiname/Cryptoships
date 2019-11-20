@@ -2,6 +2,8 @@ import * as ethers from 'ethers';
 // import { Team } from '../lib/contracts';
 // import Oracle from '../lib/oracle';
 // import State from '../lib/state';
+import BN from 'bn.js';
+import { battleFieldToBuffer, computeFieldHash } from 'oracle/lib/generator';
 import { GameContract, GameInstance } from '../types/truffle-contracts';
 const Game: GameContract = artifacts.require('Game');
 const Auction = artifacts.require('Auction');
@@ -11,8 +13,9 @@ import {
   assertAuctionBid,
 } from './util';
 
-const redHash = '0x1c52bbe55064a17b192216c08296e3311fb6c8289040cb61161fff1e245e040a';
-const blueHash = '0x809541b3ce61d542eb72f8d2a8351513e78617c1b15d544e44d40b33c582f37c';
+const testBattleField = [[false, true], [true, false]];
+const redHash = computeFieldHash(testBattleField)
+const blueHash = computeFieldHash(testBattleField)
 
 enum Team {
   red,
@@ -23,6 +26,10 @@ const AUCTION_TIME = 10;
 
 contract('Game', accounts => {
   const oracleAccount = accounts[0];
+
+  async function getBalance(index: number) {
+    return new BN(await web3.eth.getBalance(accounts[index]));
+  }
 
   describe('initialisation', () => {
     it('should not be able to create a game with units greater than the field size', async () => {
@@ -240,6 +247,66 @@ contract('Game', accounts => {
       );
 
       expect(auction).not.to.be.null;
+    });
+
+    it('should be able to run a simple game', async() => {
+
+      const bidAmount = 1000;
+
+      const playMoveAndCompleteAuction = async (team: Team, position: [number, number], accountNumber: number) => {
+        await instance.placeBid(team, position, {
+          from: accounts[accountNumber],
+          value: bidAmount.toString(),
+        });
+
+
+        // Atempt to start auction for other team
+        let otherTeamAddress: string =  null;
+        const otherTeam = team === Team.red ? Team.blue : Team.red;
+        try {
+          otherTeamAddress = await instance.getCurrentAuction(otherTeam);
+        }
+        catch(e) {
+          // Do nothing aution wont exist
+        }
+
+        if (!otherTeamAddress || await Auction.at(otherTeamAddress).then(a => a.hasEnded())) {
+          await instance.startAuction(otherTeam, { from: oracleAccount });
+        }
+
+        // Time out auction for move made
+        await advanceTimeAndBlock(AUCTION_TIME + 1);
+
+        // Confirm the move for the auction just made
+        await instance.confirmMove(
+          team,
+          testBattleField[position[0]][position[1]],
+          { from: oracleAccount }
+        );
+      }
+
+      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+      await playMoveAndCompleteAuction(Team.red, [1, 0], 1); // Winning move
+
+      const balanceBefore = await getBalance(1);
+
+      const result = await instance.finalize(
+        Team.red,
+        '0x' + battleFieldToBuffer(testBattleField).toString('hex'),
+        ethers.utils.formatBytes32String('') // Empty bytes 32
+      );
+
+      const balanceAfter = await getBalance(1);
+
+      assert.equal(
+        balanceBefore
+          .add(new BN(bidAmount)) // Refund first bid
+          .add(new BN(bidAmount)) // Refund second bid
+          .add(new BN(bidAmount * 0.9)) // Winnings
+          .toString(),
+        balanceAfter.toString()
+      );
     });
   });
 

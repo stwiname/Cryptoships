@@ -122,11 +122,12 @@ contract Game {
     emit MoveConfirmed(team, hit, auction.getLeadingMove(), address(auction));
   }
 
-  // Only contract initiator
+  // TODO find better way to encode the field data 
   function finalize(Team winner, bytes32 fieldData, bytes32 salt) public ownerOnly {
 
     // TODO can we compute fieldData from auction results
     // TODO guard against being called before game won
+
     require(
       keccak256(abi.encodePacked(fieldData, salt)) == fieldHashes[uint(winner)],
       'Invalid verification of field'
