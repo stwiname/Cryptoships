@@ -124,18 +124,18 @@ contract Game {
 
   // TODO find better way to encode the field data 
   function finalize(Team winner, bytes32 fieldData, bytes32 salt) public ownerOnly {
-
-    // TODO can we compute fieldData from auction results
-    // TODO guard against being called before game won
-
     require(
       keccak256(abi.encodePacked(fieldData, salt)) == fieldHashes[uint(winner)],
       'Invalid verification of field'
     );
 
-    // TODO can we confirm the winning team last auction here?
+    /* Set the current auction as a hit, */
+    Auction currentAuction = getCurrentAuction(winner);
+    if (currentAuction.hasEnded() && currentAuction.result() == Auction.Result.UNSET)  {
+      currentAuction.setResult(true);
+    }
 
-    // /* Stop current auction of losing team, return funds to latest bidder */
+    /* Stop current auction of losing team, return funds to latest bidder */
     Auction losingAuction = getCurrentAuction(otherTeam(winner));
     losingAuction.cancel();
 
