@@ -84,8 +84,8 @@ export const battleFieldToBuffer = (field: BattleField): Buffer => {
     .map(b => Number(b))
     .join('');
 
-  if (x.length / 8 < bufferSize) {
-    console.warn('Battlefield to large to be encoded into 32 bytes');
+  if (x.length / 8 > bufferSize) {
+    console.warn('Battlefield to large to be encoded into 32 bytes. Got:', Math.ceil(x.length / 8));
   }
 
   const buffer =  Buffer.alloc(bufferSize);

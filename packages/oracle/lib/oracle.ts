@@ -5,6 +5,7 @@ import { range } from 'ramda';
 import Web3 from 'web3';
 import winston, { format } from 'winston';
 import { AuctionResult, Team } from './contracts';
+import { battleFieldToBuffer } from './generator';
 import State from './state';
 
 const { abi: gameAbi } = require('contracts/build/contracts/Game.json');
@@ -208,7 +209,20 @@ export default class Oracle {
     const hit = this.state.setMoveMade(team, leadingMove[0], leadingMove[1]);
 
     if (this.state.checkAllShipsHit(team)) {
-      // TODO check if game is won
+      // TODO double check all moves
+
+      logger.info('Finalizing game');
+
+      await this.instance.functions.finalize(
+        team,
+        battleFieldToBuffer(this.state.battleFields[team]),
+        utils.formatBytes32String('') // TODO get actual salt
+      );
+
+      logger.info('Game finalized');
+
+      // No more moves to confirm, game is over
+      return;
     }
 
     // Set move on game and possibly start next auction

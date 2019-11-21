@@ -58,18 +58,12 @@ async function getOrInitGame(signer: ethers.Signer) {
     };
   }
 
-  const redField = generateBattlefield(argv.fieldSize);
-  const blueField = generateBattlefield(argv.fieldSize);
-
-  const state = new State({
-    [Team.red]: redField,
-    [Team.blue]: blueField,
-  });
+  const state = State.generate(argv.fieldSize);
   const factory = new GameFactory(signer);
 
   const gameInstance = await factory.deploy(
-    computeFieldHash(redField),
-    computeFieldHash(blueField),
+    state.getFieldHashForTeam(Team.red),
+    state.getFieldHashForTeam(Team.blue),
     argv.fieldSize,
     sum(SHIPS),
     60, // 300s, 5min

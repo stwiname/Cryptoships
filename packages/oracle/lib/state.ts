@@ -1,16 +1,22 @@
 import { AuctionResult, BattleField, Team } from './contracts';
-import { generateBattlefield, generateEmptyField } from './generator';
+import { generateBattlefield, generateEmptyField, computeFieldHash } from './generator';
 
 export default class State {
   /* TODO look at storing just the ship locations as an easier way to check if all ships hit */
-  private battleFields: Record<Team, BattleField>;
+  public battleFields: Readonly<Record<Team, BattleField>>;
   private movesMade: Record<Team, BattleField<AuctionResult>>;
 
-  constructor(battleFields?: Record<Team, BattleField>, ships?: number[]) {
-    this.battleFields = battleFields || {
-      [Team.red]: generateBattlefield(),
-      [Team.blue]: generateBattlefield(),
-    };
+  public static generate(size?: number): State {
+    return new State(
+      {
+        [Team.red]: generateBattlefield(size),
+        [Team.blue]: generateBattlefield(size),
+      }
+    );
+  }
+
+  constructor(battleFields: Record<Team, BattleField>, ships?: number[]) {
+    this.battleFields = Object.freeze(battleFields);
 
     const size = this.getSize();
 
@@ -54,6 +60,10 @@ export default class State {
     }
 
     return true;
+  }
+
+  public getFieldHashForTeam(team: Team): string {
+    return computeFieldHash(this.battleFields[team]);
   }
 
   private getSize() {
