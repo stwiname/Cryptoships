@@ -27,18 +27,27 @@ contract Game {
   event GameCompleted(Team winningTeam);
 
   mapping(uint => bytes32) fieldHashes;
-  uint public fieldSize;
+  uint16 public fieldSize;
   uint public fieldUnits;
   Result public result;
   uint256 public auctionDuration;
 
-  mapping(uint => Auction)[2] auctions;
-  uint[2] auctionsCount;
+  /*
+   * Auctions support a max dimension of 2^16
+   * So we need to support at least 2^16 * 2 moves
+   */
+  mapping(uint32 => Auction)[2] auctions;
+  uint32[2] auctionsCount;
 
   address payable owner;
 
   modifier ownerOnly(){
     require(msg.sender == owner, 'Only the owner can call this');
+    _;
+  }
+
+  modifier gameRunning() {
+    require(result == Result.UNSET, 'Cannot call this funciton once the game is over');
     _;
   }
 
@@ -48,7 +57,7 @@ contract Game {
   constructor(
     bytes32 _redFieldHash,
     bytes32 _blueFieldHash,
-    uint _fieldSize,
+    uint16 _fieldSize,
     uint _fieldUnits,
     uint256 _auctionDuration,
     Team startTeam
@@ -64,7 +73,7 @@ contract Game {
     createAuction(startTeam, now);
   }
 
-  function placeBid(Team team, uint16[2] memory move) payable public {
+  function placeBid(Team team, uint16[2] memory move) payable public gameRunning {
 
     // Validate input
     require(
@@ -83,7 +92,7 @@ contract Game {
   }
 
   // Gets called by the oracle when the first bid is made for an auction
-  function startAuction(Team team) public ownerOnly returns(Auction) {
+  function startAuction(Team team) public ownerOnly gameRunning returns(Auction) {
 
     // We might be starting the first auction for the team
     if (auctionsCount[uint(team)] > 0) {
@@ -131,9 +140,7 @@ contract Game {
   }
 
   // TODO find better way to encode the field data 
-  function finalize(Team winner, bytes32 fieldData, bytes32 salt) public ownerOnly {
-
-    require(result == Result.UNSET, "Cannot finalize game multiple times");
+  function finalize(Team winner, bytes32 fieldData, bytes32 salt) public ownerOnly gameRunning {
     require(
       keccak256(abi.encodePacked(fieldData, salt)) == fieldHashes[uint(winner)],
       'Invalid verification of field'
@@ -153,7 +160,7 @@ contract Game {
 
     // Calculate total amount of rewards
     uint256 rewardPool = 0;
-    for (uint i = 0; i < getAuctionsCount(otherTeam(winner)); i++) {
+    for (uint32 i = 0; i < getAuctionsCount(otherTeam(winner)); i++) {
       (, uint256 amount, ) = getAuctionByIndex(otherTeam(winner), i).getLeadingBid();
       rewardPool += amount;
     }
@@ -163,7 +170,7 @@ contract Game {
     uint256 reward = rewardPool.div(10).mul(9).div(getAuctionsCount(winner));
 
     /* Return move cost + reward to each player on the winning team */
-    for (uint i = 0; i < getAuctionsCount(winner); i++) {
+    for (uint32 i = 0; i < getAuctionsCount(winner); i++) {
       (address payable bidder, uint256 amount, ) = getAuctionByIndex(winner, i).getLeadingBid();
 
       // Everyone that played gets the same reward for now
@@ -179,7 +186,7 @@ contract Game {
   function hasMoveBeenMade(Team team, uint16[2] memory move) public view returns (bool) {
     uint teamId = uint(team);
 
-    for(uint i = 0; i < auctionsCount[teamId]; i++) {
+    for(uint32 i = 0; i < auctionsCount[teamId]; i++) {
       Auction auction = auctions[teamId][i];
 
       // Move isnt considered made if the auction has not ended
@@ -198,7 +205,7 @@ contract Game {
   }
 
   function getCurrentAuction(Team team) public view returns(Auction) {
-    uint count = getAuctionsCount(team);
+    uint32 count = getAuctionsCount(team);
     require(count > 0, "No auction exists for this team");
 
     uint teamId = uint(team);
@@ -206,13 +213,13 @@ contract Game {
     return auctions[teamId][count - 1];
   }
 
-  function getAuctionsCount(Team team) public view returns(uint) {
+  function getAuctionsCount(Team team) public view returns(uint32) {
     uint teamId = uint(team);
 
     return auctionsCount[teamId];
   }
 
-  function getAuctionByIndex(Team team, uint index) public view returns(Auction) {
+  function getAuctionByIndex(Team team, uint32 index) public view returns(Auction) {
     uint teamId = uint(team);
 
     return auctions[teamId][index];
