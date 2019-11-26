@@ -9,19 +9,27 @@ contract Game {
   using Address for address payable;
   using SafeMath for uint256;
 
-  event HighestBidPlaced(Team team, address bidder, uint amount, uint8[2] move, uint256 endTime);
-  event MoveConfirmed(Team team, bool hit, uint8[2] move, address auctionAddress);
-  event AuctionCreated(Team team, address auctionAddress);
-  event GameCompleted(Team winningTeam);
+  enum Result {
+    UNSET,
+    RED_WINNER,
+    BLUE_WINNER,
+    ABORTED
+  }
 
   enum Team {
     RED,
     BLUE
   }
 
+  event HighestBidPlaced(Team team, address bidder, uint amount, uint16[2] move, uint256 endTime);
+  event MoveConfirmed(Team team, bool hit, uint16[2] move, address auctionAddress);
+  event AuctionCreated(Team team, address auctionAddress);
+  event GameCompleted(Team winningTeam);
+
   mapping(uint => bytes32) fieldHashes;
   uint public fieldSize;
   uint public fieldUnits;
+  Result public result;
   uint256 public auctionDuration;
 
   mapping(uint => Auction)[2] auctions;
@@ -56,7 +64,7 @@ contract Game {
     createAuction(startTeam, now);
   }
 
-  function placeBid(Team team, uint8[2] memory move) payable public {
+  function placeBid(Team team, uint16[2] memory move) payable public {
 
     // Validate input
     require(
@@ -124,10 +132,14 @@ contract Game {
 
   // TODO find better way to encode the field data 
   function finalize(Team winner, bytes32 fieldData, bytes32 salt) public ownerOnly {
+
+    require(result == Result.UNSET, "Cannot finalize game multiple times");
     require(
       keccak256(abi.encodePacked(fieldData, salt)) == fieldHashes[uint(winner)],
       'Invalid verification of field'
     );
+
+    result = winner == Team.RED ? Result.RED_WINNER : Result.BLUE_WINNER;
 
     /* Set the current auction as a hit, */
     Auction currentAuction = getCurrentAuction(winner);
@@ -164,7 +176,7 @@ contract Game {
     emit GameCompleted(winner);
   }
 
-  function hasMoveBeenMade(Team team, uint8[2] memory move) public view returns (bool) {
+  function hasMoveBeenMade(Team team, uint16[2] memory move) public view returns (bool) {
     uint teamId = uint(team);
 
     for(uint i = 0; i < auctionsCount[teamId]; i++) {
@@ -175,7 +187,7 @@ contract Game {
         continue;
       }
 
-      (address bidder, , uint8[2] memory leadingMove) = auction.getLeadingBid();
+      (address bidder, , uint16[2] memory leadingMove) = auction.getLeadingBid();
 
       if (bidder != address(0) && leadingMove[0] == move[0] && leadingMove[1] == move[1]) {
         return true;

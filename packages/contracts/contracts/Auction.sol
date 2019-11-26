@@ -16,7 +16,7 @@ contract Auction is ReentrancyGuard {
   struct Bid {
     address payable bidder;
     uint amount;
-    uint8[2] move;
+    uint16[2] move;
   }
 
   Bid public leadingBid;
@@ -43,7 +43,7 @@ contract Auction is ReentrancyGuard {
   }
 
   // TODO should this be owner only? It would break tests
-  function placeBid(uint8[2] memory move) payable public nonReentrant returns(uint256){
+  function placeBid(uint16[2] memory move) payable public nonReentrant returns(uint256){
     // Validate auction
     require(hasStarted(), "Auction has not started");
     require(!hasEnded(), "Auction has ended");
@@ -89,7 +89,7 @@ contract Auction is ReentrancyGuard {
     if (leadingBid.bidder != address(0)) {
       leadingBid.bidder.sendValue(leadingBid.amount);
 
-      leadingBid = Bid(address(0), 0, [0, 0]);
+      leadingBid = Bid(address(0), 0, [uint16(0), uint16(0)]);
     }
   }
 
@@ -101,11 +101,11 @@ contract Auction is ReentrancyGuard {
     return endTime != 0 && now > endTime;
   }
 
-  function getLeadingBid() public view returns(address payable bidder, uint amount, uint8[2] memory move) {
+  function getLeadingBid() public view returns(address payable bidder, uint amount, uint16[2] memory move) {
     return (leadingBid.bidder, leadingBid.amount, leadingBid.move);
   }
 
-  function getLeadingMove() public view returns(uint8[2] memory move) {
+  function getLeadingMove() public view returns(uint16[2] memory move) {
     return leadingBid.move;
   }
 

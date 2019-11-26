@@ -1,4 +1,5 @@
 import { AuctionContract, AuctionInstance } from '../types/truffle-contracts';
+import { utils } from 'ethers';
 
 const Auction: AuctionContract = artifacts.require('Auction');
 import BN from 'bn.js';
@@ -57,6 +58,31 @@ contract('Auction', accounts => {
         .sub(new BN(1))
         .toString()
     );
+  });
+
+  it('should be able to place a bid at large co-ords', async () => {
+    await instance.placeBid([65535, 65535], { from: accounts[0], value: '1' });
+
+    const leadingBid = await instance.getLeadingBid();
+    assertAuctionBid(leadingBid, {
+      move: [65535, 65535],
+      amount: 1,
+      bidder: accounts[0],
+    });
+  });
+
+  it('should be able to place a bid with a large amount', async () => {
+    await instance.placeBid([0, 0], { from: accounts[0], value: utils.parseEther('90').toString() });
+
+    const leadingBid = await instance.getLeadingBid();
+    assertAuctionBid(leadingBid, {
+      move: [0, 0],
+      amount: utils.parseEther('90').toString(),
+      bidder: accounts[0],
+    });
+
+    // Return funds
+    await instance.cancel({ from: accounts[0] });
   });
 
   it('should be able to outbid an existing bid', async () => {

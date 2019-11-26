@@ -66,7 +66,7 @@ const assertEvent = (contract, filter) => {
 const assertAuctionBid = (bid, expectedBid) => {
     assert.equal(bid.move[0].toNumber(), expectedBid.move[0]);
     assert.equal(bid.move[1].toNumber(), expectedBid.move[1]);
-    assert.equal(bid.amount.toNumber(), expectedBid.amount);
+    assert.equal(bid.amount.toString(), expectedBid.amount.toString());
     assert.equal(bid.bidder, expectedBid.bidder);
 }
 
