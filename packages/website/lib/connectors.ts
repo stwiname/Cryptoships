@@ -6,7 +6,7 @@ const MetaMask = new InjectedConnector({
 });
 
 const Infura = new NetworkOnlyConnector({
-  providerURL: 'http://localhost:8545',
+  providerURL: 'ws://localhost:8545' /*'wss://mainnet.infura.io/ws/v3/YOUR-PROJECT-ID'*/,
 });
 
 export default {

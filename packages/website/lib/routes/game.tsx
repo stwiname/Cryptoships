@@ -17,7 +17,7 @@ const Game: React.FunctionComponent<Props> = props => {
 
   React.useEffect(() => {
     if (!context.active) {
-      context.setFirstValidConnector(['MetaMask' /*, 'Infura'*/]);
+      context.setFirstValidConnector(['MetaMask', 'Infura']);
     }
   }, []);
 
@@ -25,6 +25,7 @@ const Game: React.FunctionComponent<Props> = props => {
     // loading
     return <Typography variant="h3">loading...</Typography>;
   } else if (context.error) {
+    console.error('Web3 context error', context.error);
     return <Typography variant="h3">error....</Typography>;
   }
 
