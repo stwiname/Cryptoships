@@ -4,7 +4,7 @@ import range from 'ramda/src/range';
 import uniqBy from 'ramda/src/uniqBy';
 import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
-import { useWeb3Context } from 'web3-react';
+import { useWeb3React } from '@web3-react/core';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
@@ -18,7 +18,7 @@ type AuctionMove = {
 };
 
 function useGame(contractAddress: string) {
-  const context = useWeb3Context();
+  const context = useWeb3React();
 
   if (!context.active || context.error) {
     throw new Error('Web3 context not setup!!');

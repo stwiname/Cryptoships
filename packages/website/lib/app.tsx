@@ -3,17 +3,25 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/styles';
 import * as React from 'react';
 import { BrowserRouter as Router, Link, Route } from 'react-router-dom';
-import Web3Provider from 'web3-react';
+import { Web3ReactProvider } from '@web3-react/core'
+import { providers } from 'ethers';
 import Field from './components/field';
 import connectors from './connectors';
 import Game from './routes/game';
 import Home from './routes/home';
 import theme from './theme';
 
+
+function getLibrary(provider: any): providers.Web3Provider {
+  const library = new providers.Web3Provider(provider);
+  library.pollingInterval = 8000;
+  return library;
+}
+
 class App extends React.PureComponent<{}> {
   public render() {
     return (
-      <Web3Provider libraryName="ethers.js" connectors={connectors}>
+      <Web3ReactProvider  getLibrary={getLibrary}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <Container maxWidth="xl">
@@ -23,7 +31,7 @@ class App extends React.PureComponent<{}> {
             </Router>
           </Container>
         </ThemeProvider>
-      </Web3Provider>
+      </Web3ReactProvider>
     );
   }
 }

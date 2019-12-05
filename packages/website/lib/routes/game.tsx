@@ -2,22 +2,23 @@ import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { match } from 'react-router-dom';
-import { useWeb3Context } from 'web3-react';
+import { useWeb3React } from '@web3-react/core';
 import { Team } from '../../lib/contracts';
 import { ErrorBoundary } from '../components';
 import View from '../components/game';
 import { Game as Container } from '../containers';
+import connectors from '../connectors';
 
 type Props = {
   match: match<{ address: string }>;
 };
 
 const Game: React.FunctionComponent<Props> = props => {
-  const context = useWeb3Context();
+  const context = useWeb3React();
 
   React.useEffect(() => {
     if (!context.active) {
-      context.setFirstValidConnector(['MetaMask', 'Infura']);
+      context.activate(connectors.MetaMask);
     }
   }, []);
 

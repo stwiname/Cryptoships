@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
-import { useWeb3Context } from 'web3-react';
+import { useWeb3React } from '@web3-react/core';
 import { Auction as AuctionInstance } from 'contracts/types/ethers-contracts/Auction';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { LeadingBid, Team } from '../contracts';
 import GameContainer from './game';
 
 function useAuction({ team, address }: { team: Team; address?: string }) {
-  const context = useWeb3Context();
+  const context = useWeb3React();
   const game = GameContainer.useContainer();
 
   const auctionAddress = address || game.getTeamAuctionAddress(team);

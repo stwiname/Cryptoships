@@ -3,19 +3,20 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { useWeb3Context } from 'web3-react';
+import { useWeb3React } from '@web3-react/core';
+import connectors from '../connectors';
 
 type Props = {};
 
 const Home: React.FunctionComponent<Props> = props => {
-  const context = useWeb3Context();
+  const context = useWeb3React();
   const [address, setAddress] = React.useState(
     '0xD5E727E39D77677B952879e4F620e358a1BccD6A'
   );
 
   React.useEffect(() => {
     if (!context.active) {
-      context.setFirstValidConnector(['MetaMask' /*, 'Infura'*/]);
+      context.activate(connectors.MetaMask);
     }
   }, []);
 

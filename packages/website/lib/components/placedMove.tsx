@@ -8,7 +8,7 @@ import Typography from '@material-ui/core/Typography';
 import { utils } from 'ethers';
 import equals from 'ramda/src/equals';
 import * as React from 'react';
-import { useWeb3Context } from 'web3-react';
+import { useWeb3React } from '@web3-react/core';
 import { AuctionResult } from '../contracts';
 import { createAuctionContainer } from '../containers';
 import Dialog from './dialog';
@@ -23,7 +23,7 @@ export type Props = {
 
 const PlacedMoveContent: React.FunctionComponent<{}> = () => {
   const auction = AuctionContainer.useContainer();
-  const web3 = useWeb3Context();
+  const web3 = useWeb3React();
 
   // Render nothing if the leadingBid is not loaded, easiest to check the move
   const amount = new utils.BigNumber(auction.leadingBid.amount);

@@ -1,12 +1,12 @@
-import { Connectors } from 'web3-react';
-const { InjectedConnector, NetworkOnlyConnector } = Connectors;
+import { InjectedConnector } from '@web3-react/injected-connector';
+import { NetworkConnector } from '@web3-react/network-connector';
 
 const MetaMask = new InjectedConnector({
-  supportedNetworks: [1, 4, 5777, 1569227158123],
+  supportedChainIds: [1, 4, 1337, 5777],
 });
 
-const Infura = new NetworkOnlyConnector({
-  providerURL: 'ws://localhost:8545' /*'wss://mainnet.infura.io/ws/v3/YOUR-PROJECT-ID'*/,
+const Infura = new NetworkConnector({
+  urls: ['ws://localhost:8545'] /*'wss://mainnet.infura.io/ws/v3/YOUR-PROJECT-ID'*/,
 });
 
 export default {
