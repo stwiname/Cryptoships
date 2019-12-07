@@ -5,27 +5,29 @@ type Options = {
   now?: () => Date;
 };
 
-function useCountdown(date: () => Date, options: Options = {}) {
-  const { intervalTime = 1000, now = () => Date.now() } = options;
-  const [timeLeft, setTimeLeft] = useState(
-    () => new Date(date()).getTime() - new Date(now()).getTime()
+function useCountdown(date: Date, options: Options = {}) {
+  const { intervalTime = 1000, now = () => new Date() } = options;
+
+  const calculateTimeRemaining = (): number => date ? date.getTime() - now().getTime() : 0;
+
+  const [timeLeft, setTimeLeft] = useState<number>(
+    calculateTimeRemaining()
   );
 
   useEffect(() => {
+
     const interval = setInterval(() => {
-      setTimeLeft(current => {
-        if (current <= 0) {
-          clearInterval(interval);
 
-          return 0;
-        }
+      const newTime = calculateTimeRemaining();
 
-        return current - intervalTime;
-      });
+      if (newTime < 0) {
+        clearInterval(interval);
+      }
+      setTimeLeft(Math.max(newTime, 0));
     }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [intervalTime]);
+  }, [intervalTime, date, now]);
 
   return timeLeft;
 }

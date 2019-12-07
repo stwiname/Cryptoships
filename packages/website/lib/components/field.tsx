@@ -29,10 +29,10 @@ type Props = {
 
 const useStyles = makeStyles({
   paper: {
-    margin: theme.spacing(3),
+    // margin: theme.spacing(3),
     // width: '50%',
     // overflowX: 'auto',
-    marginBottom: theme.spacing(2),
+    marginTop: theme.spacing(2),
   },
   cell: {
     width: 50,
