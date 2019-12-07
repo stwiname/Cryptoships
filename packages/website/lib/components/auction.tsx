@@ -6,6 +6,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import capitalize from '@material-ui/core/utils/capitalize';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import { useWeb3React } from '@web3-react/core';
 import * as React from 'react';
 import { Team } from '../contracts';
 import { moveToString } from '../utils';
@@ -19,9 +20,10 @@ type Props = {
 
 const Auction: React.FunctionComponent<Props> = (props: Props) => {
   const auction = props.container.useContainer();
+  const { account } = useWeb3React();
 
   const renderNewAuction = () => {
-    const isRunning = !!auction && (!auction.endTime && auction.hasStarted() || !auction.hasEnded());
+    const isRunning = !!auction && auction.hasStarted() && !auction.hasEnded();
     const hasMove = auction.leadingBid && !auction.leadingBid.amount.isZero();
     const amount: utils.BigNumber = (isRunning && path(['leadingBid', 'amount'], auction) || new utils.BigNumber(0));
     const move = isRunning && hasMove
@@ -29,14 +31,18 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           auction.leadingBid.move[0],
           auction.leadingBid.move[1]
         )
-       : 'XX';
+      : !!auction && (auction.hasEnded() || !auction.startTime)
+        ? 'Wait'
+        : 'XX';
 
     const subtitle =
       isRunning
         ? hasMove
-          ? auction.leadingBid.bidder
+          ? account === auction.leadingBid.bidder
+            ? 'You are leading'
+            : auction.leadingBid.bidder
           : 'Make a move'
-        : !!auction && Date.now() < auction.startTime.getTime()
+        : !!auction && auction.startTime && Date.now() < auction.startTime.getTime()
           ? 'Starting soon'
           : 'Other teams turn';
 
@@ -52,7 +58,13 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
             {`${utils.formatEther(amount)} ETH`}
           </Typography>
         </Box>
-        { !!auction && <Countdown endTime={auction.endTime} duration={auction.duration}/>}
+        {
+          !!auction &&
+          <Countdown
+            endTime={auction.endTime || auction.startTime}
+            duration={auction.endTime && auction.duration}
+
+          />}
       </Box>
       <Typography variant='subtitle1'>
         {subtitle}
