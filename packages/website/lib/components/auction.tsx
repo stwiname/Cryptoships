@@ -32,7 +32,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           auction.leadingBid.move[1]
         )
       : !!auction && (auction.hasEnded() || !auction.startTime)
-        ? 'Wait'
+        ? 'Waiting'
         : 'XX';
 
     const subtitle =
