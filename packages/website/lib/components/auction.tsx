@@ -26,14 +26,18 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
     const isRunning = !!auction && auction.hasStarted() && !auction.hasEnded();
     const hasMove = auction.leadingBid && !auction.leadingBid.amount.isZero();
     const amount: utils.BigNumber = (isRunning && path(['leadingBid', 'amount'], auction) || new utils.BigNumber(0));
-    const move = isRunning && hasMove
-      ? moveToString(
-          auction.leadingBid.move[0],
-          auction.leadingBid.move[1]
-        )
-      : !!auction && (auction.hasEnded() || !auction.startTime)
-        ? 'Waiting'
-        : 'XX';
+
+    const move =
+      isRunning
+        ? hasMove
+          ? moveToString(
+              auction.leadingBid.move[0],
+              auction.leadingBid.move[1]
+            )
+          : 'Make a move'
+        : !!auction && (auction.hasEnded() || !auction.startTime)
+          ? 'Waiting'
+          : 'XX';
 
     const subtitle =
       isRunning
@@ -41,7 +45,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           ? account === auction.leadingBid.bidder
             ? 'You are leading'
             : auction.leadingBid.bidder
-          : 'Make a move'
+          : 'This teams turn'
         : !!auction && auction.startTime && Date.now() < auction.startTime.getTime()
           ? 'Starting soon'
           : 'Other teams turn';
@@ -59,7 +63,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           </Typography>
         </Box>
         {
-          !!auction &&
+          !!auction && !auction.hasEnded() &&
           <Countdown
             endTime={auction.endTime || auction.startTime}
             duration={auction.endTime && auction.duration}

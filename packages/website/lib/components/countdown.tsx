@@ -47,7 +47,7 @@ const Countdown: React.FunctionComponent<Props> = props => {
   const remainingMs = useCountdown(props.endTime);
 
   const percent = props.duration && props.endTime && Date.now() < props.endTime.getTime()
-    ? Date.now() - props.endTime.getTime() / props.duration * 100
+    ? (Date.now() - props.endTime.getTime()) / props.duration * 100
     : 100;
 
   const duration = moment.duration(remainingMs);
