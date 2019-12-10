@@ -66,9 +66,9 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           !!auction && !auction.hasEnded() &&
           <Countdown
             endTime={auction.endTime || auction.startTime}
-            duration={auction.endTime && auction.duration}
-
-          />}
+            duration={auction.endTime ? auction.duration : auction.duration/2}
+          />
+        }
       </Box>
       <Typography variant='subtitle1'>
         {subtitle}
