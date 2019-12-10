@@ -16,7 +16,8 @@ module.exports = {
   // By default the output directory is `dist`
   output: {
     filename: "bundle.js",
-    publicPath: '/'
+    path: path.join(__dirname, 'dist'),
+    publicPath: '/dist'
   },
 
   // Supported file loaders

@@ -46,6 +46,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     setAmount((path(['leadingBid', 'amount'], auction) || '0').toString());
 
     if (team !== undefined) {
+      console.log('Auction', auction.auctionAddress, auction.hasStarted(), auction.hasEnded())
       setAuctionRunning(auction.hasStarted() && !auction.hasEnded());
     }
   }, [team]);
@@ -57,7 +58,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   const handlePlaceBid = async () => {
     try {
       setLoading(true);
-      await game.placeBid(team, position, new utils.BigNumber(amount));
+      await game.placeBid(team, position, utils.parseEther(amount));
 
       setTimeout(onClose, 500);
     } finally {
@@ -67,7 +68,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
 
   const isValid = () => {
     try {
-      return !new utils.BigNumber(amount).isZero();
+      return !utils.parseEther(amount).isZero();
     } catch (e) {
       console.log('Invalid bid', amount, e);
       return false;
@@ -83,7 +84,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
           </DialogContentText>
         )}
         <TextField
-          label="Amount (wei)"
+          label="Amount (Eth)"
           value={amount}
           onChange={handleAmountChange}
           margin="normal"

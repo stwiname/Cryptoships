@@ -17,6 +17,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   const [leadingBid, setLeadingBid] = useState<LeadingBid>(null);
   const [startTime, setStartTime] = useState<Date>(null);
   const [endTime, setEndTime] = useState<Date>(null);
+  const [duration, setDuration] = useState<number>(null);
   const [, updateState] = useState(); // Used to force a rerender
 
   useEffect(() => {
@@ -37,6 +38,11 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
 
       getStartTime(auction);
       getEndTime(auction);
+
+      auction.functions.duration()
+        .then(duration => {
+          setDuration(duration.toNumber() * 1000);
+        });
     }
   }, [auctionAddress]);
 
@@ -62,13 +68,23 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   const getStartTime = (auction: AuctionInstance) => {
     auction.functions
       .startTime()
-      .then(startBN => setStartTime(new Date(startBN.toNumber() * 1000)));
+      .then(startBN => {
+        console.log('AUCTION start BN', startBN.toString())
+        setStartTime(new Date(startBN.toNumber() * 1000))
+      })
+      .catch(e => {
+        console.log('Failed to get auction start time', e);
+      });
   };
 
   const getEndTime = (auction: AuctionInstance) => {
-    auction.functions.getEndTime().then(endBN => {
-      setEndTime(endBN.isZero() ? null : new Date(endBN.toNumber() * 1000));
-    });
+    auction.functions.getEndTime()
+      .then(endBN => {
+        setEndTime(endBN.isZero() ? null : new Date(endBN.toNumber() * 1000));
+      })
+      .catch(e => {
+        console.log('Failed to get auction end time', e);
+      });
   };
 
   const hasStarted = () => startTime && Date.now() > startTime.getTime();
@@ -92,6 +108,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
     team,
     leadingBid,
     startTime,
+    duration,
     endTime,
     hasStarted,
     hasEnded,

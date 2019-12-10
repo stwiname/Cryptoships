@@ -29,15 +29,17 @@ type Props = {
 
 const useStyles = makeStyles({
   paper: {
-    margin: theme.spacing(3),
+    // margin: theme.spacing(3),
     // width: '50%',
     // overflowX: 'auto',
-    marginBottom: theme.spacing(2),
+    overflow: 'hidden',
+    marginTop: theme.spacing(2),
   },
   cell: {
     width: 50,
     height: 50,
-    border: '3px solid white',
+    border: '1px solid',
+    borderColor: theme.palette.grey[700]
   },
 });
 
@@ -111,7 +113,12 @@ const Field: React.FunctionComponent<Props> = props => {
   };
 
   return (
-    <Paper className={classes.paper}>
+    <Box
+      className={classes.paper}
+      borderColor='grey.700'
+      borderRadius={4}
+      bgcolor='background.paper'
+    >
       <Table>
         <TableHead>
           <TableRow>
@@ -124,7 +131,7 @@ const Field: React.FunctionComponent<Props> = props => {
         </TableHead>
         <TableBody>{n.map(i => renderRow(n, i))}</TableBody>
       </Table>
-    </Paper>
+    </Box>
   );
 };
 
