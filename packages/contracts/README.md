@@ -9,3 +9,7 @@ const contracts = require('contracts');
 
 // TODO: DEMONSTRATE API
 ```
+
+## Coding conventions
+
+Contracts should follow the [checks-effects-interatctions](https://fravoll.github.io/solidity-patterns/checks_effects_interactions.html) pattern

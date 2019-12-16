@@ -50,18 +50,18 @@ contract Auction is ReentrancyGuard {
     // Validate input
     require(msg.value > leadingBid.amount, "Bid must be greater than current bid");
 
-    // Transfer the bid back to the previous bidder
-    if (leadingBid.bidder != address(0)) {
-      leadingBid.bidder.sendValue(leadingBid.amount);
-    }
+    Bid memory previousBid = leadingBid;
 
-    // Transfer the bid to the account
-    // owner.send(msg.value);
     leadingBid = Bid(tx.origin, msg.value, move);
 
     // First bid, auction is started and will end after duration from now
     if (endTime == 0) {
       endTime = now + duration;
+    }
+
+    // Transfer the bid back to the previous bidder
+    if (previousBid.bidder != address(0)) {
+      previousBid.bidder.sendValue(previousBid.amount);
     }
 
     return endTime;
