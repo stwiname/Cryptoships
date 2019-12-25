@@ -1,4 +1,5 @@
-
+import BN from 'bn.js';
+import { utils } from 'ethers';
 import { filter } from 'ramda';
 
 const advanceTimeAndBlock = async (time) => {
@@ -70,10 +71,18 @@ const assertAuctionBid = (bid, expectedBid) => {
     assert.equal(bid.bidder, expectedBid.bidder);
 }
 
+const getGasInfo = async (receipt: any) => {
+    return {
+        used: new utils.BigNumber(receipt.receipt.gasUsed),
+        price: new utils.BigNumber((await web3.eth.getTransaction(receipt.tx)).gasPrice),
+    };
+}
+
 export {
     advanceTime,
     advanceBlock,
     advanceTimeAndBlock,
     assertEvent,
     assertAuctionBid,
+    getGasInfo,
 };

@@ -8,6 +8,7 @@ import './Auction.sol';
 contract Game {
   using Address for address payable;
   using SafeMath for uint256;
+  using SafeMath for uint;
 
   enum Result {
     UNSET,
@@ -27,6 +28,7 @@ contract Game {
   event GameCompleted(Team winningTeam);
 
   mapping(uint => bytes32) fieldHashes;
+  mapping(address => bool) withdrawn;
   uint16 public fieldSize;
   uint public fieldUnits;
   Result public result;
@@ -158,29 +160,28 @@ contract Game {
     Auction losingAuction = getCurrentAuction(otherTeam(winner));
     losingAuction.cancel();
 
-    // Calculate total amount of rewards
-    uint256 rewardPool = 0;
-    for (uint32 i = 0; i < getAuctionsCount(otherTeam(winner)); i++) {
-      (, uint256 amount, ) = getAuctionByIndex(otherTeam(winner), i).getLeadingBid();
-      rewardPool += amount;
-    }
-
-    // Save 10% for owner
-    // TODO see if percentage covers oracle costs
-    uint256 reward = rewardPool.div(10).mul(9).div(getAuctionsCount(winner));
-
-    /* Return move cost + reward to each player on the winning team */
-    for (uint32 i = 0; i < getAuctionsCount(winner); i++) {
-      (address payable bidder, uint256 amount, ) = getAuctionByIndex(winner, i).getLeadingBid();
-
-      // Everyone that played gets the same reward for now
-      bidder.sendValue(reward.add(amount));
-    }
-
-    /* Pay the owner to cover oracle costs */
-    owner.sendValue(address(this).balance);
-
     emit GameCompleted(winner);
+
+    // Users should be able to withdraw their winnings now
+  }
+
+  function withdraw() public {
+    require(result == Result.RED_WINNER || result == Result.BLUE_WINNER, 'Game must be completed first');
+    require(!withdrawn[msg.sender], 'Cannot withdraw multiple times');
+
+    Team winningTeam = result == Result.RED_WINNER ? Team.RED : Team.BLUE;
+
+    uint winnings = getPotentialWinnings(msg.sender, winningTeam);
+
+    if (winnings == 0) {
+      return;
+    }
+
+    withdrawn[msg.sender] = true;
+
+    // TODO set state of players that have withdrawn funds, guard agains already withdrawn
+
+    msg.sender.sendValue(winnings);
   }
 
   function hasMoveBeenMade(Team team, uint16[2] memory move) public view returns (bool) {
@@ -236,6 +237,44 @@ contract Game {
 
   function otherTeam(Team team) public pure returns(Team) {
     return team == Team.BLUE ? Team.RED : Team.BLUE;
+  }
+
+  function getRewardPool(Team team) public view returns(uint) {
+    uint rewardPool = 0;
+    for (uint32 i = 0; i < getAuctionsCount(team); i++) {
+      (, uint256 amount, ) = getAuctionByIndex(team, i).getLeadingBid();
+      rewardPool += amount;
+    }
+
+    return rewardPool;
+  }
+
+  function getPotentialWinnings(address player, Team team) public view returns(uint) {
+    // Calculate total amount of rewards
+    uint rewardPool = getRewardPool(otherTeam(team));
+
+    // Get num valid auctions, if the last auction has zero bid it is either not played or cancelled
+    uint32 numAuctions = getAuctionsCount(team);
+    (, uint256 leadingAmount,) = getCurrentAuction(team).getLeadingBid();
+    if (leadingAmount <= 0) {
+      numAuctions--;
+    }
+
+    // Save 10% for owner
+    // TODO see if percentage covers oracle costs
+    uint rewardPerMove = rewardPool.div(10).mul(9).div(numAuctions);
+
+    uint reward = 0;
+    /* Return move cost + reward to each player on the winning team */
+    for (uint32 i = 0; i < numAuctions; i++) {
+      (address payable bidder, uint256 amount,) = getAuctionByIndex(team, i).getLeadingBid();
+
+      if (bidder == player) {
+        reward += rewardPerMove + amount;
+      }
+    }
+
+    return reward;
   }
 
   // Required in order to transfer funds from Auctions

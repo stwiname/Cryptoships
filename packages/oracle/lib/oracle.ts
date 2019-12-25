@@ -79,7 +79,7 @@ export default class Oracle {
     const auctionsCount = await this.instance.functions.getAuctionsCount(team);
 
     const auctionAddresses = await Promise.all(
-      range(0, auctionsCount.toNumber()).map(n =>
+      range(0, auctionsCount).map(n =>
         this.instance.functions.getAuctionByIndex(team, n)
       )
     );

@@ -1,8 +1,8 @@
-import * as ethers from 'ethers';
+import { utils } from 'ethers';
 // import { Team } from '../lib/contracts';
 // import Oracle from '../lib/oracle';
 // import State from '../lib/state';
-import BN from 'bn.js';
+// import BN from 'bn.js';
 import { battleFieldToBuffer, computeFieldHash } from 'oracle/lib/generator';
 import { GameContract, GameInstance } from '../types/truffle-contracts';
 const Game: GameContract = artifacts.require('Game');
@@ -11,6 +11,7 @@ import {
   advanceTimeAndBlock,
   assertEvent,
   assertAuctionBid,
+  getGasInfo
 } from './util';
 
 const testBattleField = [[false, true], [true, false]];
@@ -28,7 +29,7 @@ contract('Game', accounts => {
   const oracleAccount = accounts[0];
 
   async function getBalance(index: number) {
-    return new BN(await web3.eth.getBalance(accounts[index]));
+    return new utils.BigNumber(await web3.eth.getBalance(accounts[index]));
   }
 
   describe('initialisation', () => {
@@ -41,6 +42,40 @@ contract('Game', accounts => {
 
   describe('game without oracle', () => {
     let instance: GameInstance = null;
+
+    const bidAmount = 1000;
+
+    const playMoveAndCompleteAuction = async (team: Team, position: [number, number], accountNumber: number) => {
+      await instance.placeBid(team, position, {
+        from: accounts[accountNumber],
+        value: bidAmount.toString(),
+      });
+
+
+      // Atempt to start auction for other team
+      let otherTeamAddress: string =  null;
+      const otherTeam = team === Team.red ? Team.blue : Team.red;
+      try {
+        otherTeamAddress = await instance.getCurrentAuction(otherTeam);
+      }
+      catch(e) {
+        // Do nothing aution wont exist
+      }
+
+      if (!otherTeamAddress || await Auction.at(otherTeamAddress).then(a => a.hasEnded())) {
+        await instance.startAuction(otherTeam, { from: oracleAccount });
+      }
+
+      // Time out auction for move made
+      await advanceTimeAndBlock(AUCTION_TIME + 1);
+
+      // Confirm the move for the auction just made
+      await instance.confirmMove(
+        team,
+        testBattleField[position[0]][position[1]],
+        { from: oracleAccount }
+      );
+    }
 
     beforeEach(async () => {
       instance = await Game.new(redHash, blueHash, 2, 1, AUCTION_TIME, Team.red, {
@@ -251,40 +286,6 @@ contract('Game', accounts => {
 
     it('should be able to run a simple game', async() => {
 
-      const bidAmount = 1000;
-
-      const playMoveAndCompleteAuction = async (team: Team, position: [number, number], accountNumber: number) => {
-        await instance.placeBid(team, position, {
-          from: accounts[accountNumber],
-          value: bidAmount.toString(),
-        });
-
-
-        // Atempt to start auction for other team
-        let otherTeamAddress: string =  null;
-        const otherTeam = team === Team.red ? Team.blue : Team.red;
-        try {
-          otherTeamAddress = await instance.getCurrentAuction(otherTeam);
-        }
-        catch(e) {
-          // Do nothing aution wont exist
-        }
-
-        if (!otherTeamAddress || await Auction.at(otherTeamAddress).then(a => a.hasEnded())) {
-          await instance.startAuction(otherTeam, { from: oracleAccount });
-        }
-
-        // Time out auction for move made
-        await advanceTimeAndBlock(AUCTION_TIME + 1);
-
-        // Confirm the move for the auction just made
-        await instance.confirmMove(
-          team,
-          testBattleField[position[0]][position[1]],
-          { from: oracleAccount }
-        );
-      }
-
       await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
       await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
       await playMoveAndCompleteAuction(Team.red, [1, 0], 1); // Winning move
@@ -294,19 +295,75 @@ contract('Game', accounts => {
       const result = await instance.finalize(
         Team.red,
         '0x' + battleFieldToBuffer(testBattleField).toString('hex'),
-        ethers.utils.formatBytes32String('') // Empty bytes 32
+        utils.formatBytes32String('') // Empty bytes 32
       );
+
+      const withdrawl = await instance.withdraw({ from: accounts[1] });
+
+      const gas = await getGasInfo(withdrawl);
 
       const balanceAfter = await getBalance(1);
 
+      const expectedBalance = balanceBefore
+          .sub(gas.used.mul(gas.price)) // Tx fee to withdraw
+          .add(new utils.BigNumber(bidAmount)) // Refund first bid
+          .add(new utils.BigNumber(bidAmount)) // Refund second bid
+          .add(new utils.BigNumber(bidAmount * 0.9)); // Winnings;
+
       assert.equal(
-        balanceBefore
-          .add(new BN(bidAmount)) // Refund first bid
-          .add(new BN(bidAmount)) // Refund second bid
-          .add(new BN(bidAmount * 0.9)) // Winnings
-          .toString(),
+        expectedBalance.toString(),
         balanceAfter.toString()
       );
+    });
+
+    it('should have no potential winnings for a player who made no moves', async () => {
+      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+
+      const winnings = await instance.getPotentialWinnings(accounts[3], Team.red);
+
+      expect(winnings.isZero()).to.be.true;
+    });
+
+    it('should have no potential winnings for the other team', async () => {
+      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+
+      const winnings = await instance.getPotentialWinnings(accounts[1], Team.blue);
+
+      expect(winnings.isZero()).to.be.true;
+    });
+
+    it('should be able to check potential winnings', async () => {
+
+      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+
+      const winnings1: utils.BigNumber = (await instance.getPotentialWinnings(accounts[1], Team.red)) as any;
+      const winnings2: utils.BigNumber = (await instance.getPotentialWinnings(accounts[2], Team.blue)) as any;
+
+      // Each winning bid made by the player + share of the losing team
+      const expectedWinnings = new utils.BigNumber(bidAmount).div(10).mul(9).add(bidAmount);
+
+      expect(winnings1.toString()).to.equal(expectedWinnings.toString());
+      expect(winnings2.toString()).to.equal(expectedWinnings.toString());
+    });
+
+    it('should fail to withdraw a second time', async() => {
+
+      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+      await playMoveAndCompleteAuction(Team.red, [1, 0], 1); // Winning move
+
+      const result = await instance.finalize(
+        Team.red,
+        '0x' + battleFieldToBuffer(testBattleField).toString('hex'),
+        utils.formatBytes32String('') // Empty bytes 32
+      );
+
+      await instance.withdraw({ from: accounts[1] });
+      instance.withdraw({ from: accounts[1] })
+        .catch((e: Error) => expect(e).to.not.be.null);
     });
   });
 

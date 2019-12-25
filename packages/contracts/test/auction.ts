@@ -3,7 +3,7 @@ import { utils } from 'ethers';
 
 const Auction: AuctionContract = artifacts.require('Auction');
 import BN from 'bn.js';
-const { advanceTimeAndBlock, assertAuctionBid } = require('./util');
+import { advanceTimeAndBlock, assertAuctionBid, getGasInfo } from './util';
 
 const result = {
   unset: 0,
@@ -20,15 +20,8 @@ contract('Auction', accounts => {
     instance = await Auction.new(0, DURATION, { from: accounts[0] });
   });
 
-  async function getGasInfo(receipt: any) {
-    return {
-      used: new BN(receipt.receipt.gasUsed),
-      price: new BN((await web3.eth.getTransaction(receipt.tx)).gasPrice),
-    };
-  }
-
   async function getBalance(index: number) {
-    return new BN(await web3.eth.getBalance(accounts[index]));
+    return new utils.BigNumber(await web3.eth.getBalance(accounts[index]));
   }
 
   it('should be able to place a bid, and have the balance change', async () => {
@@ -55,7 +48,7 @@ contract('Auction', accounts => {
       finalBalance.toString(),
       initBalance
         .sub(gas.used.mul(gas.price))
-        .sub(new BN(1))
+        .sub(new utils.BigNumber(1))
         .toString()
     );
   });
@@ -216,7 +209,7 @@ contract('Auction', accounts => {
     const finalBalance = await getBalance(1);
 
     assert.equal(
-      initBalance.add(new BN(1)).toString(),
+      initBalance.add(new utils.BigNumber(1)).toString(),
       finalBalance.toString()
     );
   });

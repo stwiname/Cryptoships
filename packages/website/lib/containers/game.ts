@@ -48,7 +48,7 @@ function useGame(contractAddress: string) {
 
     game.functions
       .fieldSize()
-      .then(sizeBN => setFieldSize(sizeBN.toNumber()))
+      .then(sizeBN => setFieldSize(sizeBN))
       .catch(e => console.log('Failed to get field size', e));
     // TODO find way to throw this error
 
@@ -140,7 +140,7 @@ function useGame(contractAddress: string) {
     const auctionsCount = await game.functions.getAuctionsCount(team);
 
     const auctionAddresses = await Promise.all(
-      range(0, auctionsCount.toNumber()).map(n =>
+      range(0, auctionsCount).map(n =>
         game.functions.getAuctionByIndex(team, n)
       )
     );
