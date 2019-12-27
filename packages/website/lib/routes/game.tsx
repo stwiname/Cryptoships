@@ -6,7 +6,7 @@ import { useWeb3React } from '@web3-react/core';
 import { Team } from '../../lib/contracts';
 import { ErrorBoundary } from '../components';
 import View from '../components/game';
-import { Game as Container } from '../containers';
+import { Game as Container, Winnings } from '../containers';
 import connectors from '../connectors';
 
 type Props = {
@@ -33,7 +33,9 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <ErrorBoundary>
       <Container.Provider initialState={props.match.params.address}>
-        <View />
+        <Winnings.Provider initialState={props.match.params.address}>
+          <View />
+        </Winnings.Provider>
       </Container.Provider>
     </ErrorBoundary>
   );

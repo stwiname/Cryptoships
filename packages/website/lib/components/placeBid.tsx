@@ -32,18 +32,20 @@ const PlaceBid: React.FunctionComponent<Props> = ({
 }) => {
   const game = Container.useContainer();
   const auction = auctionContainer.useContainer();
+
+  const getAuctionAmount = () => utils.formatEther((path(['leadingBid', 'amount'], auction) || '0'))
+
+
   // const gameLeadingBid = Team[team] === Team[Team.red]
   //   ? game.redLeadingBid
   //   : game.blueLeadingBid;
   // console.log("YOYO", gameLeadingBid, game.redLeadingBid, game.blueLeadingBid, team);
-  const [amount, setAmount] = React.useState<string>(
-    (path(['leadingBid', 'amount'], auction) || '0').toString()
-  );
+  const [amount, setAmount] = React.useState<string>(getAuctionAmount());
   const [loading, setLoading] = React.useState(false);
   const [auctionRunning, setAuctionRunning] = React.useState(false);
 
   React.useEffect(() => {
-    setAmount((path(['leadingBid', 'amount'], auction) || '0').toString());
+    setAmount(getAuctionAmount());
 
     if (team !== undefined) {
       console.log('Auction', auction.auctionAddress, auction.hasStarted(), auction.hasEnded())

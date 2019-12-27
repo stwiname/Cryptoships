@@ -7,9 +7,9 @@ import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
-import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import { LeadingBid, AuctionResult, Team } from '../contracts';
 import useEventListener from '../hooks/useEventListener';
+import useGameInstance from '../hooks/useGame';
 
 type AuctionMove = {
   move: number[];
@@ -19,6 +19,7 @@ type AuctionMove = {
 
 function useGame(contractAddress: string) {
   const context = useWeb3React();
+  const game = useGameInstance(contractAddress);
 
   if (!context.active || context.error) {
     throw new Error('Web3 context not setup!!');
@@ -29,7 +30,6 @@ function useGame(contractAddress: string) {
   }
 
   const [fieldSize, setFieldSize] = useState<number>(0);
-  const [gameInstance, setGameInstance] = useState<GameInstance>(null);
   const [redAuctionAddress, setRedAuctionAddress] = useState<string>(null);
   const [blueAuctionAddress, setBlueAuctionAddress] = useState<string>(null);
   const [redAuctionResults, setRedAuctionResults] = useState<AuctionMove[]>([]);
@@ -40,11 +40,9 @@ function useGame(contractAddress: string) {
   const [blueLeadingBid, setBlueLeadingBid] = useState<LeadingBid>(null);
 
   useEffect(() => {
-    const game = GameFactory.connect(
-      contractAddress,
-      context.library.getSigner(context.account)
-    );
-    setGameInstance(game);
+    if (!game) {
+      return;
+    }
 
     game.functions
       .fieldSize()
@@ -74,7 +72,7 @@ function useGame(contractAddress: string) {
 
     // throw new Error('test');
     // TODO get leading bid for each team
-  }, [contractAddress]);
+  }, [game]);
 
   useEventListener(
     'HighestBidPlaced',
@@ -91,7 +89,7 @@ function useGame(contractAddress: string) {
 
       setLeadingBid({ bidder, amount, move });
     },
-    gameInstance
+    game
   );
 
   useEventListener(
@@ -117,7 +115,7 @@ function useGame(contractAddress: string) {
         uniqBy(a => a.move, append(auctionMove, auctionResults))
       );
     },
-    gameInstance
+    game
   );
 
   useEventListener(
@@ -130,7 +128,7 @@ function useGame(contractAddress: string) {
       console.log(`Auction created ${Team[team]} ${newAuctionAddress}`);
       setAuctionAddress(newAuctionAddress);
     },
-    gameInstance
+    game
   );
 
   const getAllResultsForTeam = async (
@@ -167,12 +165,12 @@ function useGame(contractAddress: string) {
     position: { x: number; y: number },
     value: utils.BigNumber
   ) => {
-    if (!gameInstance) {
+    if (!game) {
       throw new Error('No game found');
     }
 
     console.log('Place bid', position, value.toNumber());
-    return gameInstance.functions.placeBid(team, [position.x, position.y], {
+    return game.functions.placeBid(team, [position.x, position.y], {
       value,
     });
 

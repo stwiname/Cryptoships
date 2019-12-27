@@ -1,4 +1,5 @@
 import createAuctionContainer from './auction';
 import Game from './game';
+import Winnings from './winnings';
 
-export { Game, createAuctionContainer };
+export { Game, Winnings, createAuctionContainer };
