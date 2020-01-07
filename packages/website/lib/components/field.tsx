@@ -66,20 +66,14 @@ const Field: React.FunctionComponent<Props> = props => {
   const renderCell = (x: number, y: number) => {
     // For display perposes the numbers start at 0
     const auctionResults = game.getTeamAuctionResults(props.team);
+
     const {
       result,
       address,
-    }: { result: AuctionResult; address?: string } = (!!auction.leadingBid &&
-      movesEqual(auction.leadingBid.move, [x, y]) &&
-      !auction.hasEnded() &&
-      !auction.leadingBid.amount.isZero() && { result: null, address: null }) ||
-      find(m => movesEqual(m.move, [x, y]), auctionResults) || {
-        result: AuctionResult.unset,
-      };
-
-    if (result == null) {
-      console.log('NULL RESULT', x, y);
-    }
+    }: { result: AuctionResult; address?: string } =
+      find(m => movesEqual(m.move, [x, y]), auctionResults) ||
+      (auction.leadingBid && movesEqual(auction.leadingBid.move, [x, y]) && !auction.leadingBid.amount.isZero()) && { result: null, address: null } ||
+      { result: AuctionResult.unset, }
 
     const handlePress = () => {
       if (props.onItemPress) {

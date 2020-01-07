@@ -7,7 +7,7 @@ import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
-import { LeadingBid, AuctionResult, Team } from '../contracts';
+import { LeadingBid, AuctionResult, Team, GameResult } from '../contracts';
 import useEventListener from '../hooks/useEventListener';
 import useGameInstance from '../hooks/useGame';
 
@@ -30,6 +30,7 @@ function useGame(contractAddress: string) {
   }
 
   const [fieldSize, setFieldSize] = useState<number>(0);
+  const [result, setResult] = useState<GameResult>(GameResult.unset);
   const [redAuctionAddress, setRedAuctionAddress] = useState<string>(null);
   const [blueAuctionAddress, setBlueAuctionAddress] = useState<string>(null);
   const [redAuctionResults, setRedAuctionResults] = useState<AuctionMove[]>([]);
@@ -59,6 +60,10 @@ function useGame(contractAddress: string) {
       .getCurrentAuction(Team.blue)
       .then(setBlueAuctionAddress)
       .catch(e => console.log(`Failed to get auction for blue team`));
+
+    game.functions.result()
+      .then(result => setResult(result))
+      .catch(e => console.log(`Failed to get game result`, e));
 
     getAllResultsForTeam(game, Team.red)
       .then(setRedAuctionResults)
@@ -131,6 +136,21 @@ function useGame(contractAddress: string) {
     game
   );
 
+  useEventListener(
+    'GameCompleted',
+    (winningTeam: Team) => {
+      console.log(`Game won by ${Team[winningTeam]}`);
+
+      // TODO set result of final move
+      setResult(
+        Team[winningTeam] === Team[Team.red]
+          ? GameResult.redWinner
+          : GameResult.blueWinner
+      );
+    },
+    game
+  );
+
   const getAllResultsForTeam = async (
     game: GameInstance,
     team: Team
@@ -192,6 +212,7 @@ function useGame(contractAddress: string) {
     getTeamAuctionResults,
     getTeamLeadingBid,
     placeBid,
+    result
   };
 }
 

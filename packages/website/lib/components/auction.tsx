@@ -8,11 +8,12 @@ import capitalize from '@material-ui/core/utils/capitalize';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { useWeb3React } from '@web3-react/core';
 import * as React from 'react';
-import { Team } from '../contracts';
+import { Team, GameResult } from '../contracts';
 import { moveToString } from '../utils';
-import { utils } from 'ethers'
+import { utils } from 'ethers';
 import Countdown from './countdown';
 import { path } from 'ramda';
+import { Game } from '../containers';
 
 type Props = {
   container: any;
@@ -20,47 +21,78 @@ type Props = {
 
 const Auction: React.FunctionComponent<Props> = (props: Props) => {
   const auction = props.container.useContainer();
+  const game = Game.useContainer();
   const { account } = useWeb3React();
 
   const renderNewAuction = () => {
     const isRunning = !!auction && auction.hasStarted() && !auction.hasEnded();
     const hasMove = auction.leadingBid && !auction.leadingBid.amount.isZero();
     const amount: utils.BigNumber = (isRunning && path(['leadingBid', 'amount'], auction) || new utils.BigNumber(0));
+    const hasWon = GameResult[game.result] === GameResult[(Team[auction.team] === Team[Team.red] ? GameResult.redWinner : GameResult.blueWinner)];
+    const hasLost = GameResult[game.result] === GameResult[(Team[auction.team] === Team[Team.red] ? GameResult.blueWinner : GameResult.redWinner)];
 
-    const move =
-      isRunning
-        ? hasMove
+    const gameCompleted = hasWon || hasLost;
+
+    const getTitle = () => {
+
+      if (hasWon) {
+        return 'Winner';
+      }
+
+      if (hasLost) {
+        return 'Loser';
+      }
+
+      if (isRunning) {
+        return hasMove
           ? moveToString(
               auction.leadingBid.move[0],
               auction.leadingBid.move[1]
             )
-          : 'Make a move'
-        : !!auction && (auction.hasEnded() || !auction.startTime)
-          ? 'Waiting'
-          : 'XX';
+          : 'Make a move';
+      }
 
-    const subtitle =
-      isRunning
-        ? hasMove
+      return !!auction && (auction.hasEnded() || !auction.startTime)
+        ? 'Waiting'
+        : 'XX';
+    }
+
+    const getSubtitle = () => {
+      if (hasWon) {
+        return 'Congratulations';
+      }
+
+      if (hasLost) {
+        return 'Better luck next time';
+      }
+
+      if (isRunning) {
+        return hasMove
           ? account === auction.leadingBid.bidder
             ? 'You are leading'
             : auction.leadingBid.bidder
-          : 'This teams turn'
-        : !!auction && auction.startTime && Date.now() < auction.startTime.getTime()
-          ? 'Starting soon'
-          : 'Other teams turn';
+          : 'This teams turn';
+      }
+
+      return !!auction && auction.startTime && Date.now() < auction.startTime.getTime()
+        ? 'Starting soon'
+        : 'Other teams turn';
+    }
 
     return <Box>
       <Box flexDirection='row' display='flex' justifyContent='space-between'>
         <Box>
           <Typography variant='h2'>
             <Box fontWeight={400}>
-              {move}
+              {getTitle()}
             </Box>
           </Typography>
-          <Typography variant='h5'>
-            {`${utils.formatEther(amount)} ETH`}
-          </Typography>
+          {
+            !gameCompleted &&
+            <Typography variant='h5'>
+              {`${utils.formatEther(amount)} ETH`}
+            </Typography>
+          }
         </Box>
         {
           !!auction && !auction.hasEnded() &&
@@ -71,7 +103,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
         }
       </Box>
       <Typography variant='subtitle1'>
-        {subtitle}
+        {getSubtitle()}
       </Typography>
     </Box>
   }

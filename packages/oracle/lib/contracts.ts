@@ -9,4 +9,11 @@ export enum AuctionResult {
   hit,
 }
 
+export enum GameResult {
+  unset,
+  redWinner,
+  blueWinner,
+  aborted
+}
+
 export type BattleField<T = boolean> = T[][];

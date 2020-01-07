@@ -38,9 +38,18 @@ function useWinnings(contractAddress: string) {
     game
   );
 
+  const withdrawWinnings = () => {
+    if (!game) {
+      throw new Error('No game found');
+    }
+
+    return game.functions.withdraw();
+  }
+
   return {
     redWinnings,
     blueWinnings,
+    withdrawWinnings,
   }
 }
 
