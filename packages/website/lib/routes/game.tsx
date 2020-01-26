@@ -1,4 +1,5 @@
 import Grid from '@material-ui/core/Grid';
+import MuiContainer from '@material-ui/core/Container';
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
 import { match } from 'react-router-dom';
@@ -31,6 +32,7 @@ const Game: React.FunctionComponent<Props> = props => {
   }
 
   return (
+    <MuiContainer>
     <ErrorBoundary>
       <Container.Provider initialState={props.match.params.address}>
         <Winnings.Provider initialState={props.match.params.address}>
@@ -38,6 +40,7 @@ const Game: React.FunctionComponent<Props> = props => {
         </Winnings.Provider>
       </Container.Provider>
     </ErrorBoundary>
+    </MuiContainer>
   );
 };
 

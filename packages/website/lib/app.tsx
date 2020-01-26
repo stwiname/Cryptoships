@@ -24,7 +24,7 @@ class App extends React.PureComponent<{}> {
       <Web3ReactProvider  getLibrary={getLibrary}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Container maxWidth="xl">
+          <Container maxWidth={false}>
             <Router>
               <Route exact={true} path="/" component={Home} />
               <Route path="/game/:address" component={Game} />

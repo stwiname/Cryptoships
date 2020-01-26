@@ -9,17 +9,37 @@ import path from 'ramda/src/path';
 import * as React from 'react';
 import { AuctionResult } from '../contracts';
 import theme from '../theme';
+import { hexToRgb } from '../utils';
+import clsx from 'clsx';
 
-const useStyles = makeStyles<Theme, { color: PaletteColor }>({
+const createRadial = (color: string) => {
+  // return color
+  try {
+    const inner = hexToRgb(color, 0.8).toString();
+    const outer = hexToRgb(color, 0.2).toString();
+
+    return `radial-gradient(${inner}, ${outer});`;
+  }
+  catch(e) {
+    return color;
+  }
+}
+
+const useStyles = makeStyles<Theme>({
   button: {
     display: 'flex',
     width: '100%',
     height: 50,
-    background: path(['color', 'main']),
-    '&:hover': {
-      background: path(['color', 'light']),
-    },
   },
+  hit: {
+    background: createRadial(theme.palette.secondary.main),
+  },
+  miss: {
+    background: createRadial(theme.palette.primary.dark),
+  },
+  target: {
+    background: createRadial('#ffbe00'),
+  }
 });
 
 type Props = {
@@ -28,34 +48,30 @@ type Props = {
 };
 
 const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
-  let color: PaletteColor;
+  let colorClass;
   let renderIcon: () => React.ReactElement;
+
+  const classes = useStyles({ /*color: createRadial(color.main) as any*/ });
 
   switch (result) {
     case AuctionResult.unset:
-      color = theme.palette.secondary;
+      colorClass = null;
       break;
     case AuctionResult.hit:
-      color = theme.palette.tertiary;
+      colorClass = classes.hit;
       break;
     case AuctionResult.miss:
-      color = theme.palette.primary;
+      colorClass = classes.miss;
       break;
     default:
-      color = {
-        main: 'darkorange',
-        light: '#ffbe00',
-        dark: null,
-        contrastText: null,
-      };
+      colorClass = classes.target;
       renderIcon = () => <GpsNotFixedIcon fontSize="large" />;
       break;
   }
 
-  const classes = useStyles({ color });
   return (
-    <ButtonBase onClick={onClick} className={classes.button}>
-      {!!renderIcon && renderIcon()}
+    <ButtonBase onClick={onClick} className={clsx(classes.button, colorClass)}>
+        {!!renderIcon && renderIcon()}
     </ButtonBase>
   );
 };

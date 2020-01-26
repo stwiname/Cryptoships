@@ -29,6 +29,10 @@ module.exports = {
         options: {
           configFile: 'tsconfig.json'
         }
+      },
+      {
+          test: /\.svg$/,
+          loader: 'svg-inline-loader'
       }
     ]
   },

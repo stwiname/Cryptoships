@@ -17,3 +17,23 @@ export const movesEqual = (a: number[], b: number[]) => {
 export const moveToString = (x: number, y: number) => {
   return `${numToBase64(x + 1)}${y + 1}`;
 };
+
+export const hexToRgb = (hex: string, opacity?: number) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+
+  if (!result) {
+    return null;
+  } 
+  const rgb = {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16),
+    a: opacity || 1,
+  };
+
+  rgb.toString = function (){
+    return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
+  }
+
+  return rgb;
+}

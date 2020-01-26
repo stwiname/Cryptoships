@@ -10,6 +10,8 @@ import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
+import { useThemeStyles } from '../theme';
+import clsx from 'clsx';
 
 export type Props = {
   open: boolean;
@@ -28,7 +30,7 @@ const useStyles = makeStyles((theme: Theme) =>
       position: 'relative',
     },
     buttonProgress: {
-      color: green[500],
+      color: theme.palette.tertiary.main,
       position: 'absolute',
       top: '50%',
       left: '50%',
@@ -48,9 +50,13 @@ const Dialog: React.FunctionComponent<Props> = ({
   onClose,
 }) => {
   const classes = useStyles({});
+  const themeClasses = useThemeStyles({});
 
   return (
-    <MUIDialog open={open} onClose={onClose}>
+    <MUIDialog
+      open={open}
+      onClose={onClose}
+    >
       {title && <DialogTitle>{title}</DialogTitle>}
       {renderContent && <DialogContent>{renderContent()}</DialogContent>}
       {onSubmit && (
@@ -58,9 +64,9 @@ const Dialog: React.FunctionComponent<Props> = ({
           <div className={classes.wrapper}>
             <Button
               variant="contained"
-              color="primary"
               onClick={onSubmit}
               disabled={loading}
+              className={themeClasses.button}
             >
               {submitTitle || 'Submit'}
             </Button>

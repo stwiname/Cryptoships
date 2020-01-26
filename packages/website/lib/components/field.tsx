@@ -14,6 +14,8 @@ import { Game } from '../containers';
 import theme from '../theme';
 import { movesEqual, numToBase64 } from '../utils';
 import FieldItem from './fieldItem';
+import { useThemeStyles } from '../theme';
+import clsx from 'clsx';
 
 type Props = {
   team: Team;
@@ -29,28 +31,28 @@ type Props = {
 
 const useStyles = makeStyles({
   paper: {
-    // margin: theme.spacing(3),
-    // width: '50%',
-    // overflowX: 'auto',
     overflow: 'hidden',
     marginTop: theme.spacing(2),
+    borderRadius: '2px'
   },
   cell: {
     width: 50,
     height: 50,
-    border: '1px solid',
-    borderColor: theme.palette.grey[700]
   },
+  header: {
+    color: theme.palette.tertiary.main,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+  }
 });
 
-const Cell: React.FunctionComponent<TableCellProps> = props => {
+const Cell: React.FunctionComponent<TableCellProps & { className?: any }> = props => {
   const classes = useStyles({});
   return (
     <TableCell
       align="center"
       padding="none"
-      className={classes.cell}
       {...props}
+      className={clsx(classes.cell, props.className)}
     >
       {props.children}
     </TableCell>
@@ -60,8 +62,11 @@ const Cell: React.FunctionComponent<TableCellProps> = props => {
 const Field: React.FunctionComponent<Props> = props => {
   const game = Game.useContainer();
   const classes = useStyles({});
+  const themeClasses = useThemeStyles({});
   const auction = props.container.useContainer();
   const n = range(0, game.fieldSize);
+  const isRedTeam = Team[auction.team] === Team[Team.red];
+  const cellClass = isRedTeam ? themeClasses.cellAlt : themeClasses.cell;
 
   const renderCell = (x: number, y: number) => {
     // For display perposes the numbers start at 0
@@ -82,7 +87,7 @@ const Field: React.FunctionComponent<Props> = props => {
     };
 
     return (
-      <Cell key={x}>
+      <Cell key={x} className={cellClass}>
         <FieldItem onClick={handlePress} result={result} />
       </Cell>
     );
@@ -92,13 +97,13 @@ const Field: React.FunctionComponent<Props> = props => {
     return (
       <TableRow key={y} hover={true}>
         {!props.trailingVHeader && (
-          <Cell component="th" scope="row">
+          <Cell component="th" scope="row" className={clsx(cellClass, classes.header)}>
             {y + 1}
           </Cell>
         )}
         {xs.map(x => renderCell(x, y))}
         {props.trailingVHeader && (
-          <Cell component="th" scope="row">
+          <Cell component="th" scope="row" className={clsx(cellClass, classes.header)}>
             {y + 1}
           </Cell>
         )}
@@ -107,25 +112,20 @@ const Field: React.FunctionComponent<Props> = props => {
   };
 
   return (
-    <Box
-      className={classes.paper}
-      borderColor='grey.700'
-      borderRadius={4}
-      bgcolor='background.paper'
-    >
-      <Table>
+      <Table className={clsx(classes.paper, isRedTeam ? themeClasses.borderAlt : themeClasses.border)}>
         <TableHead>
           <TableRow>
-            {!props.trailingVHeader && <Cell key="x" />}
+            {!props.trailingVHeader && <Cell key="x" className={classes.header}/>}
             {n.map(v => (
-              <Cell key={v}>{numToBase64(v + 1)}</Cell>
+              <Cell key={v} className={clsx(cellClass, classes.header)}>
+                {numToBase64(v + 1)}
+              </Cell>
             ))}
             {props.trailingVHeader && <Cell key="x" />}
           </TableRow>
         </TableHead>
         <TableBody>{n.map(i => renderRow(n, i))}</TableBody>
       </Table>
-    </Box>
   );
 };
 

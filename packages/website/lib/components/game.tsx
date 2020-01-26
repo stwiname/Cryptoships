@@ -8,8 +8,13 @@ import { Auction, Field } from '../components';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
 import PlacedMove, { Props as PlacedMoveProps } from '../components/placedMove';
 import { createAuctionContainer, Game as Container } from '../containers';
-import theme from '../theme';
+import theme, { useThemeStyles } from '../theme';
 import { numToBase64 } from '../utils';
+import clsx from 'clsx';
+import { ReactSVG as SVG } from 'react-svg';
+// import logo from '../../assets/cryptoships_wording_1.svg';
+
+const logo =require('../../assets/cryptoships_wording_1.svg');
 
 type Props = {};
 
@@ -18,6 +23,7 @@ const BlueAuctionContainer = createAuctionContainer();
 
 const Game: React.FunctionComponent<Props> = props => {
   const game = Container.useContainer();
+  const classes = useThemeStyles({});
 
   const [dialogParams, setDialogParams] = React.useState<
     Pick<PlaceBidProps, 'team' | 'position'>
@@ -50,14 +56,7 @@ const Game: React.FunctionComponent<Props> = props => {
   const renderTeam = (team: Team, container: any) => {
     return (
       <Grid key={team} item={true} xs={6}>
-        <Card
-          style={{
-            backgroundColor:
-              team === Team.red
-                ? theme.palette.tertiary.light
-                : theme.palette.primary.light,
-          }}
-        >
+        <Card>
           <CardContent>
             <Auction container={container} />
             <Field
@@ -74,7 +73,15 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <RedAuctionContainer.Provider initialState={{ team: Team.red }}>
       <BlueAuctionContainer.Provider initialState={{ team: Team.blue }}>
-        <Typography variant="h4">Battleship</Typography>
+        <SVG
+          src='../../assets/cryptoships_wording_3.svg'
+          renumerateIRIElements={false}
+          beforeInjection={svg => {
+            svg.classList.add('svg-class-name')
+            svg.setAttribute('style', 'height: 100px; width: 100%; padding-top: 10px;')
+          }}
+        />
+        {/*<Typography variant="h4">Battleship</Typography>*/}
         <Grid container={true} direction="row" spacing={2} justify="center">
           {renderTeam(Team.red, RedAuctionContainer)}
           {renderTeam(Team.blue, BlueAuctionContainer)}

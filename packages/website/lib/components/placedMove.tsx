@@ -37,7 +37,7 @@ const PlacedMoveContent: React.FunctionComponent<{}> = () => {
       : auction.leadingBid.bidder;
 
   return (
-    <Typography>{`Move was made by ${bidder}\n for ${amount.toString()} wei`}</Typography>
+    <Typography>{`Move was made by ${bidder}\n for ${utils.formatEther(amount)} ETH`}</Typography>
   );
 };
 

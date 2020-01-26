@@ -14,6 +14,8 @@ import { utils } from 'ethers';
 import Countdown from './countdown';
 import { path } from 'ramda';
 import { Game } from '../containers';
+import { useThemeStyles } from '../theme';
+import clsx from 'clsx';
 
 type Props = {
   container: any;
@@ -23,13 +25,16 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
   const auction = props.container.useContainer();
   const game = Game.useContainer();
   const { account } = useWeb3React();
+  const classes = useThemeStyles({});
+  const isRedTeam = Team[auction.team] === Team[Team.red];
 
   const renderNewAuction = () => {
     const isRunning = !!auction && auction.hasStarted() && !auction.hasEnded();
     const hasMove = auction.leadingBid && !auction.leadingBid.amount.isZero();
+
     const amount: utils.BigNumber = (isRunning && path(['leadingBid', 'amount'], auction) || new utils.BigNumber(0));
-    const hasWon = GameResult[game.result] === GameResult[(Team[auction.team] === Team[Team.red] ? GameResult.redWinner : GameResult.blueWinner)];
-    const hasLost = GameResult[game.result] === GameResult[(Team[auction.team] === Team[Team.red] ? GameResult.blueWinner : GameResult.redWinner)];
+    const hasWon = GameResult[game.result] === GameResult[isRedTeam ? GameResult.redWinner : GameResult.blueWinner];
+    const hasLost = GameResult[game.result] === GameResult[isRedTeam ? GameResult.blueWinner : GameResult.redWinner];
 
     const gameCompleted = hasWon || hasLost;
 
@@ -82,7 +87,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
     return <Box>
       <Box flexDirection='row' display='flex' justifyContent='space-between'>
         <Box>
-          <Typography variant='h2'>
+          <Typography variant='h2' color='primary'>
             <Box fontWeight={400}>
               {getTitle()}
             </Box>
@@ -102,14 +107,14 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           />
         }
       </Box>
-      <Typography variant='subtitle1'>
+      <Typography variant='subtitle1' color='secondary'>
         {getSubtitle()}
       </Typography>
     </Box>
   }
 
   return (
-    <Card>
+    <Card className={clsx(isRedTeam ? classes.borderAlt : classes.border)}>
       <CardContent>
         {renderNewAuction()}
       </CardContent>
