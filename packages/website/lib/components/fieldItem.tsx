@@ -38,7 +38,7 @@ const useStyles = makeStyles<Theme>({
     background: createRadial(theme.palette.primary.dark),
   },
   target: {
-    background: createRadial('#ffbe00'),
+    background: createRadial(theme.palette.tertiary.dark),
   }
 });
 

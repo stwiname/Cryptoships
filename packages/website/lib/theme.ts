@@ -10,13 +10,17 @@ declare module '@material-ui/core/styles/createPalette' {
 
 import { createMuiTheme, makeStyles } from '@material-ui/core/styles';
 
-const lightBlue = '#43F3F3'; // Blue
-const darkBlue = '#0071e5';
-const darkestBlue= '#140034'; // Background
-const pink = '#F705FC'; // Pink
-const yellow = '#F6EE15'; // Yellow
+const lightBlue = '#2DE2E6'; // Blue
+const darkBlue = '#0275E5';
+const darkestBlue= '#261447'; // Background
+const darkPink = '#FF3864';
+const pink = '#F706CF'; // Pink
+const purple = '#7200FC';
+const yellow = '#F9C80E'; // Yellow
+const orange = '#FF6C11';
+const nearBlack = '#0D0221';
 
-const background = `linear-gradient(to top, ${darkestBlue}, black)`;
+const background = `linear-gradient(to top, ${darkestBlue}, ${nearBlack})`;
 
 export default createMuiTheme({
   palette: {
@@ -25,17 +29,17 @@ export default createMuiTheme({
     primary: {
       light: lightBlue,
       main: lightBlue,
-      dark: "#0071e5",
+      dark: darkBlue,
     },
     secondary: {
       light: pink,
       main: pink,
-      dark: pink,
+      dark: darkPink,
     },
     tertiary: {
       light: yellow,
       main: yellow,
-      dark: yellow,
+      dark: orange,
     },
   }, // Allows us to add tertiary color
   overrides: {
@@ -62,6 +66,7 @@ export default createMuiTheme({
     },
     MuiContainer: {
       root: {
+        height: '100vh',
         backgroundImage: `linear-gradient(to top, ${yellow}, ${pink}, ${darkBlue} 50%, ${darkestBlue})`
       }
     }
@@ -84,6 +89,10 @@ export const useThemeStyles = makeStyles(theme => ({
   },
   button: {
     color: `${yellow} !important`,
-    backgroundImage: `linear-gradient(to right, ${pink}, ${lightBlue})`
+    backgroundImage: `linear-gradient(to right, ${purple}, ${lightBlue})`
   },
+  buttonMain: {
+    color: `${lightBlue} !important`,
+    backgroundImage: `linear-gradient(to right, ${orange}, ${purple})`
+  }
 }));

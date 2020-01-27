@@ -38,6 +38,8 @@ const useStyles = makeStyles({
   cell: {
     width: 50,
     height: 50,
+    minWidth: 50,
+    minHeight: 50,
   },
   header: {
     color: theme.palette.tertiary.main,
