@@ -10,6 +10,7 @@ import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
 import { LeadingBid, AuctionResult, Team, GameResult } from '../contracts';
 import useEventListener from '../hooks/useEventListener';
 import useGameInstance from '../hooks/useGame';
+import { useHistory } from "react-router-dom";
 
 type AuctionMove = {
   move: number[];
@@ -20,6 +21,7 @@ type AuctionMove = {
 function useGame(contractAddress: string) {
   const context = useWeb3React();
   const game = useGameInstance(contractAddress);
+  const history = useHistory();
 
   if (!context.active || context.error) {
     throw new Error('Web3 context not setup!!');
@@ -48,7 +50,10 @@ function useGame(contractAddress: string) {
     game.functions
       .fieldSize()
       .then(sizeBN => setFieldSize(sizeBN))
-      .catch(e => console.log('Failed to get field size', e));
+      .catch(e => {
+        console.log('Failed to get field size', e);
+        history.push('/not-found');
+      });
     // TODO find way to throw this error
 
     game.functions

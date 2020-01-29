@@ -15,7 +15,7 @@ import { createAuctionContainer, Game as Container } from '../containers';
 import theme, { useThemeStyles } from '../theme';
 import { numToBase64 } from '../utils';
 import clsx from 'clsx';
-import { ReactSVG as SVG } from 'react-svg';
+const Logo = require('../../assets/cryptoships_wording_3.svg');
 
 type Props = {};
 
@@ -120,15 +120,8 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <RedAuctionContainer.Provider initialState={{ team: Team.red }}>
       <BlueAuctionContainer.Provider initialState={{ team: Team.blue }}>
-        <SVG
-          src='../../assets/cryptoships_wording_3.svg'
-          renumerateIRIElements={false}
-          beforeInjection={svg => {
-            svg.classList.add('svg-class-name')
-            svg.setAttribute('style', 'height: 100px; width: 100%; padding-top: 10px;')
-          }}
-        />
-        {largeLayout    ? renderLargeScreen() : renderSmallScreen()}
+        <img src={Logo} style={{ height: '100px', width: '100%', paddingTop: '10px' }}/>
+        {largeLayout ? renderLargeScreen() : renderSmallScreen()}
         <PlaceBid
           {...dialogParams}
           auctionContainer={

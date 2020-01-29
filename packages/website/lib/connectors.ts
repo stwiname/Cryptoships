@@ -6,7 +6,12 @@ const MetaMask = new InjectedConnector({
 });
 
 const Infura = new NetworkConnector({
-  urls: ['ws://localhost:8545'] /*'wss://mainnet.infura.io/ws/v3/YOUR-PROJECT-ID'*/,
+  urls: [
+    process.env.NODE_ENV === 'development'
+      ? 'ws://localhost:8545'
+      : 'https://mainnet.infura.io/v3/633ec828fb0a4a0386f04382ab25f394'
+      // : 'wss://mainnet.infura.io/ws/v3/633ec828fb0a4a0386f04382ab25f394'
+    ],
 });
 
 export default {

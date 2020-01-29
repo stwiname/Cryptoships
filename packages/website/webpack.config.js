@@ -32,7 +32,7 @@ module.exports = {
       },
       {
           test: /\.svg$/,
-          loader: 'svg-inline-loader'
+          loader: 'svg-url-loader'
       }
     ]
   },
@@ -44,6 +44,7 @@ module.exports = {
 
   externals: {
     react: 'React',
+    // 'react-dom': 'react-dom',
     'ethers': 'ethers',
   },
 
@@ -53,6 +54,6 @@ module.exports = {
   },
 
   plugins: [
-    // new BundleAnalyzerPlugin()
+    // new BundleAnalyzerPlugin(),
   ]
 };

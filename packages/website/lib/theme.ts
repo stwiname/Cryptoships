@@ -67,7 +67,7 @@ export default createMuiTheme({
     MuiContainer: {
       root: {
         height: '100vh',
-        backgroundImage: `linear-gradient(to top, ${yellow}, ${pink}, ${darkBlue} 50%, ${darkestBlue})`
+        backgroundImage: `linear-gradient(to top, ${orange}, ${purple}, ${darkestBlue}, ${nearBlack} 60%)`
       }
     }
   }
@@ -94,5 +94,11 @@ export const useThemeStyles = makeStyles(theme => ({
   buttonMain: {
     color: `${lightBlue} !important`,
     backgroundImage: `linear-gradient(to right, ${orange}, ${purple})`
+  },
+  comingSoon: {
+    fontFamily: "'Permanent Marker', cursive",
+    background: `linear-gradient(to top, ${orange}, ${pink})`,
+    '-webkit-background-clip': 'text',
+    '-webkit-text-fill-color': 'transparent',
   }
 }));

@@ -2,13 +2,14 @@ import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/styles';
 import * as React from 'react';
-import { BrowserRouter as Router, Link, Route } from 'react-router-dom';
+import { HashRouter as Router, Link, Route } from 'react-router-dom';
 import { Web3ReactProvider } from '@web3-react/core'
 import { providers } from 'ethers';
 import Field from './components/field';
 import connectors from './connectors';
 import Game from './routes/game';
 import Home from './routes/home';
+import NotFound from './routes/notFound';
 import theme from './theme';
 
 
@@ -27,6 +28,7 @@ class App extends React.PureComponent<{}> {
           <Container maxWidth={false}>
             <Router>
               <Route exact={true} path="/" component={Home} />
+              <Route component={NotFound} />
               <Route path="/game/:address" component={Game} />
             </Router>
           </Container>

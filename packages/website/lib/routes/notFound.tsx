@@ -12,15 +12,8 @@ const Logo = require('../../assets/cryptoships_wording_3.svg');
 
 type Props = {};
 
-const Home: React.FunctionComponent<Props> = props => {
+const NotFound: React.FunctionComponent<Props> = props => {
   const themeClasses = useThemeStyles({});
-  const [address, setAddress] = React.useState(
-    '0xD5E727E39D77677B952879e4F620e358a1BccD6A'
-  );
-
-  const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress(event.target.value);
-  };
 
   return (
     <MuiContainer maxWidth={false}>
@@ -31,32 +24,25 @@ const Home: React.FunctionComponent<Props> = props => {
         flexDirection='column'
         style={{ height: '100%' }}
       >
-        <img src={Logo} style={{ height: '200px', width: '100vw' }}/>
-        {/*<Typography
-            variant='h2'
-            className={themeClasses.comingSoon}
-          >
-            Coming Soon
-          </Typography>*/}
-        <TextField
-          label="Address"
-          value={address}
-          onChange={handleAddressChange}
-          margin="normal"
-        />
-        <Button
-          to={`/game/${address}`}
-          component={Link}
-          variant="contained"
-          disabled={!address}
-          size='large'
-          className={themeClasses.buttonMain}
+        <Typography
+          variant='h3'
+          className={themeClasses.comingSoon}
+          style={{ paddingBottom: '20px'}}
         >
-          Play!
+          Ooops, we cant find this battle!
+        </Typography>
+        <Button
+          to={`/`}
+          component={Link}
+          size='large'
+          color='primary'
+          // className={themeClasses.buttonMain}
+        >
+          Take me home
         </Button>
       </Box>
     </MuiContainer>
   );
 };
 
-export default Home;
+export default NotFound;

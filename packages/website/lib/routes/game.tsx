@@ -19,11 +19,17 @@ const Game: React.FunctionComponent<Props> = props => {
 
   React.useEffect(() => {
     if (!context.active) {
-      context.activate(connectors.MetaMask);
+      context.activate(
+        connectors.MetaMask,
+        () => {
+          context.activate(connectors.Infura)
+        }
+      );
     }
   }, []);
 
   if (!context.active && !context.error) {
+    console.log('Context error', context.error);
     // loading
     return <Typography variant="h3">loading...</Typography>;
   } else if (context.error) {

@@ -19,6 +19,10 @@ function useWinnings(contractAddress: string) {
       return;
     }
 
+    if (!context.account || context.account === '#0') {
+      return;
+    }
+
     game.functions.getPotentialWinnings(context.account, Team.red)
       .then(amountBN => setRedWinnings(amountBN.toString()))
       .catch(e => console.log('Failed to get potential winnings', e));
