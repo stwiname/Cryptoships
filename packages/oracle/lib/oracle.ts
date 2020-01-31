@@ -1,4 +1,4 @@
-import { Signer, utils } from 'ethers';
+import { Signer, utils, ContractTransaction } from 'ethers';
 import { Provider } from 'ethers/providers';
 import moment from 'moment';
 import { range } from 'ramda';
@@ -15,6 +15,10 @@ import { Auction } from 'contracts/types/ethers-contracts/Auction';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { Game } from 'contracts/types/ethers-contracts/Game';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
+
+function truncateAddress(address: string) {
+  return `${address.substr(0, 4)}...${address.substr(address.length -4)}`;
+}
 
 export const logger = winston.createLogger({
   transports: [
@@ -78,6 +82,8 @@ export default class Oracle {
   private async setupForTeam(team: Team) {
     const auctionsCount = await this.instance.functions.getAuctionsCount(team);
 
+    logger.info(`${Team[team]} has ${auctionsCount} auctions`);
+
     const auctionAddresses = await Promise.all(
       range(0, auctionsCount).map(n =>
         this.instance.functions.getAuctionByIndex(team, n)
@@ -88,10 +94,13 @@ export default class Oracle {
       auctionAddresses.map(async address => {
         const auction = this.getAuctionAtAddress(address);
 
-        const [move, result] = await Promise.all([
+        const [move, result, hasEnded] = await Promise.all([
           auction.functions.getLeadingMove(),
           auction.functions.result(),
+          auction.functions.hasEnded(),
         ]);
+
+        logger.info(`${truncateAddress(address)} ended: ${hasEnded}, move: ${move}, result: ${result}`);
 
         return { move, result: result as AuctionResult };
       })
@@ -190,7 +199,7 @@ export default class Oracle {
     }, endTime - Date.now() + 2000);
   }
 
-  private async confirmMove(auction: Auction, team: Team, retries = 1) {
+  private async confirmMove(auction: Auction, team: Team, retries = 1): Promise<ContractTransaction> {
     logger.info(`Confirming move for ${auction.address}, has finished ${await auction.functions.hasEnded()}`);
     // For some reason this is thinking it hasn't ended
 
@@ -227,7 +236,7 @@ export default class Oracle {
 
     // Set move on game and possibly start next auction
     // Have to manually specify gas because it's not always estimated properly, this is due to contracts calling contracts
-    await this.instance.functions.confirmMove(team, hit, { gasLimit: 2000000 }).catch(async e => {
+    const tx: ContractTransaction = await this.instance.functions.confirmMove(team, hit, auction.address, { gasLimit: 2000000 }).catch(async e => {
       // TODO try to filter by e.message === 'Failed to confirm move', needs testing on mainnet
       if (retries > 0) {
         // Wait 10% of auction time to try again
@@ -244,7 +253,17 @@ export default class Oracle {
       throw e;
     });
 
-    logger.info('Success confirming move');
+    logger.info(`Success confirming move ${tx.hash}`);
+
+    tx.wait(1)
+      .then(() => {
+        logger.info(`Tx (${tx.hash}) confirmed`);
+      })
+      .catch(e => {
+        logger.warn(`Tx (${tx.hash}) failed`, e);
+      });
+
+    return tx;
   }
 
   private getAuctionAtAddress(address: string) {

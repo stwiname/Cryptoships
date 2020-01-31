@@ -14,9 +14,11 @@ import {
   getGasInfo
 } from './util';
 
+const nullAddress = '0x0000000000000000000000000000000000000000';
+
 const testBattleField = [[false, true], [true, false]];
-const redHash = computeFieldHash(testBattleField)
-const blueHash = computeFieldHash(testBattleField)
+const redHash = computeFieldHash(testBattleField);
+const blueHash = computeFieldHash(testBattleField);
 
 enum Team {
   red,
@@ -73,6 +75,7 @@ contract('Game', accounts => {
       await instance.confirmMove(
         team,
         testBattleField[position[0]][position[1]],
+        nullAddress,
         { from: oracleAccount }
       );
     }
@@ -217,7 +220,7 @@ contract('Game', accounts => {
         result.logs[0].args.endTime.toString() * 1000 - new Date().getTime();
       await advanceTimeAndBlock(advance);
 
-      await instance.confirmMove(Team.red, true, { from: oracleAccount });
+      await instance.confirmMove(Team.red, true, nullAddress, { from: oracleAccount });
     });
 
     it('should be able to set the auction result and play again, once the other team has played', async () => {
@@ -230,7 +233,7 @@ contract('Game', accounts => {
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       // Starts blue auction
-      await instance.confirmMove(Team.red, true, { from: oracleAccount });
+      await instance.confirmMove(Team.red, true, nullAddress, { from: oracleAccount });
 
       await instance.placeBid(Team.blue, [0, 1], {
         from: accounts[2],
@@ -258,7 +261,7 @@ contract('Game', accounts => {
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       // Starts blue auction
-      await instance.confirmMove(Team.red, true, { from: oracleAccount });
+      await instance.confirmMove(Team.red, true, nullAddress, { from: oracleAccount });
 
       await instance.placeBid(Team.blue, [0, 1], {
         from: accounts[2],

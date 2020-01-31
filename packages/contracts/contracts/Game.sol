@@ -114,10 +114,10 @@ contract Game {
     return createAuction(team, otherAuction.getEndTime() - auctionDuration/2);
   }
 
-  function confirmMove(Team team, bool hit) public ownerOnly {
-    Auction auction = getCurrentAuction(team);
-
-    require(auction.hasEnded(), "Auction has not yet ended");
+  function confirmMove(Team team, bool hit, address auctionAddress) public ownerOnly {
+    Auction auction = auctionAddress == address(0)
+      ? getCurrentAuction(team)
+      : Auction(auctionAddress);
 
     auction.setResult(hit);
 
