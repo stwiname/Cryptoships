@@ -191,7 +191,7 @@ export default class Oracle {
   }
 
   private async confirmMove(auction: Auction, team: Team, retries = 1) {
-    logger.info(`Confirming move for ${auction.address}`);
+    logger.info(`Confirming move for ${auction.address}, has finished ${await auction.functions.hasEnded()}`);
     // For some reason this is thinking it hasn't ended
 
     // if (!await auction.functions.hasEnded()) {
@@ -226,7 +226,8 @@ export default class Oracle {
     }
 
     // Set move on game and possibly start next auction
-    await this.instance.functions.confirmMove(team, hit).catch(async e => {
+    // Have to manually specify gas because it's not always estimated properly, this is due to contracts calling contracts
+    await this.instance.functions.confirmMove(team, hit, { gasLimit: 2000000 }).catch(async e => {
       // TODO try to filter by e.message === 'Failed to confirm move', needs testing on mainnet
       if (retries > 0) {
         // Wait 10% of auction time to try again
