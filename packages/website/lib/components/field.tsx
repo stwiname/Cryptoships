@@ -11,10 +11,9 @@ import range from 'ramda/src/range';
 import * as React from 'react';
 import { AuctionResult, Team } from '../contracts';
 import { Game } from '../containers';
-import theme from '../theme';
+import theme, { useThemeStyles } from '../theme';
 import { movesEqual, numToBase64 } from '../utils';
 import FieldItem from './fieldItem';
-import { useThemeStyles } from '../theme';
 import clsx from 'clsx';
 
 type Props = {

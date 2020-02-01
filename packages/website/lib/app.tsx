@@ -2,7 +2,7 @@ import Container from '@material-ui/core/Container';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { ThemeProvider } from '@material-ui/styles';
 import * as React from 'react';
-import { HashRouter as Router, Link, Route } from 'react-router-dom';
+import { HashRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import { Web3ReactProvider } from '@web3-react/core'
 import { providers } from 'ethers';
 import Field from './components/field';
@@ -10,7 +10,7 @@ import connectors from './connectors';
 import Game from './routes/game';
 import Home from './routes/home';
 import NotFound from './routes/notFound';
-import theme from './theme';
+import theme, { appBackground } from './theme';
 
 
 function getLibrary(provider: any): providers.Web3Provider {
@@ -25,13 +25,17 @@ class App extends React.PureComponent<{}> {
       <Web3ReactProvider  getLibrary={getLibrary}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <Container maxWidth={false}>
-            <Router>
-              <Route exact={true} path="/" component={Home} />
-              <Route component={NotFound} />
-              <Route path="/game/:address" component={Game} />
-            </Router>
-          </Container>
+          <div style={appBackground}>
+            <Container maxWidth={false}>
+              <Router>
+                <Switch>
+                  <Route exact={true} path="/" component={Home} />
+                  <Route path="/game/:address" component={Game} />
+                  <Route component={NotFound} />
+                </Switch>
+              </Router>
+            </Container>
+          </div>
         </ThemeProvider>
       </Web3ReactProvider>
     );

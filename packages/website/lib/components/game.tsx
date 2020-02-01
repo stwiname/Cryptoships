@@ -6,12 +6,14 @@ import AppBar from '@material-ui/core/AppBar';
 import Tabs from '@material-ui/core/Tabs';
 import Tab from '@material-ui/core/Tab';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { Link } from 'react-router-dom';
 import * as React from 'react';
 import { AuctionResult, Team } from '../contracts';
 import { Auction, Field } from '../components';
+import Winnings from './winnings';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
 import PlacedMove, { Props as PlacedMoveProps } from '../components/placedMove';
-import { createAuctionContainer, Game as Container } from '../containers';
+import { createAuctionContainer, Game as Container} from '../containers';
 import theme, { useThemeStyles } from '../theme';
 import { numToBase64 } from '../utils';
 import clsx from 'clsx';
@@ -25,7 +27,7 @@ const BlueAuctionContainer = createAuctionContainer();
 const Game: React.FunctionComponent<Props> = props => {
   const game = Container.useContainer();
   const classes = useThemeStyles({});
-  const largeLayout    = useMediaQuery('(min-width:1200px)');
+  const largeLayout = useMediaQuery('(min-width:1200px)');
 
   const [selectedTab, setTab] = React.useState(0);
 
@@ -68,6 +70,7 @@ const Game: React.FunctionComponent<Props> = props => {
         <Card>
           <CardContent>
             <Auction container={container} />
+            <Winnings team={team}/>
             <Field
               team={team}
               onItemPress={handleGridPress(team)}
@@ -120,7 +123,9 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <RedAuctionContainer.Provider initialState={{ team: Team.red }}>
       <BlueAuctionContainer.Provider initialState={{ team: Team.blue }}>
+        <Link to='/'>
         <img src={Logo} style={{ height: '100px', width: '100%', paddingTop: '10px' }}/>
+        </Link>
         {largeLayout ? renderLargeScreen() : renderSmallScreen()}
         <PlaceBid
           {...dialogParams}

@@ -52,7 +52,7 @@ function useGame(contractAddress: string) {
       .then(sizeBN => setFieldSize(sizeBN))
       .catch(e => {
         console.log('Failed to get field size', e);
-        history.push('/not-found');
+        // history.push('/not-found');
       });
     // TODO find way to throw this error
 
@@ -197,6 +197,7 @@ function useGame(contractAddress: string) {
     console.log('Place bid', position, value.toNumber());
     return game.functions.placeBid(team, [position.x, position.y], {
       value,
+      // gasLimit: 200000
     });
 
     // TODO set leading bid

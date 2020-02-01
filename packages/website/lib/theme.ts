@@ -66,15 +66,32 @@ export default createMuiTheme({
     },
     MuiContainer: {
       root: {
-        height: '100vh',
-        backgroundImage: `linear-gradient(to top, ${orange}, ${purple}, ${darkestBlue}, ${nearBlack} 60%)`
+        height: '100%',
+        // backgroundImage: `linear-gradient(to top, ${orange}, ${purple}, ${darkestBlue}, ${nearBlack} 60%)`,
+        // backgroundAttachment: 'fixed',
+      }
+    },
+    MuiCardContent: {
+      root: {
+        "&:last-child": {
+          paddingBottom: null
+        },
       }
     }
   }
 });
 
+export const appBackground = {
+  minHeight: '100vh',
+  backgroundImage: `linear-gradient(to top, ${orange}, ${purple}, ${darkestBlue}, ${nearBlack} 60%)`,
+  backgroundAttachment: 'fixed',
+}
+
 
 export const useThemeStyles = makeStyles(theme => ({
+  yellow: {
+    color: yellow
+  },
   border: {
     border: `2px solid ${lightBlue}`,
   },

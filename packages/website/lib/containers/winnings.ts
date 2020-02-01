@@ -2,7 +2,7 @@ import { utils } from 'ethers';
 import { createContainer } from 'unstated-next';
 import { useEffect, useState } from 'react';
 import { useWeb3React } from '@web3-react/core';
-import { Team } from '../contracts';
+import { Team, GameResult } from '../contracts';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import useGame from '../hooks/useGame';
 import useEventListener from '../hooks/useEventListener';
@@ -11,8 +11,9 @@ function useWinnings(contractAddress: string) {
   const context = useWeb3React();
   const game = useGame(contractAddress);
 
-  const [redWinnings, setRedWinnings] = useState<string>('0');
-  const [blueWinnings, setBlueWinnings] = useState<string>('0');
+  const [winningTeam, setWinningTeam] = useState<Team>(null);
+  const [redWinnings, setRedWinnings] = useState<utils.BigNumber>(new utils.BigNumber('0'));
+  const [blueWinnings, setBlueWinnings] = useState<utils.BigNumber>(new utils.BigNumber('0'));
 
   const getWinnings = () => {
     if (!game) {
@@ -24,12 +25,25 @@ function useWinnings(contractAddress: string) {
     }
 
     game.functions.getPotentialWinnings(context.account, Team.red)
-      .then(amountBN => setRedWinnings(amountBN.toString()))
+      .then(amountBN => setRedWinnings(amountBN))
       .catch(e => console.log('Failed to get potential winnings', e));
 
     game.functions.getPotentialWinnings(context.account, Team.blue)
-      .then(amountBN => setBlueWinnings(amountBN.toString()))
+      .then(amountBN => setBlueWinnings(amountBN))
       .catch(e => console.log('Failed to get potential winnings', e));
+
+    game.functions.result()
+      .then(result => {
+        if (GameResult[result] === GameResult[GameResult.blueWinner] ||
+          GameResult[result] === GameResult[GameResult.redWinner])
+        {
+          setWinningTeam(
+            GameResult[result] === GameResult[GameResult.blueWinner]
+              ? Team.blue
+              : Team.red
+          );
+        }
+      });
   }
 
   useEffect(() => {
@@ -53,6 +67,7 @@ function useWinnings(contractAddress: string) {
   return {
     redWinnings,
     blueWinnings,
+    winningTeam,
     withdrawWinnings,
   }
 }
