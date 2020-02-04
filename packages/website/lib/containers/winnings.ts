@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { Team, GameResult } from '../contracts';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
-import useGame from '../hooks/useGame';
+import useContract from '../hooks/useContract';
 import useEventListener from '../hooks/useEventListener';
 
 function useWinnings(contractAddress: string) {
   const context = useWeb3React();
-  const game = useGame(contractAddress);
+  const game = useContract(contractAddress, GameFactory.connect);
 
   const [winningTeam, setWinningTeam] = useState<Team>(null);
   const [redWinnings, setRedWinnings] = useState<utils.BigNumber>(new utils.BigNumber('0'));

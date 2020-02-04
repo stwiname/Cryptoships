@@ -4,6 +4,7 @@ import { useWeb3React } from '@web3-react/core';
 import { Auction as AuctionInstance } from 'contracts/types/ethers-contracts/Auction';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { LeadingBid, Team } from '../contracts';
+import useContract from '../hooks/useContract';
 import GameContainer from './game';
 
 function useAuction({ team, address }: { team: Team; address?: string }) {
@@ -13,7 +14,8 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   const auctionAddress = address || game.getTeamAuctionAddress(team);
   const gameLeadingBid = game.getTeamLeadingBid(team);
 
-  const [auctionInstance, setAuctionInstance] = useState<AuctionInstance>(null);
+  const auction = useContract(auctionAddress, AuctionFactory.connect);
+
   const [leadingBid, setLeadingBid] = useState<LeadingBid>(null);
   const [startTime, setStartTime] = useState<Date>(null);
   const [endTime, setEndTime] = useState<Date>(null);
@@ -21,12 +23,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   const [, updateState] = useState(); // Used to force a rerender
 
   useEffect(() => {
-    if (auctionAddress) {
-      const auction = AuctionFactory.connect(
-        auctionAddress,
-        context.library.getSigner(context.account)
-      );
-      setAuctionInstance(auction);
+    if (auction) {
 
       auction.functions
         .getLeadingBid()
@@ -44,7 +41,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
           setDuration(duration.toNumber() * 1000);
         });
     }
-  }, [auctionAddress]);
+  }, [auction]);
 
   useEffect(() => {
     let timer: number = null;
@@ -94,12 +91,12 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
     console.log('useAuction, leading bid', gameLeadingBid);
     setLeadingBid(gameLeadingBid);
 
-    if (!startTime && auctionInstance) {
-      getStartTime(auctionInstance);
+    if (!startTime && auction) {
+      getStartTime(auction);
     }
 
-    if (!endTime && auctionInstance) {
-      getEndTime(auctionInstance);
+    if (!endTime && auction) {
+      getEndTime(auction);
     }
   }, [gameLeadingBid]);
 

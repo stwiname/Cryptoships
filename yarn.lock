@@ -1342,46 +1342,46 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@web3-react/abstract-connector@^6.0.0-beta.19":
-  version "6.0.0-beta.19"
-  resolved "https://registry.yarnpkg.com/@web3-react/abstract-connector/-/abstract-connector-6.0.0-beta.19.tgz#c4565249977344c2ca6b06c0545d76ef9ffdf225"
-  integrity sha512-aSh3ZvdNBeCXoe9QP7d0Xj19w4nwL+RVvB29rmpylTNpsGJ41nPxXCOXY08olHA+aGmwm8bLhIv3ArFMc29qrA==
+"@web3-react/abstract-connector@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@web3-react/abstract-connector/-/abstract-connector-6.0.2.tgz#df4b5af805364283fdfb54e1174ced537783d790"
+  integrity sha512-0Jl+ahg0Iub/Xfnmm9aMiaNY0IO61H+gItAvHMsC76GDxmfns5gq8qSXBJSXbWGpoy/TxufACzETT8fGDtMzDQ==
   dependencies:
-    "@web3-react/types" "^6.0.0-beta.19"
+    "@web3-react/types" "^6.0.2"
 
-"@web3-react/core@^6.0.0-beta.19":
-  version "6.0.0-beta.19"
-  resolved "https://registry.yarnpkg.com/@web3-react/core/-/core-6.0.0-beta.19.tgz#ec62b2bacc2d87fedb5c8e3f2542abd3a64f1f74"
-  integrity sha512-wGPIk+SxoJQRsn8Z05ozXQFKlGlnufqgvvqkFE6hMQOo/LrAdpIzmYt/VH5AQ6H/GgYnj1JdWjk/7qLGbz6v9g==
+"@web3-react/core@^6.0.6":
+  version "6.0.6"
+  resolved "https://registry.yarnpkg.com/@web3-react/core/-/core-6.0.6.tgz#d45c2658a0be6f54657d5f7f0511caf777eed9ec"
+  integrity sha512-J+bZ9lCZM3hU5rKdnHrT4tLQ0tp6zt0HEKOIaeGR5zpCMcnURyrYEjp5menGVVcAhuNKwKhDvijjI2gj8EPxCw==
   dependencies:
     "@ethersproject/keccak256" "^5.0.0-beta.130"
-    "@web3-react/types" "^6.0.0-beta.19"
+    "@web3-react/types" "^6.0.2"
     tiny-invariant "^1.0.6"
     tiny-warning "^1.0.3"
 
-"@web3-react/injected-connector@^6.0.0-beta.20":
-  version "6.0.0-beta.20"
-  resolved "https://registry.yarnpkg.com/@web3-react/injected-connector/-/injected-connector-6.0.0-beta.20.tgz#b04787a4f036eaa6eb4c5ea327bc941a9383303e"
-  integrity sha512-uXVgSn8qUUEFd0figiaxHY9yF5RenpHx4sUDxTjAZrSUwkg2jPBoV7BjPcXPP2LGwqVzFDL4059usNXSV1FVqg==
+"@web3-react/injected-connector@^6.0.3":
+  version "6.0.3"
+  resolved "https://registry.yarnpkg.com/@web3-react/injected-connector/-/injected-connector-6.0.3.tgz#48b615c95129c63a1c20fb292534836c4059103e"
+  integrity sha512-4mjafFRDewgSIdvlzrgDTWsKmOstkYo20Bor+OEh3XFWPxQ4Mk/CMBOQwzaehcxP1qV06mTWg+GDwoKI9zxNpw==
   dependencies:
-    "@web3-react/abstract-connector" "^6.0.0-beta.19"
-    "@web3-react/types" "^6.0.0-beta.19"
+    "@web3-react/abstract-connector" "^6.0.2"
+    "@web3-react/types" "^6.0.2"
     tiny-warning "^1.0.3"
 
-"@web3-react/network-connector@^6.0.0-beta.19":
-  version "6.0.0-beta.19"
-  resolved "https://registry.yarnpkg.com/@web3-react/network-connector/-/network-connector-6.0.0-beta.19.tgz#e79f798284bd712a33780fabe655b90b173ba93c"
-  integrity sha512-1RzNx58Kkkh/ktAh+/twpwDpf/gmIrMZRogEv1EpCAYlrDFlMz/NUF4oW6UY/ZsTvkYRbGm3MvDFdUZreEIhag==
+"@web3-react/network-connector@^6.0.4":
+  version "6.0.4"
+  resolved "https://registry.yarnpkg.com/@web3-react/network-connector/-/network-connector-6.0.4.tgz#714ca47c0c5b67ec13c58448db0c295b8ccbc424"
+  integrity sha512-E6kudr/2J/8vyls9sxl3/Zg7Eg/Ki9O+PNkGzD0+L0VXuE04L5wL1o8VvwYFwHVeePjVmvacPi8gjMryDn0mZQ==
   dependencies:
     "@0x/subproviders" "^5.0.4"
-    "@web3-react/abstract-connector" "^6.0.0-beta.19"
-    "@web3-react/types" "^6.0.0-beta.19"
+    "@web3-react/abstract-connector" "^6.0.2"
+    "@web3-react/types" "^6.0.2"
     tiny-invariant "^1.0.6"
 
-"@web3-react/types@^6.0.0-beta.19":
-  version "6.0.0-beta.19"
-  resolved "https://registry.yarnpkg.com/@web3-react/types/-/types-6.0.0-beta.19.tgz#06e32c1c83069c5dd0f18d87c083204057b6a9ea"
-  integrity sha512-8V2ORhdMOrmrdw+Er2b863KsOgatpbelTaBizJ5IcJdKS1NwBQerhyBJucSXwplQWPbuXnSDYCL2Vgv/mzpmUw==
+"@web3-react/types@^6.0.2":
+  version "6.0.2"
+  resolved "https://registry.yarnpkg.com/@web3-react/types/-/types-6.0.2.tgz#fe451383cc6fd88128c7608e3cdfe3b0c42caff3"
+  integrity sha512-zDPcjWdYONgpL6o3SQPMQE+pIDBcIsWMP/FqFRIFmPjB9h+ONHXNID74pf3h++gZGfIkl9cDtTvF8kQudn5Lew==
 
 "@webassemblyjs/ast@1.8.5":
   version "1.8.5"

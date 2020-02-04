@@ -6,10 +6,11 @@ import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
+import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
 import { LeadingBid, AuctionResult, Team, GameResult } from '../contracts';
 import useEventListener from '../hooks/useEventListener';
-import useGameInstance from '../hooks/useGame';
+import useContract from '../hooks/useContract';
 import { useHistory } from "react-router-dom";
 
 type AuctionMove = {
@@ -20,7 +21,7 @@ type AuctionMove = {
 
 function useGame(contractAddress: string) {
   const context = useWeb3React();
-  const game = useGameInstance(contractAddress);
+  const game = useContract(contractAddress, GameFactory.connect);
   const history = useHistory();
 
   if (!context.active || context.error) {
@@ -172,7 +173,7 @@ function useGame(contractAddress: string) {
       auctionAddresses.map(async address => {
         const auction = AuctionFactory.connect(
           address,
-          context.library.getSigner(context.account)
+          context.library
         );
 
         const [move, result] = await Promise.all([

@@ -5,7 +5,7 @@ import * as React from 'react';
 import { match } from 'react-router-dom';
 import { useWeb3React } from '@web3-react/core';
 import { Team } from '../../lib/contracts';
-import { ErrorBoundary } from '../components';
+import { ErrorBoundary, Header } from '../components';
 import View from '../components/game';
 import { Game as Container, Winnings } from '../containers';
 import connectors from '../connectors';
@@ -17,36 +17,51 @@ type Props = {
 const Game: React.FunctionComponent<Props> = props => {
   const context = useWeb3React();
 
+  const activateDefault = () => {
+    context.activate(connectors.Network);
+  }
+
+  const activateMetamask = () => {
+    context.activate(
+      connectors.MetaMask,
+      activateDefault,
+    );
+  }
+
   React.useEffect(() => {
     if (!context.active) {
-      context.activate(
-        connectors.MetaMask,
-        () => {
-          context.activate(connectors.Infura)
-        }
-      );
+      activateDefault();
     }
   }, []);
 
-  if (!context.active && !context.error) {
-    console.log('Context error', context.error);
-    // loading
-    return <Typography variant="h3">loading...</Typography>;
-  } else if (context.error) {
-    console.error('Web3 context error', context.error);
-    return <Typography variant="h3">error....</Typography>;
-  }
+  const renderContent = () => {
+    if (!context.active && !context.error) {
+      console.log('Context error', context.error);
+      // loading
+      return <Typography variant="h3">loading...</Typography>;
+    } else if (context.error) {
+      console.error('Web3 context error', context.error);
+      return <Typography variant="h3">error....</Typography>;
+    }
 
-  return (
-    <MuiContainer>
-    <ErrorBoundary>
+    return (
       <Container.Provider initialState={props.match.params.address}>
         <Winnings.Provider initialState={props.match.params.address}>
           <View />
         </Winnings.Provider>
       </Container.Provider>
-    </ErrorBoundary>
-    </MuiContainer>
+    );
+  }
+
+  return (
+    // <MuiContainer>
+      <ErrorBoundary>
+        <Header
+          connectAccount={activateMetamask}
+        />
+        { renderContent() }
+      </ErrorBoundary>
+    // </MuiContainer>
   );
 };
 

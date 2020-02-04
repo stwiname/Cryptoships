@@ -29,7 +29,7 @@ const Home: React.FunctionComponent<Props> = props => {
       context.activate(
         connectors.MetaMask,
         () => {
-          context.activate(connectors.Infura)
+          context.activate(connectors.Network)
         }
       );
     }

@@ -17,7 +17,6 @@ import { createAuctionContainer, Game as Container} from '../containers';
 import theme, { useThemeStyles } from '../theme';
 import { numToBase64 } from '../utils';
 import clsx from 'clsx';
-const Logo = require('../../assets/cryptoships_wording_3.svg');
 
 type Props = {};
 
@@ -123,9 +122,6 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <RedAuctionContainer.Provider initialState={{ team: Team.red }}>
       <BlueAuctionContainer.Provider initialState={{ team: Team.blue }}>
-        <Link to='/'>
-        <img src={Logo} style={{ height: '100px', width: '100%', paddingTop: '10px' }}/>
-        </Link>
         {largeLayout ? renderLargeScreen() : renderSmallScreen()}
         <PlaceBid
           {...dialogParams}
