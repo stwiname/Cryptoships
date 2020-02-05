@@ -319,38 +319,60 @@ contract('Game', accounts => {
       );
     });
 
-    it('should have no potential winnings for a player who made no moves', async () => {
-      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
-      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+    describe('Potential winnings', () => {
 
-      const winnings = await instance.getPotentialWinnings(accounts[3], Team.red);
+      it('should be 0 when only no team has played a move', async () => {
+        const winningsBlue = await instance.getPotentialWinnings(accounts[3], Team.blue);
 
-      expect(winnings.isZero()).to.be.true;
+        // expect(winningsRed.isZero()).to.be.true;
+        expect(winningsBlue.isZero()).to.be.true;
+      });
+
+      it('should be 0 when only one team has played a move', async () => {
+        await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+
+        const winningsBlue = await instance.getPotentialWinnings(accounts[3], Team.blue);
+
+        // expect(winningsRed.isZero()).to.be.true;
+        expect(winningsBlue.isZero()).to.be.true;
+      });
+
+      it('should be 0 for a player who made no moves, with auctions', async () => {
+        await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+        await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+
+        const winningsRed = await instance.getPotentialWinnings(accounts[3], Team.red);
+        const winningsBlue = await instance.getPotentialWinnings(accounts[3], Team.blue);
+
+        expect(winningsRed.isZero()).to.be.true;
+        expect(winningsBlue.isZero()).to.be.true;
+      });
+
+      it('should be 0 for the other team, with auctions', async () => {
+        await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+        await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+
+        const winnings = await instance.getPotentialWinnings(accounts[1], Team.blue);
+
+        expect(winnings.isZero()).to.be.true;
+      });
+
+      it('should be able to be checked', async () => {
+
+        await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+        await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+
+        const winnings1: utils.BigNumber = (await instance.getPotentialWinnings(accounts[1], Team.red)) as any;
+        const winnings2: utils.BigNumber = (await instance.getPotentialWinnings(accounts[2], Team.blue)) as any;
+
+        // Each winning bid made by the player + share of the losing team
+        const expectedWinnings = new utils.BigNumber(bidAmount).div(10).mul(9).add(bidAmount);
+
+        expect(winnings1.toString()).to.equal(expectedWinnings.toString());
+        expect(winnings2.toString()).to.equal(expectedWinnings.toString());
+      });
     });
 
-    it('should have no potential winnings for the other team', async () => {
-      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
-      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
-
-      const winnings = await instance.getPotentialWinnings(accounts[1], Team.blue);
-
-      expect(winnings.isZero()).to.be.true;
-    });
-
-    it('should be able to check potential winnings', async () => {
-
-      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
-      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
-
-      const winnings1: utils.BigNumber = (await instance.getPotentialWinnings(accounts[1], Team.red)) as any;
-      const winnings2: utils.BigNumber = (await instance.getPotentialWinnings(accounts[2], Team.blue)) as any;
-
-      // Each winning bid made by the player + share of the losing team
-      const expectedWinnings = new utils.BigNumber(bidAmount).div(10).mul(9).add(bidAmount);
-
-      expect(winnings1.toString()).to.equal(expectedWinnings.toString());
-      expect(winnings2.toString()).to.equal(expectedWinnings.toString());
-    });
 
     it('should fail to withdraw a second time', async() => {
 

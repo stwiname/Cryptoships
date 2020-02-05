@@ -255,9 +255,19 @@ contract Game {
 
     // Get num valid auctions, if the last auction has zero bid it is either not played or cancelled
     uint32 numAuctions = getAuctionsCount(team);
+
+    if (numAuctions <= 0) {
+      return 0;
+    }
+
+    // Exclude current auction if no bids made
     (, uint256 leadingAmount,) = getCurrentAuction(team).getLeadingBid();
     if (leadingAmount <= 0) {
       numAuctions--;
+    }
+
+    if (numAuctions <= 0) {
+      return 0;
     }
 
     // Save 10% for owner
