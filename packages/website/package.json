@@ -20,7 +20,8 @@
   "scripts": {
     "build": "webpack",
     "watch": "webpack -w",
-    "start": "webpack-dev-server --hot --mode development"
+    "start": "webpack-dev-server --hot --mode development",
+    "deploy": "webpack --mode=production && node ./scripts/deploy.js"
   },
   "bugs": {
     "url": "https://github.com/stwiname/Battleship/issues"
@@ -40,6 +41,7 @@
     "unstated-next": "^1.1.0"
   },
   "devDependencies": {
+    "@pinata/sdk": "^1.1.3",
     "@types/react": "^16.9.11",
     "@types/react-dom": "^16.9.4",
     "@types/react-router-dom": "^5.1.2",
