@@ -31,7 +31,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   position,
   auctionContainer,
 }) => {
-  const game = Container.useContainer();
+  // const game = Container.useContainer();
   const web3 = useWeb3React();
   const auction = auctionContainer.useContainer();
 
@@ -62,7 +62,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   const handlePlaceBid = async () => {
     try {
       setLoading(true);
-      await game.placeBid(team, position, utils.parseEther(amount));
+      await auction.placeBid(position, utils.parseEther(amount));
 
       setTimeout(onClose, 500);
     } finally {

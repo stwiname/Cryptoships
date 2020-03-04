@@ -2,6 +2,8 @@ import BN from 'bn.js';
 import { utils } from 'ethers';
 import { filter } from 'ramda';
 
+const nullAddress = '0x0000000000000000000000000000000000000000';
+
 const advanceTimeAndBlock = async (time) => {
     await advanceTime(time);
     await advanceBlock();
@@ -64,9 +66,21 @@ const assertEvent = (contract, filter) => {
     });
 }
 
+const bnMoveToNumber = (move: [utils.BigNumber, utils.BigNumber] | [number, number ]): [number, number] => {
+    if (typeof move[0] === 'number' || typeof move[1] === 'number') {
+        return move as [number, number];
+    }
+
+    return [
+        move[0].toNumber(),
+        move[1].toNumber(),
+    ]
+}
+
 const assertAuctionBid = (bid, expectedBid) => {
-    assert.equal(bid.move[0].toNumber(), expectedBid.move[0]);
-    assert.equal(bid.move[1].toNumber(), expectedBid.move[1]);
+    const move = bnMoveToNumber(bid.move);
+    assert.equal(move[0], expectedBid.move[0]);
+    assert.equal(move[1], expectedBid.move[1]);
     assert.equal(bid.amount.toString(), expectedBid.amount.toString());
     assert.equal(bid.bidder, expectedBid.bidder);
 }
@@ -85,4 +99,5 @@ export {
     assertEvent,
     assertAuctionBid,
     getGasInfo,
+    nullAddress,
 };

@@ -6,6 +6,7 @@ import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory'
 import { LeadingBid, Team } from '../contracts';
 import useContract from '../hooks/useContract';
 import GameContainer from './game';
+import { utils } from 'ethers';
 
 function useAuction({ team, address }: { team: Team; address?: string }) {
   const context = useWeb3React();
@@ -100,6 +101,23 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
     }
   }, [gameLeadingBid]);
 
+  const placeBid = async (
+    position: { x: number; y: number },
+    value: utils.BigNumber
+  ) => {
+    if (!auction) {
+      throw new Error('No game found');
+    }
+
+    console.log('Place bid', position, value.toNumber());
+    return auction.functions.placeBid([position.x, position.y], {
+      value,
+      // gasLimit: 200000
+    });
+
+    // TODO set leading bid
+  };
+
   return {
     auctionAddress,
     team,
@@ -109,6 +127,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
     endTime,
     hasStarted,
     hasEnded,
+    placeBid
   };
 }
 
