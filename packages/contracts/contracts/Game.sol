@@ -134,4 +134,12 @@ contract Game is AuctionListener {
   function hasWithdrawnWinnings() public view returns(bool) {
     return data.hasWithdrawnWinnings();
   }
+
+  function getResult() public view returns(GameLib.Result) {
+    return data.result;
+  }
+
+  function getFieldSize() public view returns(uint16) {
+    return data.fieldSize;
+  }
 }

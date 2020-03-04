@@ -71,7 +71,15 @@ contract Auction is ReentrancyGuard {
     return address(this).balance;
   }
 
+  function getStartTime() public view returns(uint256) {
+    return data.startTime;
+  }
+
   function getEndTime() public view returns(uint256) {
     return data.endTime;
+  }
+
+  function getDuration() public view returns(uint256) {
+    return data.duration;
   }
 }

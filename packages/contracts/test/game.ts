@@ -6,6 +6,7 @@ import { utils } from 'ethers';
 import LogDecoder from './LogDecoder';
 import { battleFieldToBuffer, computeFieldHash } from 'oracle/lib/generator';
 import { GameContract, GameInstance } from '../types/truffle-contracts';
+const GameLib = artifacts.require('GameLib');
 const Game: GameContract = artifacts.require('Game');
 const AuctionLib = artifacts.require('AuctionLib');
 const Auction = artifacts.require('Auction');
@@ -41,9 +42,11 @@ contract('Game', accounts => {
   }
 
   before(async () => {
-    const library = await AuctionLib.new();
-    await (Auction as any).link("AuctionLib", library.address);
-    await (Game as any).link("AuctionLib", library.address);
+    const auctionLibrary = await AuctionLib.new();
+    const gameLibrary = await GameLib.new();
+    await (Auction as any).link("AuctionLib", auctionLibrary.address);
+    await (Game as any).link("AuctionLib", auctionLibrary.address);
+    await (Game as any).link("GameLib", gameLibrary.address);
   });
 
   describe('initialisation', () => {

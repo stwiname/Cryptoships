@@ -37,7 +37,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
       getStartTime(auction);
       getEndTime(auction);
 
-      auction.functions.duration()
+      auction.functions.getDuration()
         .then(duration => {
           setDuration(duration.toNumber() * 1000);
         });
@@ -64,8 +64,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   }, [endTime]);
 
   const getStartTime = (auction: AuctionInstance) => {
-    auction.functions
-      .startTime()
+    auction.functions.getStartTime()
       .then(startBN => {
         console.log('AUCTION start BN', startBN.toString())
         setStartTime(new Date(startBN.toNumber() * 1000))
