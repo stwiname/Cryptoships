@@ -19,7 +19,9 @@ import {
 } from './util';
 
 const { abi: gameAbi } = require('../build/contracts/Game.json');
+const { abi: gameLibAbi } = require('../build/contracts/GameLib.json');
 const { abi: auctionAbi } = require('../build/contracts/Auction.json');
+const { abi: auctionLibAbi } = require('../build/contracts/AuctionLib.json');
 
 const testBattleField = [[false, true], [true, false]];
 const redHash = computeFieldHash(testBattleField);
@@ -35,7 +37,7 @@ const AUCTION_TIME = 10;
 contract('Game', accounts => {
   const oracleAccount = accounts[0];
 
-  const logDecoder = new LogDecoder([gameAbi, auctionAbi]);
+  const logDecoder = new LogDecoder([gameAbi, gameLibAbi, auctionAbi, auctionLibAbi]);
 
   async function getBalance(index: number) {
     return new utils.BigNumber(await web3.eth.getBalance(accounts[index]));
@@ -43,6 +45,7 @@ contract('Game', accounts => {
 
   before(async () => {
     const auctionLibrary = await AuctionLib.new();
+    await (GameLib as any).link("AuctionLib", auctionLibrary.address);
     const gameLibrary = await GameLib.new();
     await (Auction as any).link("AuctionLib", auctionLibrary.address);
     await (Game as any).link("AuctionLib", auctionLibrary.address);
