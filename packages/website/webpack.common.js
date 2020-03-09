@@ -2,13 +2,9 @@
 
 const path = require("path");
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const MomentLocalesPlugin = require('moment-locales-webpack-plugin');
 
 module.exports = {
-  mode: 'development',
-  // Set debugging source maps to be "inline" for
-  // simplicity and ease of use
-  devtool: "inline-source-map",
-
   // The application entry point
   entry: ["./lib/index.tsx"],
 
@@ -42,18 +38,8 @@ module.exports = {
     extensions: [".ts", ".tsx", ".js"]
   },
 
-  externals: {
-    react: 'React',
-    // 'react-dom': 'react-dom',
-    'ethers': 'ethers',
-  },
-
-  devServer: {
-    historyApiFallback: true,
-    hot: true,
-  },
-
   plugins: [
     // new BundleAnalyzerPlugin(),
+    new MomentLocalesPlugin(),
   ]
 };
