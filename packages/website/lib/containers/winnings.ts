@@ -32,7 +32,7 @@ function useWinnings(contractAddress: string) {
       .then(amountBN => setBlueWinnings(amountBN))
       .catch(e => console.log('Failed to get potential winnings', e));
 
-    game.functions.result()
+    game.functions.getResult()
       .then(result => {
         if (GameResult[result] === GameResult[GameResult.blueWinner] ||
           GameResult[result] === GameResult[GameResult.redWinner])

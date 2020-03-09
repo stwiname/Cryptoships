@@ -49,9 +49,9 @@ function useGame(contractAddress: string) {
     }
 
     game.functions
-      .fieldSize()
+      .getFieldSize()
       .then(sizeBN => setFieldSize(sizeBN))
-      .catch(e => {
+      .catch((e: Error) => {
         console.log('Failed to get field size', e);
         // history.push('/not-found');
       });
@@ -67,7 +67,7 @@ function useGame(contractAddress: string) {
       .then(setBlueAuctionAddress)
       .catch(e => console.log(`Failed to get auction for blue team`));
 
-    game.functions.result()
+    game.functions.getResult()
       .then(result => setResult(result))
       .catch(e => console.log(`Failed to get game result`, e));
 
@@ -178,7 +178,7 @@ function useGame(contractAddress: string) {
 
         const [move, result] = await Promise.all([
           auction.functions.getLeadingMove(),
-          auction.functions.result(),
+          auction.functions.getResult(),
         ]);
 
         return { move, result: result as AuctionResult, address };
@@ -186,23 +186,23 @@ function useGame(contractAddress: string) {
     );
   };
 
-  const placeBid = async (
-    team: Team,
-    position: { x: number; y: number },
-    value: utils.BigNumber
-  ) => {
-    if (!game) {
-      throw new Error('No game found');
-    }
+  // const placeBid = async (
+  //   team: Team,
+  //   position: { x: number; y: number },
+  //   value: utils.BigNumber
+  // ) => {
+  //   if (!game) {
+  //     throw new Error('No game found');
+  //   }
 
-    console.log('Place bid', position, value.toNumber());
-    return game.functions.placeBid(team, [position.x, position.y], {
-      value,
-      // gasLimit: 200000
-    });
+  //   console.log('Place bid', position, value.toNumber());
+  //   return game.functions.placeBid(team, [position.x, position.y], {
+  //     value,
+  //     // gasLimit: 200000
+  //   });
 
-    // TODO set leading bid
-  };
+  //   // TODO set leading bid
+  // };
 
   const getTeamAuctionAddress = (team: Team) =>
     Team[team] === Team[Team.red] ? redAuctionAddress : blueAuctionAddress;
@@ -218,7 +218,7 @@ function useGame(contractAddress: string) {
     getTeamAuctionAddress,
     getTeamAuctionResults,
     getTeamLeadingBid,
-    placeBid,
+    // placeBid,
     result
   };
 }

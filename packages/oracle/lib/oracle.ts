@@ -96,7 +96,7 @@ export default class Oracle {
 
         const [move, result, hasEnded] = await Promise.all([
           auction.functions.getLeadingMove(),
-          auction.functions.result(),
+          auction.functions.getResult(),
           auction.functions.hasEnded(),
         ]);
 
@@ -241,7 +241,7 @@ export default class Oracle {
       if (retries > 0) {
         // Wait 10% of auction time to try again
         const time =
-          (await this.instance.functions.auctionDuration()).toNumber() *
+          (await auction.functions.getDuration()).toNumber() *
           100; /* 1000 / 10 */
         await new Promise(resolve => {
           setTimeout(resolve, time);
@@ -285,7 +285,7 @@ export default class Oracle {
   ): Promise<boolean> {
     return (
       (await auction.functions.hasEnded()) &&
-      (await auction.functions.result()) === AuctionResult.unset
+      (await auction.functions.getResult()) === AuctionResult.unset
     );
   }
 

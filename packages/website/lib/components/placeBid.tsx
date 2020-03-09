@@ -31,17 +31,14 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   position,
   auctionContainer,
 }) => {
-  const game = Container.useContainer();
+  if (!auctionContainer) {
+    return null;
+  }
   const web3 = useWeb3React();
   const auction = auctionContainer.useContainer();
 
   const getAuctionAmount = () => utils.formatEther((path(['leadingBid', 'amount'], auction) || '0'))
 
-
-  // const gameLeadingBid = Team[team] === Team[Team.red]
-  //   ? game.redLeadingBid
-  //   : game.blueLeadingBid;
-  // console.log("YOYO", gameLeadingBid, game.redLeadingBid, game.blueLeadingBid, team);
   const [amount, setAmount] = React.useState<string>(getAuctionAmount());
   const [loading, setLoading] = React.useState(false);
   const [auctionRunning, setAuctionRunning] = React.useState(false);
@@ -62,7 +59,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   const handlePlaceBid = async () => {
     try {
       setLoading(true);
-      await game.placeBid(team, position, utils.parseEther(amount));
+      await auction.placeBid(position, utils.parseEther(amount));
 
       setTimeout(onClose, 500);
     } finally {

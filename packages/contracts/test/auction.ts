@@ -1,9 +1,11 @@
 import { AuctionContract, AuctionInstance } from '../types/truffle-contracts';
 import { utils } from 'ethers';
 
+const AuctionLib = artifacts.require('AuctionLib');
 const Auction: AuctionContract = artifacts.require('Auction');
+
 import BN from 'bn.js';
-import { advanceTimeAndBlock, assertAuctionBid, getGasInfo } from './util';
+import { advanceTimeAndBlock, assertAuctionBid, getGasInfo, nullAddress } from './util';
 
 const result = {
   unset: 0,
@@ -16,8 +18,13 @@ const DURATION = 1000;
 contract('Auction', accounts => {
   let instance: AuctionInstance = null;
 
+  before(async () => {
+    const library = await AuctionLib.new();
+    await (Auction as any).link("AuctionLib", library.address);
+  });
+
   beforeEach(async () => {
-    instance = await Auction.new(0, DURATION, { from: accounts[0] });
+    instance = await Auction.new(0, DURATION, nullAddress, { from: accounts[0] });
   });
 
   async function getBalance(index: number) {
@@ -203,7 +210,7 @@ contract('Auction', accounts => {
     assertAuctionBid(leadingBid, {
       move: [0, 0],
       amount: 0,
-      bidder: '0x0000000000000000000000000000000000000000',
+      bidder: nullAddress,
     });
 
     const finalBalance = await getBalance(1);

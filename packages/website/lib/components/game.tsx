@@ -20,8 +20,13 @@ import clsx from 'clsx';
 
 type Props = {};
 
-const RedAuctionContainer = createAuctionContainer();
-const BlueAuctionContainer = createAuctionContainer();
+// const RedAuctionContainer = createAuctionContainer();
+// const BlueAuctionContainer = createAuctionContainer();
+
+const AuctionContainers: Record<Team, any> = {
+  [Team.red]: createAuctionContainer(),
+  [Team.blue]: createAuctionContainer()
+};
 
 const Game: React.FunctionComponent<Props> = props => {
   const game = Container.useContainer();
@@ -63,17 +68,17 @@ const Game: React.FunctionComponent<Props> = props => {
   const closeDialog = () => setDialogParams(null);
   const closeDialogPlaced = () => setDialogParamsPlaced(null);
 
-  const renderTeam = (team: Team, container: any, xs=6) => {
+  const renderTeam = (team: Team, xs=6) => {
     return (
       <Grid key={team} item={true} xs={xs as any}>
         <Card>
           <CardContent>
-            <Auction container={container} />
+            <Auction container={AuctionContainers[team]} />
             <Winnings team={team}/>
             <Field
               team={team}
               onItemPress={handleGridPress(team)}
-              container={container}
+              container={AuctionContainers[team]}
             />
           </CardContent>
         </Card>
@@ -91,9 +96,9 @@ const Game: React.FunctionComponent<Props> = props => {
   const renderTab = (index: number) => {
     switch (index) {
       case 0:
-        return renderTeam(Team.red, RedAuctionContainer, 12);
+        return renderTeam(Team.red, 12);
       case 1:
-        return renderTeam(Team.blue, BlueAuctionContainer, 12);
+        return renderTeam(Team.blue, 12);
       default:
         // code...
         break;
@@ -114,27 +119,28 @@ const Game: React.FunctionComponent<Props> = props => {
 
   const renderLargeScreen = () => {
     return <Grid container={true} direction="row" spacing={2} justify="center">
-      {renderTeam(Team.red, RedAuctionContainer)}
-      {renderTeam(Team.blue, BlueAuctionContainer)}
+      {renderTeam(Team.red)}
+      {renderTeam(Team.blue)}
     </Grid>;
   }
 
+  const RedProvider = AuctionContainers[Team.red].Provider;
+  const BlueProvider = AuctionContainers[Team.blue].Provider;
+
   return (
-    <RedAuctionContainer.Provider initialState={{ team: Team.red }}>
-      <BlueAuctionContainer.Provider initialState={{ team: Team.blue }}>
+    <RedProvider initialState={{ team: Team.red }}>
+      <BlueProvider initialState={{ team: Team.blue }}>
         {largeLayout ? renderLargeScreen() : renderSmallScreen()}
         <PlaceBid
           {...dialogParams}
           auctionContainer={
-            dialogParams && Team[dialogParams.team] === Team[Team.red]
-              ? RedAuctionContainer
-              : BlueAuctionContainer
+            dialogParams && AuctionContainers[dialogParams.team]
           }
           onClose={closeDialog}
         />
         <PlacedMove {...dialogParamsPlaced} onClose={closeDialogPlaced} />
-      </BlueAuctionContainer.Provider>
-    </RedAuctionContainer.Provider>
+      </BlueProvider>
+    </RedProvider>
   );
 };
 
