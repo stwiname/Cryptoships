@@ -11,9 +11,9 @@ const Network = new NetworkConnector({
   urls: {
     1: `https://mainnet.infura.io/v3/${INFURA_API_KEY}`,
     3: `https://ropsten.infura.io/v3/${INFURA_API_KEY}`,
-    1337: `ws://localhost:8545`
+    1337: `http://localhost:8545`
   },
-  defaultChainId: process.env.NODE_ENV === 'development' ? 3 : 1,
+  defaultChainId: process.env.NODE_ENV === 'development' ? 1337 : 1,
 });
 
 export default {

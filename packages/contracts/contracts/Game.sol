@@ -36,6 +36,12 @@ contract Game is AuctionListener {
     _;
   }
 
+  // Duplicate events from GameLib so we can get the abi
+  event HighestBidPlaced(GameLib.Team team, address bidder, uint amount, uint16[2] move, uint256 endTime);
+  event MoveConfirmed(GameLib.Team team, bool hit, uint16[2] move, address auctionAddress);
+  event AuctionCreated(GameLib.Team team, address auctionAddress);
+  event GameCompleted(GameLib.Team winningTeam);
+
   /*
    * Field hash is a Keccak-256 hash of a 2d array with the unit locations + a salt (probably a timestamp)
    */
