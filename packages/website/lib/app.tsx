@@ -9,6 +9,7 @@ import Field from './components/field';
 import connectors from './connectors';
 import Game from './routes/game';
 import Home from './routes/home';
+import About from './routes/about';
 import NotFound from './routes/notFound';
 import theme, { appBackground } from './theme';
 
@@ -31,6 +32,7 @@ class App extends React.PureComponent<{}> {
                 <Switch>
                   <Route exact={true} path="/" component={Home} />
                   <Route path="/game/:address" component={Game} />
+                  <Route path="/about" component={About} />
                   <Route component={NotFound} />
                 </Switch>
               </Router>

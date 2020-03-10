@@ -45,37 +45,37 @@ const Home: React.FunctionComponent<Props> = props => {
   }
 
   return (
-      <Box
-        justifyContent='center'
-        alignItems='center'
-        display='flex'
-        flexDirection='column'
-        height='100vh'
-      >
-        <img src={Logo} style={{ height: '200px', width: '100vw' }}/>
-        {/*<Typography
-            variant='h2'
-            className={themeClasses.comingSoon}
-          >
-            Coming Soon
-          </Typography>*/}
-        <TextField
-          label="Address"
-          value={address || ensAddress || ''}
-          onChange={handleAddressChange}
-          margin="normal"
-        />
-        <Button
-          to={`/game/${address || ensAddress}`}
-          component={Link}
-          variant="contained"
-          disabled={!address && !ensAddress}
-          size='large'
-          className={themeClasses.buttonMain}
+    <Box
+      justifyContent='center'
+      alignItems='center'
+      display='flex'
+      flexDirection='column'
+      height='100vh'
+    >
+      <img src={Logo} style={{ height: '200px', width: '100vw' }}/>
+      {/*<Typography
+          variant='h2'
+          className={themeClasses.comingSoon}
         >
-          Play!
-        </Button>
-      </Box>
+          Coming Soon
+        </Typography>*/}
+      <TextField
+        label="Address"
+        value={address || ensAddress || ''}
+        onChange={handleAddressChange}
+        margin="normal"
+      />
+      <Button
+        to={`/game/${address || ensAddress}`}
+        component={Link}
+        variant="contained"
+        disabled={!address && !ensAddress}
+        size='large'
+        className={themeClasses.buttonMain}
+      >
+        Play!
+      </Button>
+    </Box>
   );
 };
 
