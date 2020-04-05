@@ -3,10 +3,10 @@ import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
 import { Auction as AuctionInstance } from 'contracts/types/ethers-contracts/Auction';
 import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
-import { LeadingBid, Team } from '../contracts';
+import { LeadingBid, Team, AuctionResult } from '../contracts';
 import useContract from '../hooks/useContract';
-import GameContainer from './game';
-import { utils } from 'ethers';
+import GameContainer, { AuctionMove } from './game';
+import { utils, ContractTransaction } from 'ethers';
 
 function useAuction({ team, address }: { team: Team; address?: string }) {
   const context = useWeb3React();
@@ -22,6 +22,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   const [endTime, setEndTime] = useState<Date>(null);
   const [duration, setDuration] = useState<number>(null);
   const [, updateState] = useState(); // Used to force a rerender
+  const [pendingBid, setPendingBid] = useState<AuctionMove>(null);
 
   useEffect(() => {
     if (auction) {
@@ -108,13 +109,26 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
       throw new Error('No game found');
     }
 
-    console.log('Place bid', position, value.toNumber());
-    return auction.functions.placeBid([position.x, position.y], {
-      value,
-      // gasLimit: 200000
+    setPendingBid({
+      move: [position.x, position.y],
+      address: context.account,
+      result: AuctionResult.unset
     });
 
-    // TODO set leading bid
+    let tx: ContractTransaction;
+
+    try {
+      console.log('Place bid', position, value.toString());
+      tx = await auction.functions.placeBid([position.x, position.y], {
+        value: value,
+        // gasLimit: 200000
+      });
+    }
+    finally {
+      setPendingBid(null);
+    }
+
+    return tx;
   };
 
   return {
@@ -126,7 +140,8 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
     endTime,
     hasStarted,
     hasEnded,
-    placeBid
+    placeBid,
+    pendingBid
   };
 }
 

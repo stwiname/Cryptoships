@@ -2,6 +2,7 @@ import { utils } from 'ethers';
 import append from 'ramda/src/append';
 import range from 'ramda/src/range';
 import uniqBy from 'ramda/src/uniqBy';
+import concat from 'ramda/src/concat';
 import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
@@ -13,7 +14,7 @@ import useEventListener from '../hooks/useEventListener';
 import useContract from '../hooks/useContract';
 import { useHistory } from "react-router-dom";
 
-type AuctionMove = {
+export type AuctionMove = {
   move: number[];
   result: AuctionResult;
   address: string; // Auction address
@@ -43,8 +44,29 @@ function useGame(contractAddress: string) {
   const [redLeadingBid, setRedLeadingBid] = useState<LeadingBid>(null);
   const [blueLeadingBid, setBlueLeadingBid] = useState<LeadingBid>(null);
 
+  const updateAuctionResults = (existing: AuctionMove[], newMoves: AuctionMove[]) => 
+    uniqBy<AuctionMove, number[]>(a => a.move, concat(existing, newMoves))
+
+
+  const clearState = () => {
+    setFieldSize(0);
+    setResult(GameResult.unset);
+    setRedAuctionAddress(null);
+    setBlueAuctionAddress(null);
+    setRedAuctionResults([]);
+    setBlueAuctionResults([]);
+    setRedLeadingBid(null);
+    setBlueLeadingBid(null);
+  }
+
+  useEffect(() => {
+    clearState();
+  }, [contractAddress])
+
   useEffect(() => {
     if (!game) {
+      // Reset all values
+      clearState();
       return;
     }
 
@@ -72,11 +94,11 @@ function useGame(contractAddress: string) {
       .catch(e => console.log(`Failed to get game result`, e));
 
     getAllResultsForTeam(game, Team.red)
-      .then(setRedAuctionResults)
+      .then(results => setRedAuctionResults(updateAuctionResults(redAuctionResults, results)))
       .catch(e => console.log('Failed to get auction results for red team', e));
 
     getAllResultsForTeam(game, Team.blue)
-      .then(setBlueAuctionResults)
+      .then(results => setBlueAuctionResults(updateAuctionResults(blueAuctionResults, results)))
       .catch(e =>
         console.log('Failed to get auction results for blue team', e)
       );
@@ -121,10 +143,8 @@ function useGame(contractAddress: string) {
         result: hit ? AuctionResult.hit : AuctionResult.miss,
         address: auctionAddress,
       };
-      console.log('Move confirmed', auctionMove);
-      setAuctionResults(
-        uniqBy(a => a.move, append(auctionMove, auctionResults))
-      );
+      console.log(`Move confirmed, ${auctionMove}`);
+      setAuctionResults(updateAuctionResults(auctionResults, [auctionMove]));
     },
     game
   );
@@ -169,7 +189,7 @@ function useGame(contractAddress: string) {
       )
     );
 
-    return Promise.all(
+    const results = await Promise.all(
       auctionAddresses.map(async address => {
         const auction = AuctionFactory.connect(
           address,
@@ -184,25 +204,10 @@ function useGame(contractAddress: string) {
         return { move, result: result as AuctionResult, address };
       })
     );
+
+    // Filter out unset (current) auctions
+    return results.filter(res => res.result !== AuctionResult.unset);
   };
-
-  // const placeBid = async (
-  //   team: Team,
-  //   position: { x: number; y: number },
-  //   value: utils.BigNumber
-  // ) => {
-  //   if (!game) {
-  //     throw new Error('No game found');
-  //   }
-
-  //   console.log('Place bid', position, value.toNumber());
-  //   return game.functions.placeBid(team, [position.x, position.y], {
-  //     value,
-  //     // gasLimit: 200000
-  //   });
-
-  //   // TODO set leading bid
-  // };
 
   const getTeamAuctionAddress = (team: Team) =>
     Team[team] === Team[Team.red] ? redAuctionAddress : blueAuctionAddress;
@@ -218,7 +223,6 @@ function useGame(contractAddress: string) {
     getTeamAuctionAddress,
     getTeamAuctionResults,
     getTeamLeadingBid,
-    // placeBid,
     result
   };
 }

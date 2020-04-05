@@ -10,6 +10,8 @@ import View from '../components/game';
 import { Game as Container, Winnings } from '../containers';
 import connectors from '../connectors';
 
+const connectorKey = '@cryptoships/connectors';
+
 type Props = {
   match: match<{ address: string }>;
 };
@@ -21,16 +23,26 @@ const Game: React.FunctionComponent<Props> = props => {
     context.activate(connectors.Network);
   }
 
-  const activateMetamask = () => {
-    context.activate(
+  const activateMetamask = async () => {
+    await context.activate(
       connectors.MetaMask,
       activateDefault,
     );
+
+    window.localStorage.setItem(connectorKey, 'metamask');
   }
 
   React.useEffect(() => {
     if (!context.active) {
-      activateDefault();
+      const usedConnector = window.localStorage.getItem(connectorKey);
+      switch (usedConnector) {
+        case "metamask":
+          activateMetamask();
+          break;
+        default:
+          activateDefault();
+          break;
+      }
     }
   }, []);
 

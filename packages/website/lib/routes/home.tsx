@@ -27,22 +27,10 @@ const Home: React.FunctionComponent<Props> = props => {
   React.useEffect(() => {
     if (!context.active) {
       context.activate(
-        connectors.MetaMask,
-        () => {
-          context.activate(connectors.Network)
-        }
+        connectors.Network,
       );
     }
   }, []);
-
-  if (!context.active && !context.error) {
-    console.log('Context error', context.error);
-    // loading
-    return <Typography variant="h3">loading...</Typography>;
-  } else if (context.error) {
-    console.error('Web3 context error', context.error);
-    return <Typography variant="h3">error....</Typography>;
-  }
 
   return (
     <Box

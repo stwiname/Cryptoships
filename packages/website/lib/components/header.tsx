@@ -2,10 +2,12 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import { useWeb3React } from '@web3-react/core';
 import { truncateAddress } from '../utils';
 
 const Logo = require('../../assets/cryptoships_wording_3.svg');
+const MetaMask = require('../../assets/metamask.svg');
 
 type Props = {
   connectAccount?: () => void;
@@ -48,14 +50,14 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
         onClick={props.connectAccount}
         variant='outlined'
         color='primary'
+        endIcon={<img src={MetaMask} style={{ height: '25px'}}/>}
       >
-        Connect Account
+        Connect to
       </Button>
     }
 
     return null;
   }
-  
 
   return (
     <Grid
@@ -64,14 +66,19 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
       container
     >
       <Grid item xs={2}/>
-      <Grid item xs={8}>
+      <Grid
+        item
+        xs={8}
+      >
+        <Box alignItems='center' justifyContent='center' display='flex'>
         <Link to='/'>
           <img
             src={Logo}
-            style={{ height: '100px', width: '100%', paddingTop: '10px' }}
+            style={{ height: '100px', paddingTop: '10px' }}
           />
         </Link>
-        </Grid>
+        </Box>
+      </Grid>
       <Grid container item xs={2} alignItems='center' justify='flex-end'>
         { renderProfile() }
       </Grid>

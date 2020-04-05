@@ -62,6 +62,9 @@ const PlaceBid: React.FunctionComponent<Props> = ({
       await auction.placeBid(position, utils.parseEther(amount));
 
       setTimeout(onClose, 500);
+    } catch(e) {
+      // TODO set error state
+      console.log("Error placing bid", e)
     } finally {
       setLoading(false);
     }
@@ -103,7 +106,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   if (!web3.account) {
     return (
       <Dialog
-        title='Connect account to place a move'
+        title='Connect to MetaMask to play'
         onClose={onClose}
         open={team !== undefined}
         submitTitle='Connect'

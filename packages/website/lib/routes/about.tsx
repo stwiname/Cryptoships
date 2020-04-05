@@ -2,6 +2,7 @@ import * as React from 'react';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import { useThemeStyles } from '../theme';
+import { Link } from 'react-router-dom';
 const Logo = require('../../assets/cryptoships_wording_3.svg');
 
 type Props = {
@@ -18,7 +19,9 @@ const About: React.FunctionComponent<Props> = props => {
       flexDirection='column'
       height='100vh'
     >
-      <img src={Logo} style={{ height: '200px', width: '100vw', paddingBottom: '50px', paddingTop: '50px' }}/>
+      <Link to='/'>
+        <img src={Logo} style={{ height: '200px', width: '100vw', paddingBottom: '50px', paddingTop: '50px' }}/>
+      </Link>
 
       <div style={{ maxWidth: '750px' }}>
         <Typography variant='h3' className={themeClasses.comingSoon}>

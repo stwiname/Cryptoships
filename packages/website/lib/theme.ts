@@ -105,7 +105,7 @@ export const useThemeStyles = makeStyles(theme => ({
     border: `2px solid ${pink}`,
   },
   button: {
-    color: `${yellow} !important`,
+    color: `${nearBlack} !important`,
     backgroundImage: `linear-gradient(to right, ${purple}, ${lightBlue})`
   },
   buttonMain: {
