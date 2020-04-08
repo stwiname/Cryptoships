@@ -65,21 +65,21 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
       spacing={2}
       container
     >
-      <Grid item xs={2}/>
       <Grid
         item
-        xs={8}
+        xs={4}
       >
-        <Box alignItems='center' justifyContent='center' display='flex'>
-        <Link to='/'>
-          <img
-            src={Logo}
-            style={{ height: '100px', paddingTop: '10px' }}
-          />
-        </Link>
+        <Box alignItems='flex-start' display='flex'>
+          <Link to='/'>
+            <img
+              src={Logo}
+              style={{ width: '100%', minHeight: '60px', paddingTop: '10px' }}
+            />
+          </Link>
         </Box>
       </Grid>
-      <Grid container item xs={2} alignItems='center' justify='flex-end'>
+      <Grid item xs={4}/>
+      <Grid container item xs={4} alignItems='center' justify='flex-end'>
         { renderProfile() }
       </Grid>
     </Grid>
