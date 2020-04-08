@@ -109,12 +109,6 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
       throw new Error('No game found');
     }
 
-    setPendingBid({
-      move: [position.x, position.y],
-      address: context.account,
-      result: AuctionResult.unset
-    });
-
     let tx: ContractTransaction;
 
     try {
@@ -123,8 +117,21 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
         value: value,
         // gasLimit: 200000
       });
+
+      // Set bid as pending once tx submitted
+      setPendingBid({
+        move: [position.x, position.y],
+        address: context.account,
+        result: AuctionResult.unset
+      });
+
+      tx.wait(1)
+        .finally(() => {
+          // After 1 block we know the TX has happend and is no longer pending
+          setPendingBid(null);
+        });
     }
-    finally {
+    catch(e) {
       setPendingBid(null);
     }
 

@@ -260,7 +260,7 @@ export default class Oracle {
         logger.info(`Tx (${tx.hash}) confirmed`);
       })
       .catch(e => {
-        logger.warn(`Tx (${tx.hash}) failed`, e);
+        logger.warn(`Tx (${tx.hash}) failed `, e);
       });
 
     return tx;

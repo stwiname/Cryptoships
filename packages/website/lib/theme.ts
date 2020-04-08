@@ -77,7 +77,7 @@ export default createMuiTheme({
           paddingBottom: null
         },
       }
-    }
+    },
   }
 });
 
@@ -117,5 +117,5 @@ export const useThemeStyles = makeStyles(theme => ({
     background: `linear-gradient(to top, ${orange}, ${pink})`,
     '-webkit-background-clip': 'text',
     '-webkit-text-fill-color': 'transparent',
-  }
+  },
 }));

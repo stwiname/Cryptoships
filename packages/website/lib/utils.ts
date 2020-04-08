@@ -44,3 +44,19 @@ export function truncateAddress(address: string): string {
   }
   return `${address.substr(0, 6)}...${address.substr(address.length -4)}`;
 }
+
+export const createRadial = (
+  color: string,
+  innerOpacity: number = 0.8,
+  outerOpacity: number = 0.2
+) => {
+  try {
+    const inner = hexToRgb(color, innerOpacity).toString();
+    const outer = hexToRgb(color, outerOpacity).toString();
+
+    return `radial-gradient(${inner}, ${outer});`;
+  }
+  catch(e) {
+    return color;
+  }
+}

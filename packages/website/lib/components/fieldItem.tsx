@@ -9,21 +9,8 @@ import path from 'ramda/src/path';
 import * as React from 'react';
 import { AuctionResult } from '../contracts';
 import theme from '../theme';
-import { hexToRgb } from '../utils';
+import { hexToRgb, createRadial } from '../utils';
 import clsx from 'clsx';
-
-const createRadial = (color: string) => {
-  // return color
-  try {
-    const inner = hexToRgb(color, 0.8).toString();
-    const outer = hexToRgb(color, 0.2).toString();
-
-    return `radial-gradient(${inner}, ${outer});`;
-  }
-  catch(e) {
-    return color;
-  }
-}
 
 const useStyles = makeStyles<Theme>({
   button: {

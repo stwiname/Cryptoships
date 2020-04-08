@@ -2,10 +2,11 @@ import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Grid from '@material-ui/core/Grid';
 import Typography from '@material-ui/core/Typography';
-import AppBar from '@material-ui/core/AppBar';
-import Tabs from '@material-ui/core/Tabs';
-import Tab from '@material-ui/core/Tab';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import Button from '@material-ui/core/Button';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import { makeStyles } from '@material-ui/core/styles';
+import { Theme } from '@material-ui/core/styles/createMuiTheme';
 import { Link } from 'react-router-dom';
 import * as React from 'react';
 import { AuctionResult, Team } from '../contracts';
@@ -15,13 +16,19 @@ import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
 import PlacedMove, { Props as PlacedMoveProps } from '../components/placedMove';
 import { createAuctionContainer, Game as Container} from '../containers';
 import theme, { useThemeStyles } from '../theme';
-import { numToBase64 } from '../utils';
+import { numToBase64, createRadial } from '../utils';
 import clsx from 'clsx';
 
-type Props = {};
+const useStyles = makeStyles<Theme>({
+  redSelected: {
+    background: createRadial(theme.palette.secondary.main, 0.2, 0.1),
+  },
+  blueSelected: {
+    background: createRadial(theme.palette.primary.main, 0.2, 0.1),
+  }
+})
 
-// const RedAuctionContainer = createAuctionContainer();
-// const BlueAuctionContainer = createAuctionContainer();
+type Props = {};
 
 const AuctionContainers: Record<Team, any> = {
   [Team.red]: createAuctionContainer(),
@@ -31,6 +38,7 @@ const AuctionContainers: Record<Team, any> = {
 const Game: React.FunctionComponent<Props> = props => {
   const game = Container.useContainer();
   const classes = useThemeStyles({});
+  const tabClasses = useStyles({});
   const largeLayout = useMediaQuery('(min-width:1200px)');
 
   const [selectedTab, setTab] = React.useState(0);
@@ -86,13 +94,6 @@ const Game: React.FunctionComponent<Props> = props => {
     );
   };
 
-  function a11yProps(index: any) {
-    return {
-      id: `simple-tab-${index}`,
-      'aria-controls': `simple-tabpanel-${index}`,
-    };
-  }
-
   const renderTab = (index: number) => {
     switch (index) {
       case 0:
@@ -106,13 +107,34 @@ const Game: React.FunctionComponent<Props> = props => {
   }
 
   const renderSmallScreen = (): any => {
+
     return <>
-      <AppBar position="static">
-        <Tabs value={selectedTab} onChange={handleSelectTab} aria-label="simple tabs example">
-          <Tab label="Red Team" {...a11yProps(0)} />
-          <Tab label="Blue Team" {...a11yProps(1)} />
-        </Tabs>
-      </AppBar>
+      <Card style={{ background: 'transparent'}}>
+        <CardContent>
+          <ButtonGroup
+            color="primary"
+            aria-label="outlined primary button group"
+            size='large'
+            fullWidth
+          >
+            <Button
+              color='secondary'
+              onClick={(e) => handleSelectTab(e, 0)}
+              style={{ borderWidth: '2px' }}
+              className={selectedTab === 0 && clsx(tabClasses.redSelected)}
+            >
+              Red Team
+            </Button>
+            <Button
+              onClick={(e) => handleSelectTab(e, 1)}
+              style={{borderWidth: '2px'}}
+              className={selectedTab === 1 && clsx(tabClasses.blueSelected)}
+            >
+              Blue Team
+            </Button>
+          </ButtonGroup>
+        </CardContent>
+      </Card>
       {renderTab(selectedTab)}
     </>;
   };
