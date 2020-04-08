@@ -4,6 +4,7 @@ import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import capitalize from '@material-ui/core/utils/capitalize';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useWeb3React } from '@web3-react/core';
 import * as React from 'react';
 import { Team, GameResult } from '../contracts';
@@ -25,6 +26,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
   const { account } = useWeb3React();
   const classes = useThemeStyles({});
   const isRedTeam = Team[auction.team] === Team[Team.red];
+  const largeLayout = useMediaQuery('(min-width:1200px)');
 
   const renderNewAuction = () => {
     const isRunning = !!auction && auction.hasStarted() && !auction.hasEnded();
@@ -85,7 +87,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
     return <Box>
       <Box flexDirection='row' display='flex' justifyContent='space-between'>
         <Box>
-          <Typography variant='h2' color='primary'>
+          <Typography variant='h2' color='primary' style={{ fontSize: !largeLayout && '8vw'}}>
             <Box fontWeight={400}>
               {getTitle()}
             </Box>
@@ -96,18 +98,19 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
               {`${utils.formatEther(amount)} ETH`}
             </Typography>
           }
-        </Box>
-        {
-          !!auction && !auction.hasEnded() &&
-          <Countdown
-            endTime={auction.endTime || auction.startTime}
-            duration={auction.endTime ? auction.duration : auction.duration/2}
-          />
-        }
-      </Box>
       <Typography variant='subtitle1' color='secondary'>
         {getSubtitle()}
       </Typography>
+        </Box>
+        {
+          !!auction && !auction.hasEnded()
+          ? <Countdown
+              endTime={auction.endTime || auction.startTime}
+              duration={auction.endTime ? auction.duration : auction.duration/2}
+            />
+          : <div style={{ height: 92 }}/> // Helps match same height
+        }
+      </Box>
     </Box>
   }
 

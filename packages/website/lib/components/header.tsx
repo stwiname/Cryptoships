@@ -67,7 +67,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
     >
       <Grid
         item
-        xs={4}
+        xs={6}
       >
         <Box alignItems='flex-start' display='flex'>
           <Link to='/'>
@@ -78,8 +78,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
           </Link>
         </Box>
       </Grid>
-      <Grid item xs={4}/>
-      <Grid container item xs={4} alignItems='center' justify='flex-end'>
+      <Grid container item xs={6} alignItems='center' justify='flex-end'>
         { renderProfile() }
       </Grid>
     </Grid>
