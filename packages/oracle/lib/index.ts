@@ -69,11 +69,15 @@ yargs
       .option('store', {
         description: 'storage for game secrets to use [memory, file]',
         type: 'string',
-        default: 'memory',
+        default: 'file',
+      })
+      .option('storeDir', {
+        description: 'path to directory for file storage',
+        type: 'string',
       });
     }, async argv => {
       const wallet = initWallet(argv.secretKey, argv.web3Endpoint, argv.network);
-      const storage = getStorage(argv.store);
+      const storage = getStorage(argv.store, argv.storeDir);
 
       const { gameInstance, state } = await getOrInitGame(
         wallet,
@@ -101,15 +105,16 @@ function initWallet(secretKey: string, networkEndpoint?: string, network?: strin
   return new ethers.Wallet(secretKey, provider);
 }
 
-function getStorage(store: string): IStorage {
+function getStorage(store: string, dir?: string): IStorage {
   switch (store) {
     case 'memory':
       console.log('Using memory storage');
       return new MemoryStorage();
     case 'file':
       // TODO parse arg
-      console.log('Using file storage');
-      return new FileStorage(process.cwd());
+      const location = dir || process.cwd();
+      console.log(`Using file storage at: ${location}`);
+      return new FileStorage(location);
     default:
       throw new Error('Unsupported storage');
   }
