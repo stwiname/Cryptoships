@@ -26,11 +26,14 @@ const useStyles = makeStyles<Theme>({
   },
   target: {
     background: createRadial(theme.palette.tertiary.dark),
+  },
+  aiming: {
+    background: createRadial(theme.palette.tertiary.light)
   }
 });
 
 type Props = {
-  result?: AuctionResult;
+  result?: AuctionResult | "aiming";
   onClick?: () => void;
 };
 
@@ -49,6 +52,10 @@ const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
       break;
     case AuctionResult.miss:
       colorClass = classes.miss;
+      break;
+    case "aiming":
+      colorClass = classes.aiming;
+      renderIcon = () => <GpsNotFixedIcon fontSize="large" />;
       break;
     default:
       colorClass = classes.target;

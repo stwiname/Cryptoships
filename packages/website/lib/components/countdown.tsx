@@ -10,7 +10,9 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     wrapper: {
       position: 'relative',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      width: '25%',
+      maxWidth: '100px',
     },
     buttonProgress: {
       position: 'absolute',
@@ -20,7 +22,7 @@ const useStyles = makeStyles((theme: Theme) =>
 
 
 type Props = {
-  endTime: Date;
+  endTime?: Date;
   duration?: number;
 };
 
@@ -46,6 +48,13 @@ const Countdown: React.FunctionComponent<Props> = props => {
   const classes = useStyles({});
   const remainingMs = useCountdown(props.endTime);
 
+  if (!props.endTime) {
+    // Fill space but dont display anything
+    return <Box className={classes.wrapper} display='flex' alignItems='center'>
+      <CircularProgress variant='static' size={'100%'} value={0} thickness={5}/>
+    </Box>
+  }
+
   const percent = props.duration && props.endTime && Date.now() < props.endTime.getTime()
     ? (Date.now() - props.endTime.getTime()) / props.duration * 100
     : 100;
@@ -53,7 +62,7 @@ const Countdown: React.FunctionComponent<Props> = props => {
   const duration = moment.duration(remainingMs);
   return (
     <Box className={classes.wrapper} display='flex' alignItems='center'>
-      <CircularProgress variant='static' size={92} value={percent} thickness={5}/>
+      <CircularProgress variant='static' size={'100%'} value={percent} thickness={5}/>
       <Box display='flex' alignItems='center' className={classes.buttonProgress}>
         <Typography variant="h5" >
           {formatDuration(duration)}

@@ -76,19 +76,24 @@ const Field: React.FunctionComponent<Props> = props => {
     const {
       result,
       address,
-    }: { result: AuctionResult; address?: string } =
+    }: { result: AuctionResult | "aiming"; address?: string } =
       find(m => movesEqual(m.move, [x, y]), auctionResults) ||
+      (
+        auction.pendingBid &&
+        movesEqual(auction.pendingBid.move, [x, y])
+      ) && { result: 'aiming', address: null } ||
       (
         auction.leadingBid &&
         movesEqual(auction.leadingBid.move, [x, y]) &&
-        !auction.leadingBid.amount.isZero() ||
-        auction.pendingBid &&
-        movesEqual(auction.pendingBid.move, [x, y])
+        !auction.leadingBid.amount.isZero()
       ) &&
-      { result: null, address: null } ||
+      { result: null, address: auction.leadingBid.bidder } ||
       { result: AuctionResult.unset, }
 
     const handlePress = () => {
+      if (result == 'aiming') {
+        return;
+      }
       if (props.onItemPress) {
         props.onItemPress(x, y, result, address);
       }

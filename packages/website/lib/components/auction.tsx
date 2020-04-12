@@ -7,7 +7,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useWeb3React } from '@web3-react/core';
 import * as React from 'react';
-import { Team, GameResult } from '../contracts';
+import { Team, GameResult, AuctionResult } from '../contracts';
 import { moveToString } from '../utils';
 import { utils } from 'ethers';
 import Countdown from './countdown';
@@ -57,8 +57,10 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           : 'Make a move';
       }
 
-      return !!auction && (auction.hasEnded() || !auction.startTime)
-        ? 'Waiting'
+      return auction?.hasEnded() || !auction?.startTime
+        ? auction?.result == AuctionResult.unset
+          ? 'Other teams turn'
+          : 'Waiting'
         : 'XX';
     }
 
@@ -79,9 +81,11 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           : 'This teams turn';
       }
 
-      return !!auction && auction.startTime && Date.now() < auction.startTime.getTime()
+      return Date.now() < auction?.startTime?.getTime()
         ? 'Starting soon'
-        : 'Other teams turn';
+        : auction?.hasEnded() && auction?.result == AuctionResult.unset
+          ? 'Waiting for confirmation'
+          : 'Other teams turn';
     }
 
     return <Box>
@@ -98,19 +102,15 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
               {`${utils.formatEther(amount)} ETH`}
             </Typography>
           }
-      <Typography variant='subtitle1' color='secondary'>
+        </Box>
+        <Countdown
+          endTime={auction?.hasEnded() ? null : (auction?.endTime || auction?.startTime)}
+          duration={auction?.endTime ? auction?.duration : auction?.duration/2}
+        />
+      </Box>
+      <Typography variant='subtitle1' color='secondary' noWrap={true}>
         {getSubtitle()}
       </Typography>
-        </Box>
-        {
-          !!auction && !auction.hasEnded()
-          ? <Countdown
-              endTime={auction.endTime || auction.startTime}
-              duration={auction.endTime ? auction.duration : auction.duration/2}
-            />
-          : <div style={{ height: 92 }}/> // Helps match same height
-        }
-      </Box>
     </Box>
   }
 

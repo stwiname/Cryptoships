@@ -23,6 +23,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   const [duration, setDuration] = useState<number>(null);
   const [, updateState] = useState(); // Used to force a rerender
   const [pendingBid, setPendingBid] = useState<AuctionMove>(null);
+  const [result, setResult] = useState<AuctionResult>(AuctionResult.unset);
 
   useEffect(() => {
     if (auction) {
@@ -65,7 +66,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   }, [endTime]);
 
   const getStartTime = (auction: AuctionInstance) => {
-    auction.functions.getStartTime()
+    auction?.functions.getStartTime()
       .then(startBN => {
         console.log('AUCTION start BN', startBN.toString())
         setStartTime(new Date(startBN.toNumber() * 1000))
@@ -76,7 +77,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   };
 
   const getEndTime = (auction: AuctionInstance) => {
-    auction.functions.getEndTime()
+    auction?.functions.getEndTime()
       .then(endBN => {
         setEndTime(endBN.isZero() ? null : new Date(endBN.toNumber() * 1000));
       })
@@ -92,14 +93,23 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
     console.log('useAuction, leading bid', gameLeadingBid);
     setLeadingBid(gameLeadingBid);
 
-    if (!startTime && auction) {
+    if (!startTime) {
       getStartTime(auction);
     }
 
-    if (!endTime && auction) {
+    if (!endTime) {
       getEndTime(auction);
     }
   }, [gameLeadingBid]);
+
+  useEffect(() => {
+
+    auction?.getResult()
+      .then(res => {
+        setResult(res);
+      });
+
+  }, [game.getTeamAuctionResults(team)]);
 
   const placeBid = async (
     position: { x: number; y: number },
@@ -148,7 +158,8 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
     hasStarted,
     hasEnded,
     placeBid,
-    pendingBid
+    pendingBid,
+    result,
   };
 }
 
