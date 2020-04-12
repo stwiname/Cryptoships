@@ -6,14 +6,12 @@ import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { useWeb3React } from '@web3-react/core';
 import connectors from '../connectors';
-import { useThemeStyles } from '../theme';
 import useEnsGame from '../hooks/useEnsGame';
 const Logo = require('../../assets/cryptoships_wording_3.svg');
 
 type Props = {};
 
 const Home: React.FunctionComponent<Props> = props => {
-  const themeClasses = useThemeStyles({});
   const [address, setAddress] = React.useState<string>('');
 
   const ensAddress = useEnsGame();
@@ -41,25 +39,18 @@ const Home: React.FunctionComponent<Props> = props => {
       height='100vh'
     >
       <img src={Logo} style={{ height: '200px', width: '100vw' }}/>
-      {/*<Typography
-          variant='h2'
-          className={themeClasses.comingSoon}
-        >
-          Coming Soon
-        </Typography>*/}
       <TextField
         label="Address"
         value={address || ensAddress || ''}
         onChange={handleAddressChange}
         margin="normal"
+        variant='outlined'
       />
       <Button
         to={`/game/${address || ensAddress}`}
         component={Link}
         variant="contained"
         disabled={!address && !ensAddress}
-        size='large'
-        className={themeClasses.buttonMain}
       >
         Play!
       </Button>

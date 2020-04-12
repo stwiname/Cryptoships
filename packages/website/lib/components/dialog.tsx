@@ -16,8 +16,9 @@ import clsx from 'clsx';
 export type Props = {
   open: boolean;
   title?: string;
-  loading?: boolean;
   submitTitle?: string;
+  loading?: boolean;
+  disabled?: boolean;
   renderContent?: () => React.ReactElement;
   onSubmit?: () => void;
   onClose: () => void;
@@ -44,6 +45,7 @@ const Dialog: React.FunctionComponent<Props> = ({
   open,
   title,
   loading,
+  disabled,
   submitTitle,
   renderContent,
   onSubmit,
@@ -65,8 +67,7 @@ const Dialog: React.FunctionComponent<Props> = ({
             <Button
               variant="contained"
               onClick={onSubmit}
-              disabled={loading}
-              className={themeClasses.button}
+              disabled={disabled || loading}
             >
               {submitTitle || 'Submit'}
             </Button>

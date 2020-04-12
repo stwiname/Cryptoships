@@ -70,9 +70,13 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     }
   };
 
-  const isValid = () => {
+  const isValid = (allowZero?: boolean) => {
     try {
-      return !utils.parseEther(amount).isZero();
+      const bn = utils.parseEther(amount);
+      if (allowZero) {
+        return true;
+      }
+      return !bn.isZero();
     } catch (e) {
       console.log('Invalid bid', amount, e);
       return false;
@@ -88,12 +92,14 @@ const PlaceBid: React.FunctionComponent<Props> = ({
           </DialogContentText>
         )}
         <TextField
-          label="Amount (Eth)"
+          label="Amount (ETH)"
           value={amount}
           onChange={handleAmountChange}
           margin="normal"
-          type="number"
-          error={!isValid()}
+          type="tel" // Hides the up/down arrows
+          error={!isValid(true)}
+          variant='outlined'
+          autoFocus={true}
         />
       </>
     );
@@ -125,6 +131,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
       onClose={onClose}
       open={team !== undefined}
       loading={loading}
+      disabled={!isValid()}
       onSubmit={auctionRunning && handlePlaceBid}
       submitTitle="Place Bid!"
       renderContent={auctionRunning && renderContent}

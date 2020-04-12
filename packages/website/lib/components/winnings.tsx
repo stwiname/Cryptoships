@@ -36,7 +36,7 @@ const Winnings: React.FunctionComponent<Props> = (props: Props) => {
     : gameWinnings.blueWinnings;
 
   const message = !gameWinnings.winningTeam
-    ? `Your potential winnings: ${utils.formatEther(amount)} ETH`
+    ? `Potential winnings: ${utils.formatEther(amount)} ETH`
     : Team[gameWinnings.winningTeam] === Team[props.team]
        ? `Congrats! You get ${utils.formatEther(amount)} ETH`
        : `You win nothing`;
@@ -57,7 +57,6 @@ const Winnings: React.FunctionComponent<Props> = (props: Props) => {
           <Button
             variant="contained"
             onClick={gameWinnings.withdrawWinnings}
-            className={classes.buttonMain}
           >
             Claim!
           </Button>

@@ -18,6 +18,7 @@ const pink = '#F706CF'; // Pink
 const purple = '#7200FC';
 const yellow = '#F9C80E'; // Yellow
 const orange = '#FF6C11';
+const red = '#fd1d52';
 const nearBlack = '#0D0221';
 
 const background = `linear-gradient(to top, ${darkestBlue}, ${nearBlack})`;
@@ -78,6 +79,20 @@ export default createMuiTheme({
         },
       }
     },
+    MuiDialogContentText: {
+      root: {
+        color: yellow,
+      }
+    },
+    MuiButton: {
+      contained: {
+        fontFamily: "'Permanent Marker', cursive",
+        fontSize: 'large',
+        lineHeight: 1.43,
+        color: `${red} !important`,
+        backgroundImage: `linear-gradient(0deg, rgba(255,114,232,1) 0%, rgba(115,0,252,1) 25%, rgba(58,0,126,1) 50%, rgba(254,168,251,1) 51%, rgba(2,117,229,1) 95%, rgba(2,117,229,1) 100%);`
+      }
+    }
   }
 });
 
@@ -103,14 +118,6 @@ export const useThemeStyles = makeStyles(theme => ({
   },
   cellAlt: {
     border: `2px solid ${pink}`,
-  },
-  button: {
-    color: `${nearBlack} !important`,
-    backgroundImage: `linear-gradient(to right, ${purple}, ${lightBlue})`
-  },
-  buttonMain: {
-    color: `${lightBlue} !important`,
-    backgroundImage: `linear-gradient(to right, ${orange}, ${purple})`
   },
   comingSoon: {
     fontFamily: "'Permanent Marker', cursive",

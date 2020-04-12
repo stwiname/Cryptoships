@@ -20,6 +20,12 @@ import { numToBase64, createRadial } from '../utils';
 import clsx from 'clsx';
 
 const useStyles = makeStyles<Theme>({
+  container: {
+    background: 'transparent',
+  },
+  content: {
+    paddingBottom: 0,
+  },
   redSelected: {
     background: createRadial(theme.palette.secondary.main, 0.2, 0.1),
   },
@@ -28,7 +34,10 @@ const useStyles = makeStyles<Theme>({
   }
 })
 
-type Props = {};
+type Props = {
+  team?: Team;
+  setTeam: (team: Team) => void;
+};
 
 const AuctionContainers: Record<Team, any> = {
   [Team.red]: createAuctionContainer(),
@@ -40,13 +49,6 @@ const Game: React.FunctionComponent<Props> = props => {
   const classes = useThemeStyles({});
   const tabClasses = useStyles({});
   const largeLayout = useMediaQuery('(min-width:1200px)');
-
-  const [selectedTab, setTab] = React.useState(0);
-
-
-  const handleSelectTab = (event: React.ChangeEvent<{}>, newValue: number) => {
-    setTab(newValue);
-  };
 
   const [dialogParams, setDialogParams] = React.useState<
     Pick<PlaceBidProps, 'team' | 'position'>
@@ -107,10 +109,11 @@ const Game: React.FunctionComponent<Props> = props => {
   }
 
   const renderSmallScreen = (): any => {
+    const selectedTab = props.team == Team.blue ? 1 : 0;
 
     return <>
-      <Card style={{ background: 'transparent'}}>
-        <CardContent>
+      <Card className={tabClasses.container}>
+        <CardContent className={tabClasses.content}>
           <ButtonGroup
             color="primary"
             aria-label="outlined primary button group"
@@ -119,14 +122,14 @@ const Game: React.FunctionComponent<Props> = props => {
           >
             <Button
               color='secondary'
-              onClick={(e) => handleSelectTab(e, 0)}
+              onClick={(e) => props.setTeam(Team.red)}
               style={{ borderWidth: '2px' }}
               className={selectedTab === 0 && clsx(tabClasses.redSelected)}
             >
               Red Team
             </Button>
             <Button
-              onClick={(e) => handleSelectTab(e, 1)}
+              onClick={(e) => props.setTeam(Team.blue)}
               style={{borderWidth: '2px'}}
               className={selectedTab === 1 && clsx(tabClasses.blueSelected)}
             >
