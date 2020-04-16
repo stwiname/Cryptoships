@@ -63,6 +63,9 @@ export default createMuiTheme({
     MuiTypography: {
       h5: {
         color: yellow
+      },
+      body1: {
+        color: yellow
       }
     },
     MuiContainer: {

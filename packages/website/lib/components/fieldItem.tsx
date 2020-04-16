@@ -64,7 +64,11 @@ const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
   }
 
   return (
-    <ButtonBase onClick={onClick} className={clsx(classes.button, colorClass)}>
+    <ButtonBase
+      onClick={onClick}
+      className={clsx(classes.button, colorClass)}
+      disabled={!onClick}
+    >
         {!!renderIcon && renderIcon()}
     </ButtonBase>
   );

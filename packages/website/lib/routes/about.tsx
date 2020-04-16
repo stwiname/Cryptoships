@@ -1,8 +1,11 @@
 import * as React from 'react';
 import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
+import Grid from '@material-ui/core/Grid';
 import { useThemeStyles } from '../theme';
 import { Link } from 'react-router-dom';
+import { AuctionResult } from '../contracts';
+import FieldItem from '../components/fieldItem';
 const Logo = require('../../assets/cryptoships_wording_3.svg');
 
 type Props = {
@@ -11,6 +14,21 @@ type Props = {
 
 const About: React.FunctionComponent<Props> = props => {
   const themeClasses = useThemeStyles({});
+
+  const resultToString = (result: AuctionResult | 'aiming') => {
+    switch (result) {
+      case AuctionResult.unset:
+        return 'Untouched';
+      case AuctionResult.miss:
+        return 'Miss';
+      case AuctionResult.hit:
+        return 'Hit';
+      case "aiming":
+        return 'Transaction Submitted';
+      default:
+        return 'Transaction Confirmed';
+    }
+  }
 
   return (
     <Box
@@ -37,7 +55,7 @@ const About: React.FunctionComponent<Props> = props => {
         <Typography variant='body1'>
           Firstly, you're not playing against another person.
           Anyone can choose to play for either or both teams.
-          The "Oracle" has randomly placed the ships for each team, the goal is to be on team that destroys all the ships first.
+          The "Oracle" has randomly placed the ships for each team, the goal is to be on the team that destroys all the ships first.
         </Typography>
         </p>
         <p>
@@ -52,10 +70,35 @@ const About: React.FunctionComponent<Props> = props => {
         <p>
         <Typography variant='body1'>
            Lastly, you might be wondering where all the ETH from the auctions goes?
-           The winning team are in luck, not only do they get their ETH returned from the auctions they won, they also get a share of the losing teams ETH.
-           The share is split equally over each move played by the winning team less 10%, the 10% covers the "Oracle" running costs.
+           The winning team is in luck, not only do they get their ETH returned from the auctions they won, they also get a share of the losing teams ETH.
+           The share is split equally over each move played by the winning team less 10%, this is to cover "Oracle" running costs.
         </Typography>
         </p>
+        <p>
+          <Typography variant='h6' color='primary' style={{ fontWeight: 700 }}>
+            ONCE THE GAME IS OVER YOU MUST COLLECT YOUR WINNINGS BY RETURNING TO THE GAME!
+          </Typography>
+        </p>
+
+        <Typography variant='h4' className={themeClasses.comingSoon}>
+          Field keys
+        </Typography>
+        <Box mt={2}>
+          <Grid container direction='row' alignItems='stretch' justify='space-evenly'>
+            {
+              [AuctionResult.unset, 'aiming', undefined, AuctionResult.miss, AuctionResult.hit]
+                .map((result: AuctionResult | 'aiming', index) => <Grid item xs={2} key={index} style={{ minWidth: '100px'}}>
+                    <Grid container justify='center'>
+                      <div className={themeClasses.border} style={{ width: '54px', height: '54px' }}>
+                        <FieldItem result={result}/>
+                      </div>
+                    </Grid>
+                    <Typography align='center'>{resultToString(result)}</Typography>
+                  </Grid>
+                )
+            }
+          </Grid>
+        </Box>
       </div>
     </Box>
   )
