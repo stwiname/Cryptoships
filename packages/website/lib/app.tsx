@@ -32,7 +32,7 @@ class App extends React.PureComponent<{}> {
                 <Switch>
                   <Route exact={true} path="/" component={Home} />
                   <Route path="/game/:address" component={Game} />
-                  <Route path="/about" component={About} />
+                  <Route path="/how-it-works" component={About} />
                   <Route component={NotFound} />
                 </Switch>
               </Router>

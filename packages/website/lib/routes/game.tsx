@@ -23,7 +23,7 @@ const Game: React.FunctionComponent<Props> = props => {
   const history = useHistory();
 
   const activateDefault = () => {
-    context.activate(connectors.Network);
+    return context.activate(connectors.Network);
   }
 
   const activateMetamask = async () => {
@@ -36,17 +36,21 @@ const Game: React.FunctionComponent<Props> = props => {
   }
 
   React.useEffect(() => {
-    if (!context.active) {
-      const usedConnector = window.localStorage.getItem(connectorKey);
-      switch (usedConnector) {
-        case "metamask":
-          activateMetamask();
-          break;
-        default:
-          activateDefault();
-          break;
-      }
-    }
+    // Activate straight away, metamask might be locked
+    activateDefault()
+      .then(() => {
+        if (!context.active) {
+          const usedConnector = window.localStorage.getItem(connectorKey);
+          switch (usedConnector) {
+            case "metamask":
+              activateMetamask();
+              break;
+            default:
+              // activateDefault();
+              break;
+          }
+        }
+      });
   }, []);
 
   const handleSetTeam = (team: Team) => {

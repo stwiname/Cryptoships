@@ -25,7 +25,7 @@ const About: React.FunctionComponent<Props> = props => {
 
       <div style={{ maxWidth: '750px' }}>
         <Typography variant='h3' className={themeClasses.comingSoon}>
-          About
+          How it works
         </Typography>
         <p>
         <Typography variant='body1'>

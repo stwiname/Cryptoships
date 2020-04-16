@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
+import MUILink from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import { useWeb3React } from '@web3-react/core';
@@ -59,6 +60,22 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
     return null;
   }
 
+  const renderHowItWorks = () => {
+
+    return (
+      <Box m={2} fontWeight='fontWeightBold'>
+        <MUILink
+          to='/how-it-works'
+          component={Link}
+          color='secondary'
+          variant='button'
+        >
+          How it works
+        </MUILink>
+      </Box>
+    );
+  }
+
   return (
     <Grid
       direction='row'
@@ -79,6 +96,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
         </Box>
       </Grid>
       <Grid container item xs={6} alignItems='center' justify='flex-end'>
+        { renderHowItWorks() }
         { renderProfile() }
       </Grid>
     </Grid>
