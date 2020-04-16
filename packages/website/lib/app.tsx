@@ -11,7 +11,7 @@ import Game from './routes/game';
 import Home from './routes/home';
 import About from './routes/about';
 import NotFound from './routes/notFound';
-import theme, { appBackground } from './theme';
+import theme from './theme';
 
 
 function getLibrary(provider: any): providers.Web3Provider {
@@ -26,7 +26,6 @@ class App extends React.PureComponent<{}> {
       <Web3ReactProvider  getLibrary={getLibrary}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <div style={appBackground}>
             <Container maxWidth={false}>
               <Router>
                 <Switch>
@@ -37,7 +36,6 @@ class App extends React.PureComponent<{}> {
                 </Switch>
               </Router>
             </Container>
-          </div>
         </ThemeProvider>
       </Web3ReactProvider>
     );

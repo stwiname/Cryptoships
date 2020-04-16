@@ -99,13 +99,6 @@ export default createMuiTheme({
   }
 });
 
-export const appBackground = {
-  minHeight: '100vh',
-  backgroundImage: `linear-gradient(to top, ${orange}, ${purple}, ${darkestBlue}, ${nearBlack} 60%)`,
-  backgroundAttachment: 'fixed',
-}
-
-
 export const useThemeStyles = makeStyles(theme => ({
   yellow: {
     color: yellow
