@@ -1,6 +1,6 @@
 import Box from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles, Theme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell, { TableCellProps } from '@material-ui/core/TableCell';
@@ -28,32 +28,37 @@ type Props = {
   ) => void;
 };
 
-const useStyles = makeStyles({
+const HEADER_HEIGHT = 2;
+const HEADER_WIDTH = 5;
+
+const useStyles = makeStyles<Theme, { dimension: number }, 'paper' | 'cell' | 'header'>({
   paper: {
     overflow: 'hidden',
     marginTop: theme.spacing(2),
     borderRadius: '2px'
   },
   cell: {
-    width: 50,
-    height: 50,
     minWidth: 50,
     minHeight: 50,
+    position: 'relative',
+    paddingTop: ({ dimension }) => `${(100-HEADER_WIDTH)/dimension}%`,
+    width: ({ dimension }) => `${(100-HEADER_WIDTH)/dimension}%`,
   },
   header: {
     color: theme.palette.tertiary.main,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)'
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingTop: () => `${HEADER_HEIGHT}%`, // Keep these as a function, hack to fix css ordering
+    width: () => `${HEADER_WIDTH}%`, // Keep these as a function, hack to fix css ordering
   }
 });
 
 const Cell: React.FunctionComponent<TableCellProps & { className?: any }> = props => {
-  const classes = useStyles({});
   return (
     <TableCell
       align="center"
       padding="none"
       {...props}
-      className={clsx(classes.cell, props.className)}
+      className={props.className}
     >
       {props.children}
     </TableCell>
@@ -62,12 +67,14 @@ const Cell: React.FunctionComponent<TableCellProps & { className?: any }> = prop
 
 const Field: React.FunctionComponent<Props> = props => {
   const game = Game.useContainer();
-  const classes = useStyles({});
+  const classes = useStyles({ dimension: game.fieldSize });
   const themeClasses = useThemeStyles({});
   const auction = props.container.useContainer();
   const n = range(0, game.fieldSize);
   const isRedTeam = Team[auction.team] === Team[Team.red];
   const cellClass = isRedTeam ? themeClasses.cellAlt : themeClasses.cell;
+
+  const headerClass = clsx(classes.header, classes.cell, cellClass);
 
   const renderCell = (x: number, y: number) => {
     // For display perposes the numbers start at 0
@@ -100,7 +107,7 @@ const Field: React.FunctionComponent<Props> = props => {
     };
 
     return (
-      <Cell key={x} className={cellClass}>
+      <Cell key={x} className={clsx(classes.cell, cellClass)}>
         <FieldItem onClick={handlePress} result={result} />
       </Cell>
     );
@@ -110,13 +117,21 @@ const Field: React.FunctionComponent<Props> = props => {
     return (
       <TableRow key={y} hover={true}>
         {!props.trailingVHeader && (
-          <Cell component="th" scope="row" className={clsx(cellClass, classes.header)}>
+          <Cell
+            component="th"
+            scope="row"
+            className={headerClass}
+          >
             {y + 1}
           </Cell>
         )}
         {xs.map(x => renderCell(x, y))}
         {props.trailingVHeader && (
-          <Cell component="th" scope="row" className={clsx(cellClass, classes.header)}>
+          <Cell
+            component="th"
+            scope="row"
+            className={headerClass}
+          >
             {y + 1}
           </Cell>
         )}
@@ -125,20 +140,27 @@ const Field: React.FunctionComponent<Props> = props => {
   };
 
   return (
-      <Table className={clsx(classes.paper, isRedTeam ? themeClasses.borderAlt : themeClasses.border)}>
-        <TableHead>
-          <TableRow>
-            {!props.trailingVHeader && <Cell key="x" className={classes.header}/>}
-            {n.map(v => (
-              <Cell key={v} className={clsx(cellClass, classes.header)}>
-                {numToBase64(v + 1)}
-              </Cell>
-            ))}
-            {props.trailingVHeader && <Cell key="x" />}
-          </TableRow>
-        </TableHead>
-        <TableBody>{n.map(i => renderRow(n, i))}</TableBody>
-      </Table>
+      <div style={{overflowX: 'auto'}}>
+        <Table
+          className={clsx(classes.paper, isRedTeam ? themeClasses.borderAlt : themeClasses.border)}
+        >
+          <TableHead>
+            <TableRow>
+              {!props.trailingVHeader && <Cell key="x" className={headerClass}/>}
+              {n.map(v => (
+                <Cell
+                  key={v}
+                  className={headerClass}
+                >
+                  {numToBase64(v + 1)}
+                </Cell>
+              ))}
+              {props.trailingVHeader && <Cell key="x" className={headerClass}/>}
+            </TableRow>
+          </TableHead>
+          <TableBody>{n.map(i => renderRow(n, i))}</TableBody>
+        </Table>
+      </div>
   );
 };
 

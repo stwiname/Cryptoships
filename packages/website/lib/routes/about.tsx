@@ -98,7 +98,7 @@ const About: React.FunctionComponent<Props> = props => {
                     [AuctionResult.unset, 'aiming', undefined, AuctionResult.miss, AuctionResult.hit]
                       .map((result: AuctionResult | 'aiming', index) => <Grid item xs={2} key={index} style={{ minWidth: '100px'}}>
                           <Grid container justify='center'>
-                            <div className={themeClasses.border} style={{ width: '54px', height: '54px' }}>
+                            <div className={themeClasses.border} style={{ width: '54px', height: '54px', position: 'relative' }}>
                               <FieldItem result={result}/>
                             </div>
                           </Grid>

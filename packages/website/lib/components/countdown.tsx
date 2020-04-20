@@ -62,7 +62,7 @@ const Countdown: React.FunctionComponent<Props> = props => {
   const duration = moment.duration(remainingMs);
   return (
     <Box className={classes.wrapper} display='flex' alignItems='center'>
-      <CircularProgress variant='static' size={'100%'} value={percent} thickness={5}/>
+      <CircularProgress variant='static' size={'100%'} value={percent} thickness={5} style={{ height: undefined}}/>
       <Box display='flex' alignItems='center' className={classes.buttonProgress}>
         <Typography variant="h5" >
           {formatDuration(duration)}

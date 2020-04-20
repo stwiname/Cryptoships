@@ -20,11 +20,9 @@ import { numToBase64, createRadial } from '../utils';
 import clsx from 'clsx';
 
 const useStyles = makeStyles<Theme>({
-  container: {
-    background: 'transparent',
-  },
-  content: {
-    paddingBottom: 0,
+  cardMobile: {
+    paddingLeft: 0,
+    paddingRight: 0, paddingBottom: 0
   },
   redSelected: {
     background: createRadial(theme.palette.secondary.main, 0.2, 0.1),
@@ -81,8 +79,8 @@ const Game: React.FunctionComponent<Props> = props => {
   const renderTeam = (team: Team, xs=6) => {
     return (
       <Grid key={team} item={true} xs={xs as any}>
-        <Card>
-          <CardContent>
+        <Card style={{ marginBottom: 16 }}>
+          <CardContent className={clsx(!largeLayout && tabClasses.cardMobile)}>
             <Auction container={AuctionContainers[team]} />
             <Winnings team={team}/>
             <Field
@@ -103,17 +101,14 @@ const Game: React.FunctionComponent<Props> = props => {
       case 1:
         return renderTeam(Team.blue, 12);
       default:
-        // code...
-        break;
+        return null;
     }
   }
 
   const renderSmallScreen = (): any => {
     const selectedTab = props.team == Team.blue ? 1 : 0;
 
-    return <>
-      <Card className={tabClasses.container}>
-        <CardContent className={tabClasses.content}>
+    return <div style={{ paddingTop: 16 }}>
           <ButtonGroup
             color="primary"
             aria-label="outlined primary button group"
@@ -136,10 +131,8 @@ const Game: React.FunctionComponent<Props> = props => {
               Blue Team
             </Button>
           </ButtonGroup>
-        </CardContent>
-      </Card>
       {renderTab(selectedTab)}
-    </>;
+    </div>;
   };
 
   const renderLargeScreen = () => {
