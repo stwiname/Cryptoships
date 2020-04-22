@@ -61,12 +61,12 @@ function useGame(contractAddress: string) {
 
   useEffect(() => {
     clearState();
-  }, [contractAddress])
+  }, [contractAddress]);
 
   useEffect(() => {
+    // Reset all values
+    clearState();
     if (!game) {
-      // Reset all values
-      clearState();
       return;
     }
 

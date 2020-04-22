@@ -1,6 +1,7 @@
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
 import Grid from '@material-ui/core/Grid';
+import Box from '@material-ui/core/Box';
 import Typography from '@material-ui/core/Typography';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Button from '@material-ui/core/Button';
@@ -46,7 +47,7 @@ const Game: React.FunctionComponent<Props> = props => {
   const game = Container.useContainer();
   const classes = useThemeStyles({});
   const tabClasses = useStyles({});
-  const largeLayout = useMediaQuery('(min-width:1200px)');
+  const largeLayout = useMediaQuery('(min-width:1250px)');
 
   const [dialogParams, setDialogParams] = React.useState<
     Pick<PlaceBidProps, 'team' | 'position'>
@@ -78,7 +79,7 @@ const Game: React.FunctionComponent<Props> = props => {
 
   const renderTeam = (team: Team, xs=6) => {
     return (
-      <Grid key={team} item={true} xs={xs as any}>
+      <Grid key={team} item={true} xs={xs as any} style={{ maxWidth: 800 }}>
         <Card style={{ marginBottom: 16 }}>
           <CardContent className={clsx(!largeLayout && tabClasses.cardMobile)}>
             <Auction container={AuctionContainers[team]} />
@@ -108,31 +109,31 @@ const Game: React.FunctionComponent<Props> = props => {
   const renderSmallScreen = (): any => {
     const selectedTab = props.team == Team.blue ? 1 : 0;
 
-    return <div style={{ paddingTop: 16 }}>
-          <ButtonGroup
-            color="primary"
-            aria-label="outlined primary button group"
-            size='large'
-            fullWidth
-          >
-            <Button
-              color='secondary'
-              onClick={(e) => props.setTeam(Team.red)}
-              style={{ borderWidth: '2px' }}
-              className={selectedTab === 0 && clsx(tabClasses.redSelected)}
-            >
-              Red Team
-            </Button>
-            <Button
-              onClick={(e) => props.setTeam(Team.blue)}
-              style={{borderWidth: '2px'}}
-              className={selectedTab === 1 && clsx(tabClasses.blueSelected)}
-            >
-              Blue Team
-            </Button>
-          </ButtonGroup>
+    return <Box alignItems="center" flexDirection='column' pt={2} style={{ maxWidth: 800}}>
+      <ButtonGroup
+        color="primary"
+        aria-label="outlined primary button group"
+        size='large'
+        fullWidth
+      >
+        <Button
+          color='secondary'
+          onClick={(e) => props.setTeam(Team.red)}
+          style={{ borderWidth: '2px' }}
+          className={selectedTab === 0 && clsx(tabClasses.redSelected)}
+        >
+          Red Team
+        </Button>
+        <Button
+          onClick={(e) => props.setTeam(Team.blue)}
+          style={{borderWidth: '2px'}}
+          className={selectedTab === 1 && clsx(tabClasses.blueSelected)}
+        >
+          Blue Team
+        </Button>
+      </ButtonGroup>
       {renderTab(selectedTab)}
-    </div>;
+    </Box>;
   };
 
   const renderLargeScreen = () => {

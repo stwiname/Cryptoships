@@ -16,19 +16,9 @@ const Home: React.FunctionComponent<Props> = props => {
 
   const ensAddress = useEnsGame();
 
-  const context = useWeb3React();
-
   const handleAddressChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAddress(event.target.value);
   };
-
-  React.useEffect(() => {
-    if (!context.active) {
-      context.activate(
-        connectors.Network,
-      );
-    }
-  }, []);
 
   return (
     <Box

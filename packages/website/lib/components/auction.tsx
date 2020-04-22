@@ -26,7 +26,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
   const { account } = useWeb3React();
   const classes = useThemeStyles({});
   const isRedTeam = Team[auction.team] === Team[Team.red];
-  const largeLayout = useMediaQuery('(min-width:1200px)');
+  const largeLayout = useMediaQuery('(min-width:1250px)');
 
   const renderNewAuction = () => {
     const isRunning = !!auction && auction.hasStarted() && !auction.hasEnded();
@@ -91,7 +91,11 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
     return <Box>
       <Box flexDirection='row' display='flex' justifyContent='space-between'>
         <Box>
-          <Typography variant='h2' color='primary' style={{ fontSize: !largeLayout && '8vw'}}>
+          <Typography
+            variant='h2'
+            color='primary'
+            style={{ fontSize: !largeLayout && '7vw', color: '#0275E5'}}
+          >
             <Box fontWeight={400}>
               {getTitle()}
             </Box>

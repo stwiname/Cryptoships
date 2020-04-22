@@ -9,49 +9,17 @@ import { ErrorBoundary, Header } from '../components';
 import View from '../components/game';
 import { Game as Container, Winnings } from '../containers';
 import connectors from '../connectors';
-import useQuery from '../hooks/useQuery';
-
-const connectorKey = '@cryptoships/connectors';
+import { useQuery, useConnector } from '../hooks';
 
 type Props = {
   match: match<{ address: string }>;
 };
 
 const Game: React.FunctionComponent<Props> = props => {
+  const connector = useConnector();
   const context = useWeb3React();
   const query = useQuery();
   const history = useHistory();
-
-  const activateDefault = () => {
-    return context.activate(connectors.Network);
-  }
-
-  const activateMetamask = async () => {
-    await context.activate(
-      connectors.MetaMask,
-      activateDefault,
-    );
-
-    window.localStorage.setItem(connectorKey, 'metamask');
-  }
-
-  React.useEffect(() => {
-    // Activate straight away, metamask might be locked
-    activateDefault()
-      .then(() => {
-        if (!context.active) {
-          const usedConnector = window.localStorage.getItem(connectorKey);
-          switch (usedConnector) {
-            case "metamask":
-              activateMetamask();
-              break;
-            default:
-              // activateDefault();
-              break;
-          }
-        }
-      });
-  }, []);
 
   const handleSetTeam = (team: Team) => {
     history.push({
@@ -96,7 +64,7 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <ErrorBoundary>
       <Header
-        connectAccount={activateMetamask}
+        connectAccount={connector.activateMetamask}
       />
       { renderContent() }
     </ErrorBoundary>

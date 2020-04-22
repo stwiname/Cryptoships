@@ -11,6 +11,8 @@ import { AuctionResult } from '../contracts';
 import theme from '../theme';
 import { hexToRgb, createRadial } from '../utils';
 import clsx from 'clsx';
+const Flame = require('../../assets/flame_1.svg');
+const Crosshair = require('../../assets/crosshair_5.svg');
 
 const useStyles = makeStyles<Theme>({
   button: {
@@ -52,17 +54,18 @@ const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
       break;
     case AuctionResult.hit:
       colorClass = classes.hit;
+      renderIcon = () => <img src={Flame} style={{ height: '75%', width: '75%' }}/>
       break;
     case AuctionResult.miss:
       colorClass = classes.miss;
       break;
     case "aiming":
       colorClass = classes.aiming;
-      renderIcon = () => <GpsNotFixedIcon fontSize="large" />;
+      renderIcon = () => <img src={Crosshair} style={{ height: '75%', width: '75%' }}/>
       break;
     default:
       colorClass = classes.target;
-      renderIcon = () => <GpsNotFixedIcon fontSize="large" />;
+      renderIcon = () => <img src={Crosshair} style={{ height: '75%', width: '75%' }}/>
       break;
   }
 

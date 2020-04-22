@@ -50,8 +50,8 @@ const Countdown: React.FunctionComponent<Props> = props => {
 
   if (!props.endTime) {
     // Fill space but dont display anything
-    return <Box className={classes.wrapper} display='flex' alignItems='center'>
-      <CircularProgress variant='static' size={'100%'} value={0} thickness={5}/>
+    return <Box className={classes.wrapper} style={{ width: '0%'}} display='flex' alignItems='center'>
+      <div style={{ height: '100%' }}/>
     </Box>
   }
 

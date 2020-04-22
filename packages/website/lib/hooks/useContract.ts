@@ -26,7 +26,7 @@ const useContract = <C extends Contract>(contractAddress: string, factory: (addr
     );
     setContractInstance(contract);
 
-  }, [contractAddress, context.account]);
+  }, [contractAddress, context.account, context.chainId]);
 
   return contractInstance;
 }
