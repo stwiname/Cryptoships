@@ -10,34 +10,37 @@ const advanceTimeAndBlock = async (time) => {
 
     return Promise.resolve(web3.eth.getBlock('latest'));
 }
-
-const advanceTime = (time) => {
-    return new Promise((resolve, reject) => {
-        (web3.currentProvider as any).send({
-            jsonrpc: "2.0",
-            method: "evm_increaseTime",
-            params: [time],
-            id: new Date().getTime()
-        }, (err, result) => {
-            if (err) { return reject(err); }
-            return resolve(result);
-        });
+const sendEvmRPC = (method: string, params: Array<any>) => {
+  return new Promise((resolve, reject) => {
+    (web3.currentProvider).send({
+        jsonrpc: "2.0",
+        method,
+        params,
+        id: new Date().getTime()
+    }, (err, result) => {
+        if (err) { return reject(err); }
+        if (result.error) { return reject(result.error); }
+        return resolve(result);
     });
+  });
 }
 
-const advanceBlock = () => {
-    return new Promise((resolve, reject) => {
-        (web3.currentProvider as any).send({
-            jsonrpc: "2.0",
-            method: "evm_mine",
-            id: new Date().getTime()
-        }, async (err, result) => {
-            if (err) { return reject(err); }
-            const { hash } = await web3.eth.getBlock('latest');
+const advanceTime = (time) => {
+  return sendEvmRPC('evm_increaseTime', [time]);
+}
 
-            return resolve(hash);
-        });
-    });
+const advanceBlock = async () => {
+  await sendEvmRPC('evm_mine');
+  const { hash } = await web3.eth.getBlock('latest');
+  return hash;
+}
+
+const snapshotEvm = () => {
+  return sendEvmRPC('evm_snapshot').then((r) => r.result);
+}
+
+const revertEvm = (snapshotId) => {
+  return sendEvmRPC('evm_revert', [snapshotId]);
 }
 
 const assertEvent = (contract, filter) => {

@@ -10,7 +10,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Theme } from '@material-ui/core/styles/createMuiTheme';
 import { Link } from 'react-router-dom';
 import * as React from 'react';
-import { AuctionResult, Team } from '../contracts';
+import { AuctionResult, Team, MEDIA_QUERY_COND } from '../contracts';
 import { Auction, Field } from '../components';
 import Winnings from './winnings';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
@@ -47,7 +47,7 @@ const Game: React.FunctionComponent<Props> = props => {
   const game = Container.useContainer();
   const classes = useThemeStyles({});
   const tabClasses = useStyles({});
-  const largeLayout = useMediaQuery('(min-width:1250px)');
+  const largeLayout = useMediaQuery(MEDIA_QUERY_COND);
 
   const [dialogParams, setDialogParams] = React.useState<
     Pick<PlaceBidProps, 'team' | 'position'>

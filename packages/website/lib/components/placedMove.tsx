@@ -5,12 +5,14 @@ import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { utils } from 'ethers';
 import equals from 'ramda/src/equals';
 import * as React from 'react';
 import { useWeb3React } from '@web3-react/core';
-import { AuctionResult } from '../contracts';
+import { AuctionResult, MEDIA_QUERY_COND } from '../contracts';
 import { createAuctionContainer } from '../containers';
+import { truncateAddress } from '../utils';
 import Dialog from './dialog';
 
 const AuctionContainer = createAuctionContainer();
@@ -24,6 +26,7 @@ export type Props = {
 const PlacedMoveContent: React.FunctionComponent<{}> = () => {
   const auction = AuctionContainer.useContainer();
   const web3 = useWeb3React();
+  const largeLayout = useMediaQuery(MEDIA_QUERY_COND);
 
   // Render nothing if the leadingBid is not loaded, easiest to check the move
   const amount = new utils.BigNumber(auction.leadingBid.amount);
@@ -34,7 +37,9 @@ const PlacedMoveContent: React.FunctionComponent<{}> = () => {
   const bidder =
     auction.leadingBid.bidder === web3.account
       ? 'You'
-      : auction.leadingBid.bidder;
+      : largeLayout
+        ? auction.leadingBid.bidder
+        : truncateAddress(auction.leadingBid.bidder);
 
   return (
     <Typography>{`Move was made by ${bidder}\n for ${utils.formatEther(amount)} ETH`}</Typography>

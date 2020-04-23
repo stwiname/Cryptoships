@@ -12,7 +12,7 @@ import theme from '../theme';
 import { hexToRgb, createRadial } from '../utils';
 import clsx from 'clsx';
 const Flame = require('../../assets/flame_1.svg');
-const Crosshair = require('../../assets/crosshair_5.svg');
+const Crosshair = require('../../assets/crosshair_6.svg');
 
 const useStyles = makeStyles<Theme>({
   button: {
@@ -48,24 +48,28 @@ const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
 
   const classes = useStyles({ /*color: createRadial(color.main) as any*/ });
 
+  const renderImage = (src: string) => {
+    return <img src={src} style={{ height: '75%', width: '75%' }}/>;
+  }
+
   switch (result) {
     case AuctionResult.unset:
       colorClass = null;
       break;
     case AuctionResult.hit:
       colorClass = classes.hit;
-      renderIcon = () => <img src={Flame} style={{ height: '75%', width: '75%' }}/>
+      renderIcon = () => renderImage(Flame);
       break;
     case AuctionResult.miss:
       colorClass = classes.miss;
       break;
     case "aiming":
       colorClass = classes.aiming;
-      renderIcon = () => <img src={Crosshair} style={{ height: '75%', width: '75%' }}/>
+      renderIcon = () => renderImage(Crosshair);
       break;
     default:
       colorClass = classes.target;
-      renderIcon = () => <img src={Crosshair} style={{ height: '75%', width: '75%' }}/>
+      renderIcon = () => renderImage(Crosshair);
       break;
   }
 

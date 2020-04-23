@@ -7,7 +7,7 @@ import CircularProgress from '@material-ui/core/CircularProgress';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { useWeb3React } from '@web3-react/core';
 import * as React from 'react';
-import { Team, GameResult, AuctionResult } from '../contracts';
+import { Team, GameResult, AuctionResult, MEDIA_QUERY_COND } from '../contracts';
 import { moveToString } from '../utils';
 import { utils } from 'ethers';
 import Countdown from './countdown';
@@ -26,7 +26,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
   const { account } = useWeb3React();
   const classes = useThemeStyles({});
   const isRedTeam = Team[auction.team] === Team[Team.red];
-  const largeLayout = useMediaQuery('(min-width:1250px)');
+  const largeLayout = useMediaQuery(MEDIA_QUERY_COND);
 
   const renderNewAuction = () => {
     const isRunning = !!auction && auction.hasStarted() && !auction.hasEnded();
