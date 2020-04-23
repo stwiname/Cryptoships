@@ -11,7 +11,7 @@ import { Theme } from '@material-ui/core/styles/createMuiTheme';
 import { Link } from 'react-router-dom';
 import * as React from 'react';
 import { AuctionResult, Team, MEDIA_QUERY_COND } from '../contracts';
-import { Auction, Field } from '../components';
+import { Auction, Field, Loading } from '../components';
 import Winnings from './winnings';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
 import PlacedMove, { Props as PlacedMoveProps } from '../components/placedMove';
@@ -19,6 +19,7 @@ import { createAuctionContainer, Game as Container} from '../containers';
 import theme, { useThemeStyles } from '../theme';
 import { numToBase64, createRadial } from '../utils';
 import clsx from 'clsx';
+import NotFound from '../routes/notFound';
 
 const useStyles = makeStyles<Theme>({
   cardMobile: {
@@ -73,6 +74,17 @@ const Game: React.FunctionComponent<Props> = props => {
     //   renderContent: () => <Typography>Test</Typography>
     // });
   };
+
+  if (game.loading) {
+    return <Loading/>;
+  }
+
+  if (game.error?.message.includes('contract not deployed')) {
+    return <NotFound
+      subTitle='Check that you have the right network'
+      hideHomeButton={true}
+    />
+  }
 
   const closeDialog = () => setDialogParams(null);
   const closeDialogPlaced = () => setDialogParamsPlaced(null);

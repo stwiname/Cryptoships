@@ -33,6 +33,8 @@ function useGame(contractAddress: string) {
     return null;
   }
 
+  const [error, setError] = useState<Error>(null);
+  const [loading, setLoading] = useState<boolean>(false);
   const [fieldSize, setFieldSize] = useState<number>(0);
   const [result, setResult] = useState<GameResult>(GameResult.unset);
   const [redAuctionAddress, setRedAuctionAddress] = useState<string>(null);
@@ -49,6 +51,8 @@ function useGame(contractAddress: string) {
 
 
   const clearState = () => {
+    setError(null);
+    setLoading(false);
     setFieldSize(0);
     setResult(GameResult.unset);
     setRedAuctionAddress(null);
@@ -70,12 +74,14 @@ function useGame(contractAddress: string) {
       return;
     }
 
+    setLoading(true);
+
     game.functions
       .getFieldSize()
       .then(sizeBN => setFieldSize(sizeBN))
       .catch((e: Error) => {
         console.log('Failed to get field size', e);
-        // history.push('/not-found');
+        setError(e);
       });
     // TODO find way to throw this error
 
@@ -106,6 +112,17 @@ function useGame(contractAddress: string) {
     // throw new Error('test');
     // TODO get leading bid for each team
   }, [game]);
+
+  useEffect(() => {
+
+    let timeout: NodeJS.Timeout;
+
+    if (loading && (error || fieldSize)) {
+      timeout = setTimeout(() => setLoading(false), 1500);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [error, loading, fieldSize]);
 
   useEventListener(
     'HighestBidPlaced',
@@ -219,6 +236,8 @@ function useGame(contractAddress: string) {
     Team[team] === Team[Team.red] ? redLeadingBid : blueLeadingBid;
 
   return {
+    error,
+    loading,
     fieldSize,
     getTeamAuctionAddress,
     getTeamAuctionResults,

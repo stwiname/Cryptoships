@@ -9,7 +9,10 @@ import connectors from '../connectors';
 import { useThemeStyles } from '../theme';
 const Logo = require('../../assets/cryptoships_wording_3.svg');
 
-type Props = {};
+type Props = {
+  subTitle?: string;
+  hideHomeButton?: boolean;
+};
 
 const NotFound: React.FunctionComponent<Props> = props => {
   const themeClasses = useThemeStyles({});
@@ -20,7 +23,8 @@ const NotFound: React.FunctionComponent<Props> = props => {
       alignItems='center'
       display='flex'
       flexDirection='column'
-      height='100vh'
+      height='90vh'
+      textAlign='center'
     >
       <Typography
         variant='h3'
@@ -29,14 +33,24 @@ const NotFound: React.FunctionComponent<Props> = props => {
       >
         Ooops, we cant find this battle!
       </Typography>
-      <Button
-        to={`/`}
-        component={Link}
-        size='large'
-        color='primary'
-      >
-        Take me home
-      </Button>
+      {
+        props.subTitle &&
+        <Typography variant='h5'>
+          {props.subTitle}
+        </Typography>
+      }
+      {
+        !props.hideHomeButton &&
+        <Button
+          to={`/`}
+          component={Link}
+          size='large'
+          color='primary'
+          variant='outlined'
+        >
+          Take me home
+        </Button>
+      }
     </Box>
   );
 };

@@ -26,9 +26,9 @@ const About: React.FunctionComponent<Props> = props => {
       case AuctionResult.hit:
         return 'Hit';
       case "aiming":
-        return 'Transaction Submitted';
+        return 'Move Submitted';
       default:
-        return 'Transaction Confirmed';
+        return 'Leading Move';
     }
   }
 
