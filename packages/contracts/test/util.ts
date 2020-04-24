@@ -10,7 +10,7 @@ const advanceTimeAndBlock = async (time) => {
 
     return Promise.resolve(web3.eth.getBlock('latest'));
 }
-const sendEvmRPC = (method: string, params: Array<any>) => {
+const sendEvmRPC = (method: string, params?: Array<any>) => {
   return new Promise((resolve, reject) => {
     (web3.currentProvider).send({
         jsonrpc: "2.0",
@@ -36,7 +36,7 @@ const advanceBlock = async () => {
 }
 
 const snapshotEvm = () => {
-  return sendEvmRPC('evm_snapshot').then((r) => r.result);
+  return sendEvmRPC('evm_snapshot').then((r: any) => r.result);
 }
 
 const revertEvm = (snapshotId) => {
@@ -103,4 +103,6 @@ export {
     assertAuctionBid,
     getGasInfo,
     nullAddress,
+    snapshotEvm,
+    revertEvm,
 };

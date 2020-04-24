@@ -108,7 +108,10 @@ library GameLib {
     Auction otherAuction = getCurrentAuction(data, otherTeam(team));
 
     // Auction has ended or has had a bid (has an end time)
-    if (otherAuction.hasEnded() || otherAuction.getEndTime() > 0) {
+    if ((otherAuction.hasEnded() || otherAuction.getEndTime() > 0)
+        // Only start auction if we're confirming the currentAuction
+        && address(auction) == address(getCurrentAuction(data, team))
+    ) {
       // Start the next auction
       startAuction(data, team, listener);
     }

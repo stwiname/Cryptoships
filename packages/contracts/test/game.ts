@@ -12,6 +12,8 @@ const AuctionLib = artifacts.require('AuctionLib');
 const Auction = artifacts.require('Auction');
 import {
   advanceTimeAndBlock,
+  snapshotEvm,
+  revertEvm,
   assertEvent,
   assertAuctionBid,
   getGasInfo,
@@ -36,6 +38,7 @@ const AUCTION_TIME = 10;
 
 contract('Game', accounts => {
   const oracleAccount = accounts[0];
+  let snapshotId;
 
   const logDecoder = new LogDecoder([gameAbi, gameLibAbi, auctionAbi, auctionLibAbi]);
 
@@ -52,6 +55,14 @@ contract('Game', accounts => {
     await (Game as any).link("GameLib", gameLibrary.address);
   });
 
+  beforeEach(async () => {
+    snapshotId = await snapshotEvm();
+  });
+
+  afterEach(async () => {
+    await revertEvm(snapshotId);
+  });
+
   describe('initialisation', () => {
     it('should not be able to create a game with units greater than the field size', async () => {
       await Game.new(redHash, blueHash, 2, 5, AUCTION_TIME, Team.red, {
@@ -65,7 +76,7 @@ contract('Game', accounts => {
 
     const bidAmount = 1000;
 
-    const playMoveAndCompleteAuction = async (team: Team, position: [number, number], accountNumber: number) => {
+    const playMoveAndStartOtherTeam = async (team: Team, position: [number, number], accountNumber: number) => {
       const auction = await Auction.at(await instance.getCurrentAuction(team));
       await auction.placeBid(position, {
         from: accounts[accountNumber],
@@ -86,6 +97,10 @@ contract('Game', accounts => {
       if (!otherTeamAddress || await Auction.at(otherTeamAddress).then(a => a.hasEnded())) {
         await instance.startAuction(otherTeam, { from: oracleAccount });
       }
+    }
+
+    const playMoveAndCompleteAuction = async (team: Team, position: [number, number], accountNumber: number) => {
+      await playMoveAndStartOtherTeam(team, position, accountNumber);
 
       // Time out auction for move made
       await advanceTimeAndBlock(AUCTION_TIME + 1);
@@ -354,6 +369,30 @@ contract('Game', accounts => {
       assert.equal(
         expectedBalance.toString(),
         balanceAfter.toString()
+      );
+    });
+
+    it('should be able to confirm moves out of order', async () => {
+      // Red has 2 auctions, blue 1, reds first auction is not confirmed and
+      // we cannnot currently confirm it because it reverts creating another auction
+
+      await playMoveAndStartOtherTeam(Team.red, [0, 1], 1);
+
+      const firstAuction = await instance.getCurrentAuction(Team.red);
+
+      await advanceTimeAndBlock(AUCTION_TIME + 1);
+
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+
+      // Time out auction for move made
+      await advanceTimeAndBlock(AUCTION_TIME + 1);
+
+      // Confirm the move for the first auction
+      await instance.confirmMove(
+        Team.red,
+        testBattleField[0][1],
+        firstAuction, // TODO get first auction address
+        { from: oracleAccount }
       );
     });
 

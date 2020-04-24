@@ -258,7 +258,7 @@ export default class Oracle {
     const tx: ContractTransaction = await this.instance.functions.confirmMove(team, hit, auction.address, { gasLimit: 2000000 })
       .catch(retry);
 
-    logger.info(`Success confirming move ${tx.hash}`);
+    logger.info(`Success submitting move ${tx.hash}`);
 
     tx.wait(1)
       .then(() => {
