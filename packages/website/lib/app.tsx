@@ -23,7 +23,7 @@ function getLibrary(provider: any): providers.Web3Provider {
 }
 
 const App: React.FunctionComponent<{}> = props => {
-  const connectors = useConnector()
+  const connectors = useConnector();
 
   React.useEffect(() => {
     connectors.activateSaved();

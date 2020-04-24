@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
-import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import { useWeb3React } from '@web3-react/core';
 import { Contract, Signer } from 'ethers';
 

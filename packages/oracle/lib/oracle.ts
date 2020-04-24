@@ -203,14 +203,15 @@ export default class Oracle {
     logger.info(`Confirming move for ${auction.address}, has finished ${await auction.functions.hasEnded()}`);
     // For some reason this is thinking it hasn't ended
 
-    // if (!await auction.functions.hasEnded()) {
+    if (!await auction.functions.hasEnded()) {
+      logger.warn('Auction has not yet ended, attempting to confirm move');
     //   const endTime = await auction.functions.getEndTime();
     //   logger.debug('END TIME', endTime.toNumber(), Date.now()/1000);
     //   logger.debug(`Auction has not yet ended for ${Team[team]} team, cannot confirm`);
     //   // TODO need to limit recursion
     //   // this.createPendingConfirmation(team, auction, endTime.toNumber() * 1000);
     //   return;
-    // }
+    }
 
     // Check if hit or miss
     const leadingMove = await auction.functions.getLeadingMove();
@@ -234,11 +235,10 @@ export default class Oracle {
       return;
     }
 
-    // Set move on game and possibly start next auction
-    // Have to manually specify gas because it's not always estimated properly, this is due to contracts calling contracts
-    const tx: ContractTransaction = await this.instance.functions.confirmMove(team, hit, auction.address, { gasLimit: 2000000 }).catch(async e => {
+    const retry = async (e: Error) => {
       // TODO try to filter by e.message === 'Failed to confirm move', needs testing on mainnet
       if (retries > 0) {
+        logger.warn("Transaction failed, retrying", e);
         // Wait 10% of auction time to try again
         const time =
           (await auction.functions.getDuration()).toNumber() *
@@ -251,7 +251,12 @@ export default class Oracle {
       }
       logger.error('Failed to confirm move', e.message, e);
       throw e;
-    });
+    }
+
+    // Set move on game and possibly start next auction
+    // Have to manually specify gas because it's not always estimated properly, this is due to contracts calling contracts
+    const tx: ContractTransaction = await this.instance.functions.confirmMove(team, hit, auction.address, { gasLimit: 2000000 })
+      .catch(retry);
 
     logger.info(`Success confirming move ${tx.hash}`);
 
@@ -261,6 +266,7 @@ export default class Oracle {
       })
       .catch(e => {
         logger.warn(`Tx (${tx.hash}) failed `, e);
+        return retry(e);
       });
 
     return tx;
