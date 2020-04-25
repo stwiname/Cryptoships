@@ -7,7 +7,7 @@ import Box from '@material-ui/core/Box';
 import { useWeb3React } from '@web3-react/core';
 import { truncateAddress } from '../utils';
 
-const Logo = require('../../assets/cryptoships_wording_3.svg');
+const Logo = require('../../assets/logo_blue.svg');
 const MetaMask = require('../../assets/metamask.svg');
 
 type Props = {
@@ -81,21 +81,30 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
       direction='row'
       spacing={2}
       container
+      style={{ paddingBottom: 0 }}
     >
       <Grid
         item
-        xs={6}
+        xs={2}
+        style={{ paddingBottom: 0 }}
       >
         <Box alignItems='flex-start' display='flex'>
           <Link to='/'>
             <img
               src={Logo}
-              style={{ width: '100%', minHeight: '60px', paddingTop: '10px' }}
+              style={{ width: '100%', minHeight: '80px', /*paddingTop: '10px'*/ }}
             />
           </Link>
         </Box>
       </Grid>
-      <Grid container item xs={6} alignItems='center' justify='flex-end'>
+      <Grid
+        container
+        item
+        xs={10}
+        alignItems='center'
+        justify='flex-end'
+        style={{ paddingBottom: 0 }}
+      >
         { renderHowItWorks() }
         { renderProfile() }
       </Grid>
