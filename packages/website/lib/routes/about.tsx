@@ -4,7 +4,7 @@ import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
 import { useThemeStyles } from '../theme';
 import { Link } from 'react-router-dom';
-import { AuctionResult } from '../contracts';
+import { AuctionResult, FieldStates } from '../contracts';
 import FieldItem from '../components/fieldItem';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -17,16 +17,18 @@ type Props = {
 const About: React.FunctionComponent<Props> = props => {
   const themeClasses = useThemeStyles({});
 
-  const resultToString = (result: AuctionResult | 'aiming') => {
+  const resultToString = (result: FieldStates) => {
     switch (result) {
       case AuctionResult.unset:
-        return 'Untouched';
+        return 'Revealing result';
       case AuctionResult.miss:
         return 'Miss';
       case AuctionResult.hit:
         return 'Hit';
       case "aiming":
         return 'Move Submitted';
+      case "unplayed":
+        return 'Unplayed';
       default:
         return 'Leading Move';
     }
@@ -95,8 +97,8 @@ const About: React.FunctionComponent<Props> = props => {
               <Box mt={2}>
                 <Grid container direction='row' alignItems='stretch' justify='space-evenly'>
                   {
-                    [AuctionResult.unset, 'aiming', undefined, AuctionResult.miss, AuctionResult.hit]
-                      .map((result: AuctionResult | 'aiming', index) => <Grid item xs={2} key={index} style={{ minWidth: '100px'}}>
+                    ['unplayed', 'aiming', undefined, AuctionResult.unset, AuctionResult.miss, AuctionResult.hit]
+                      .map((result: FieldStates, index) => <Grid item xs={2} key={index} style={{ minWidth: '100px'}}>
                           <Grid container justify='center'>
                             <div className={themeClasses.border} style={{ width: '54px', height: '54px', position: 'relative' }}>
                               <FieldItem result={result}/>

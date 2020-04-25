@@ -10,7 +10,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Theme } from '@material-ui/core/styles/createMuiTheme';
 import { Link } from 'react-router-dom';
 import * as React from 'react';
-import { AuctionResult, Team, MEDIA_QUERY_COND } from '../contracts';
+import { AuctionResult, Team, MEDIA_QUERY_COND, FieldStates } from '../contracts';
 import { Auction, Field, Loading } from '../components';
 import Winnings from './winnings';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
@@ -61,18 +61,19 @@ const Game: React.FunctionComponent<Props> = props => {
   const handleGridPress = (team: Team) => (
     x: number,
     y: number,
-    result: AuctionResult,
+    result: FieldStates,
     address?: string
   ) => {
-    if (result || result !== AuctionResult.unset) {
-      setDialogParamsPlaced({ result, address });
-    } else {
-      setDialogParams({ team, position: { x, y } });
+    switch (result) {
+      case 'aiming':
+        break;
+      case 'unplayed':
+        setDialogParams({ team, position: { x, y } });
+        break;
+      default:
+        setDialogParamsPlaced({ result, address });
+        break;
     }
-    // setDialogParamsNew({
-    //   title: `Place bid for ${Team[team] || ''} team`,
-    //   renderContent: () => <Typography>Test</Typography>
-    // });
   };
 
   if (game.loading) {

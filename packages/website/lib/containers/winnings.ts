@@ -6,6 +6,7 @@ import { Team, GameResult } from '../contracts';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import useContract from '../hooks/useContract';
 import useEventListener from '../hooks/useEventListener';
+import CancellablePromise, { PromiseCancelledError, logNotCancelledError } from '../cancellablePromise';
 
 function useWinnings(contractAddress: string) {
   const context = useWeb3React();
@@ -24,30 +25,33 @@ function useWinnings(contractAddress: string) {
       return;
     }
 
-    game.functions.getPotentialWinnings(context.account, Team.red)
-      .then(amountBN => setRedWinnings(amountBN))
-      .catch(e => console.log('Failed to get potential winnings', e));
-
-    game.functions.getPotentialWinnings(context.account, Team.blue)
-      .then(amountBN => setBlueWinnings(amountBN))
-      .catch(e => console.log('Failed to get potential winnings', e));
-
-    game.functions.getResult()
-      .then(result => {
-        if (GameResult[result] === GameResult[GameResult.blueWinner] ||
-          GameResult[result] === GameResult[GameResult.redWinner])
-        {
-          setWinningTeam(
-            GameResult[result] === GameResult[GameResult.blueWinner]
-              ? Team.blue
-              : Team.red
-          );
-        }
-      });
+    return CancellablePromise.all([
+      CancellablePromise.makeCancellable(game.functions.getPotentialWinnings(context.account, Team.red))
+        .map(setRedWinnings)
+        .mapError(logNotCancelledError('Failed to get red potential winnings')),
+      CancellablePromise.makeCancellable(game.functions.getPotentialWinnings(context.account, Team.blue))
+        .map(setBlueWinnings)
+        .mapError(logNotCancelledError('Failed to get blue potential winnings')),
+      CancellablePromise.makeCancellable(game.functions.getResult())
+        .map(result => {
+          if (GameResult[result] === GameResult[GameResult.blueWinner] ||
+            GameResult[result] === GameResult[GameResult.redWinner])
+          {
+            setWinningTeam(
+              GameResult[result] === GameResult[GameResult.blueWinner]
+                ? Team.blue
+                : Team.red
+            );
+          }
+        })
+        .mapError(logNotCancelledError('Failed to get game result')),
+    ]);
   }
 
   useEffect(() => {
-    getWinnings();
+    const tasks = getWinnings();
+
+    return tasks?.cancel;
   }, [game, context.account]);
 
   useEventListener(

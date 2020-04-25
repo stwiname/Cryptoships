@@ -9,7 +9,7 @@ import TableRow from '@material-ui/core/TableRow';
 import find from 'ramda/src/find';
 import range from 'ramda/src/range';
 import * as React from 'react';
-import { AuctionResult, Team } from '../contracts';
+import { AuctionResult, FieldStates, Team } from '../contracts';
 import { Game } from '../containers';
 import theme, { useThemeStyles } from '../theme';
 import { movesEqual, numToBase64 } from '../utils';
@@ -23,7 +23,7 @@ type Props = {
   onItemPress?: (
     x: number,
     y: number,
-    result?: AuctionResult,
+    result?: FieldStates,
     address?: string
   ) => void;
 };
@@ -83,7 +83,7 @@ const Field: React.FunctionComponent<Props> = props => {
     const {
       result,
       address,
-    }: { result: AuctionResult | "aiming"; address?: string } =
+    }: { result: FieldStates; address?: string } =
       find(m => movesEqual(m.move, [x, y]), auctionResults) ||
       (
         auction.pendingBid &&
@@ -95,12 +95,9 @@ const Field: React.FunctionComponent<Props> = props => {
         !auction.leadingBid.amount.isZero()
       ) &&
       { result: null, address: auction.leadingBid.bidder } ||
-      { result: AuctionResult.unset, }
+      { result: 'unplayed', }
 
     const handlePress = () => {
-      if (result == 'aiming') {
-        return;
-      }
       if (props.onItemPress) {
         props.onItemPress(x, y, result, address);
       }

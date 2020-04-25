@@ -12,7 +12,7 @@ import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
 import { LeadingBid, AuctionResult, Team, GameResult } from '../contracts';
 import useEventListener from '../hooks/useEventListener';
 import useContract from '../hooks/useContract';
-import { useHistory } from "react-router-dom";
+import CancellablePromise, { PromiseCancelledError, logNotCancelledError } from '../cancellablePromise';
 
 export type AuctionMove = {
   move: number[];
@@ -23,7 +23,6 @@ export type AuctionMove = {
 function useGame(contractAddress: string) {
   const context = useWeb3React();
   const game = useContract(contractAddress, GameFactory.connect);
-  const history = useHistory();
 
   if (!context.active || context.error) {
     throw new Error('Web3 context not setup!!');
@@ -47,8 +46,11 @@ function useGame(contractAddress: string) {
   const [blueLeadingBid, setBlueLeadingBid] = useState<LeadingBid>(null);
 
   const updateAuctionResults = (existing: AuctionMove[], newMoves: AuctionMove[]) => 
-    uniqBy<AuctionMove, number[]>(a => a.move, concat(existing, newMoves))
-
+    {
+      const up = uniqBy<AuctionMove, number[]>(a => a.move, concat(existing, newMoves))
+      console.log("Moves", up)
+      return up;
+    }
 
   const clearState = () => {
     setError(null);
@@ -76,41 +78,37 @@ function useGame(contractAddress: string) {
 
     setLoading(true);
 
-    game.functions
-      .getFieldSize()
-      .then(sizeBN => setFieldSize(sizeBN))
-      .catch((e: Error) => {
-        console.log('Failed to get field size', e);
-        setError(e);
-      });
-    // TODO find way to throw this error
+    const tasks = CancellablePromise.all([
+      CancellablePromise.makeCancellable(game.functions.getFieldSize())
+        .map(setFieldSize)
+        .mapError((e: Error) => {
+          if (e instanceof PromiseCancelledError) {
+            return;
+          }
+          console.log('Failed to get field size', e);
+          setError(e);
+        }),
+      // Get final game result
+      CancellablePromise.makeCancellable(game.functions.getResult())
+        .map(setResult)
+        .mapError(logNotCancelledError(`Failed to get game result`)),
+      // Get current auctions
+      CancellablePromise.makeCancellable(game.functions.getCurrentAuction(Team.red))
+        .map(setRedAuctionAddress)
+        .mapError(logNotCancelledError(`Failed to get auction for red team`)),
+      CancellablePromise.makeCancellable(game.functions.getCurrentAuction(Team.blue))
+        .map(setBlueAuctionAddress)
+        .mapError(logNotCancelledError(`Failed to get auction for blue team`)),
+      // Get results
+      CancellablePromise.makeCancellable(getAllResultsForTeam(game, Team.red))
+        .map(results => setRedAuctionResults(updateAuctionResults(redAuctionResults, results)))
+        .mapError(logNotCancelledError('Failed to get auction results for red team')),
+      CancellablePromise.makeCancellable(getAllResultsForTeam(game, Team.blue))
+        .map(results => setBlueAuctionResults(updateAuctionResults(blueAuctionResults, results)))
+        .mapError(logNotCancelledError('Failed to get auction results for blue team')),
+    ]);
 
-    game.functions
-      .getCurrentAuction(Team.red)
-      .then(setRedAuctionAddress)
-      .catch(e => console.log(`Failed to get auction for red team`));
-
-    game.functions
-      .getCurrentAuction(Team.blue)
-      .then(setBlueAuctionAddress)
-      .catch(e => console.log(`Failed to get auction for blue team`));
-
-    game.functions.getResult()
-      .then(result => setResult(result))
-      .catch(e => console.log(`Failed to get game result`, e));
-
-    getAllResultsForTeam(game, Team.red)
-      .then(results => setRedAuctionResults(updateAuctionResults(redAuctionResults, results)))
-      .catch(e => console.log('Failed to get auction results for red team', e));
-
-    getAllResultsForTeam(game, Team.blue)
-      .then(results => setBlueAuctionResults(updateAuctionResults(blueAuctionResults, results)))
-      .catch(e =>
-        console.log('Failed to get auction results for blue team', e)
-      );
-
-    // throw new Error('test');
-    // TODO get leading bid for each team
+    return tasks.cancel;
   }, [game]);
 
   useEffect(() => {
@@ -213,17 +211,22 @@ function useGame(contractAddress: string) {
           context.library
         );
 
-        const [move, result] = await Promise.all([
+        const [move, result, ended] = await Promise.all([
           auction.functions.getLeadingMove(),
           auction.functions.getResult(),
+          auction.functions.hasEnded(),
         ]);
+
+        // Allows excluding unfinished auctions
+        if (!ended) {
+          return null;
+        }
 
         return { move, result: result as AuctionResult, address };
       })
     );
 
-    // Filter out unset (current) auctions
-    return results.filter(res => res.result !== AuctionResult.unset);
+    return results.filter(Boolean);
   };
 
   const getTeamAuctionAddress = (team: Team) =>

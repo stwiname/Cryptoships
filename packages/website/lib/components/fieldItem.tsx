@@ -7,7 +7,7 @@ import SvgIcon from '@material-ui/core/SvgIcon';
 import GpsNotFixedIcon from '@material-ui/icons/GpsNotFixed';
 import path from 'ramda/src/path';
 import * as React from 'react';
-import { AuctionResult } from '../contracts';
+import { AuctionResult, FieldStates } from '../contracts';
 import theme from '../theme';
 import { hexToRgb, createRadial } from '../utils';
 import clsx from 'clsx';
@@ -34,11 +34,14 @@ const useStyles = makeStyles<Theme>({
   },
   aiming: {
     background: createRadial(theme.palette.tertiary.light)
+  },
+  revealing: {
+    background: createRadial(theme.palette.secondary.dark)
   }
 });
 
 type Props = {
-  result?: AuctionResult | "aiming";
+  result?: FieldStates;
   onClick?: () => void;
 };
 
@@ -54,7 +57,7 @@ const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
 
   switch (result) {
     case AuctionResult.unset:
-      colorClass = null;
+      colorClass = classes.revealing;
       break;
     case AuctionResult.hit:
       colorClass = classes.hit;
@@ -66,6 +69,9 @@ const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
     case "aiming":
       colorClass = classes.aiming;
       renderIcon = () => renderImage(Crosshair);
+      break;
+    case "unplayed":
+      colorClass = null;
       break;
     default:
       colorClass = classes.target;

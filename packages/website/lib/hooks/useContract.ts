@@ -8,9 +8,9 @@ const useContract = <C extends Contract>(contractAddress: string, factory: (addr
   const [contractInstance, setContractInstance] = useState<C>(null);
 
   useEffect(() => {
+    setContractInstance(null);
 
     if (!contractAddress) {
-      setContractInstance(null);
       return;
     }
 
