@@ -77,12 +77,12 @@ const About: React.FunctionComponent<Props> = props => {
             <Typography variant='body1'>
                Lastly, you might be wondering where all the ETH from the auctions goes?
                The winning team is in luck, not only do they get their ETH returned from the auctions they won, they also get a share of the losing teams ETH.
-               The share is split equally over each move played by the winning team less 10%, this is to cover "Oracle" running costs.
+               This is split across the winning team less 10%, this is to cover "Oracle" running costs.
             </Typography>
             </p>
             <p>
-              <Typography variant='h6' color='primary' style={{ fontWeight: 700 }}>
-                ONCE THE GAME IS OVER YOU MUST COLLECT YOUR WINNINGS BY RETURNING TO THE GAME!
+              <Typography variant='h6' style={{ fontWeight: 700, color: '#fd1d52' }}>
+                ONCE THE GAME IS OVER YOU HAVE 7 DAYS TO COLLECT YOUR WINNINGS BY RETURNING TO THAT GAME!
               </Typography>
             </p>
           </CardContent>
