@@ -8,7 +8,7 @@ import { AuctionResult, FieldStates } from '../contracts';
 import FieldItem from '../components/fieldItem';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-const Logo = require('../../assets/cryptoships_wording_3.svg');
+const Logo = require('../../assets/cryptoships_wording_8.svg');
 
 type Props = {
 
@@ -68,7 +68,7 @@ const About: React.FunctionComponent<Props> = props => {
             <Typography variant='body1'>
               Secondly, each move for each team is an auction.
               To play you bid some amount of ETH along with the move you would like to make.
-              The winner of each auction is the user who bid the most ETH.
+              The winner of each auction is the user who bids the most ETH.
               Once the first bid is placed a timer starts on the auction, when it ends the "Oracle" confirms whether the move is a hit or a miss.
               When a user gets outbid their ETH gets returned.
             </Typography>

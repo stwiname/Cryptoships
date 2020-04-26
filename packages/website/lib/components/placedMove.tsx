@@ -51,7 +51,7 @@ const PlacedMove: React.FunctionComponent<Props> = ({
       ? 'Hit!'
       : result === AuctionResult.miss
       ? 'Miss!'
-      : 'Waiting for Oracle to reveal';
+      : 'Waiting for Oracle to reveal result';
 
   const renderPlacedMove = () => <PlacedMoveContent />;
 
