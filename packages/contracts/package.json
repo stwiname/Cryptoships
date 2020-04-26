@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "truffle compile && yarn typechain && tsc",
-    "prepare": "yarn build",
+    "x-prepare": "yarn build",
     "test": "truffle test",
     "typechain": "yarn typechain-truffle && yarn typechain-ethers",
     "typechain-truffle": "typechain --target truffle \"build/**/*.json\"",
@@ -37,7 +37,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^2.4.0",
-    "truffle": "^5.1.0"
+    "@openzeppelin/contracts": "^3.0.0",
+    "truffle": "^5.1.23"
   }
 }

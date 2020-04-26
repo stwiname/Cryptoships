@@ -1,26 +1,22 @@
-pragma solidity ^0.5.5;
+pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import './Auction.sol';
 import './AuctionListener.sol';
-
 import './GameLib.sol';
 
-contract Game is AuctionListener {
+contract Game is AuctionListener, Ownable {
   using Address for address payable;
   using SafeMath for uint256;
   using SafeMath for uint;
   using GameLib for GameLib.Data;
 
+
+  uint256 withdrawDeadline;
+
   GameLib.Data data;
-
-  address payable owner;
-
-  modifier ownerOnly(){
-    require(msg.sender == owner, 'Only the owner can call this');
-    _;
-  }
 
   modifier gameRunning() {
     require(data.result == GameLib.Result.UNSET, 'Cannot call this funciton once the game is over');
@@ -59,18 +55,17 @@ contract Game is AuctionListener {
     data.fieldSize = _fieldSize;
     data.fieldUnits = _fieldUnits;
     data.auctionDuration = _auctionDuration;
-    owner = msg.sender;
 
     data.createAuction(startTeam, now, this);
   }
 
   // Required in order to transfer funds from Auctions
-  function() external payable { }
+  receive() external payable { }
 
   /*****************************
    * AuctionListener methods
    *****************************/
-  function bidPlaced(uint16[2] calldata move, uint amount, address sender, uint256 endTime) external currentAuctions {
+  function bidPlaced(uint16[2] calldata move, uint amount, address sender, uint256 endTime) external override currentAuctions {
     return data.bidPlaced(move, amount, sender, endTime);
   }
 
@@ -78,7 +73,7 @@ contract Game is AuctionListener {
     return data.isMoveInField(move);
   }
 
-  function isValidMove(uint16[2] calldata move) external currentAuctions view returns(bool) {
+  function isValidMove(uint16[2] calldata move) external override currentAuctions view returns(bool) {
     return data.isValidMove(move);
   }
 
@@ -87,21 +82,30 @@ contract Game is AuctionListener {
    *****************************/
 
   // Gets called by the oracle when the first bid is made for an auction
-  function startAuction(GameLib.Team team) public ownerOnly gameRunning returns(Auction) {
+  function startAuction(GameLib.Team team) public onlyOwner gameRunning returns(Auction) {
     return data.startAuction(team, this);
   }
 
-  function confirmMove(GameLib.Team team, bool hit, address auctionAddress) public ownerOnly {
+  function confirmMove(GameLib.Team team, bool hit, address auctionAddress) public onlyOwner {
     return data.confirmMove(team, hit, auctionAddress, this);
   }
 
   // TODO find better way to encode the field data 
-  function finalize(GameLib.Team winner, bytes32 fieldData, bytes32 salt) public ownerOnly gameRunning {
-    return data.finalize(winner, fieldData, salt);
+  function finalize(GameLib.Team winner, bytes32 fieldData, bytes32 salt) public onlyOwner gameRunning {
+    data.finalize(winner, fieldData, salt);
+
+    withdrawDeadline = block.timestamp + 604800; // 7 Days
   }
 
   function withdraw() public {
+    require(block.timestamp < withdrawDeadline, "Withdrawing winnings has now closed");
     return data.withdraw();
+  }
+
+  function withdrawRemainder(address payable dest) public onlyOwner {
+    require(block.timestamp > withdrawDeadline, "Cannot withdraw remainder early");
+
+    dest.sendValue(address(this).balance);
   }
 
   function hasMoveBeenMade(GameLib.Team team, uint16[2] memory move) public view returns (bool) {
@@ -147,5 +151,9 @@ contract Game is AuctionListener {
 
   function getFieldSize() public view returns(uint16) {
     return data.fieldSize;
+  }
+
+  function getWithdrawDeadline() public view returns(uint256) {
+    return withdrawDeadline;
   }
 }

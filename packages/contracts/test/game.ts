@@ -467,6 +467,33 @@ contract('Game', accounts => {
       instance.withdraw({ from: accounts[1] })
         .catch((e: Error) => expect(e).to.not.be.null);
     });
+
+    it('should fail to withdraw after deadline', async() => {
+
+      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+      await playMoveAndCompleteAuction(Team.red, [1, 0], 1); // Winning move
+
+      const result = await instance.finalize(
+        Team.red,
+        '0x' + battleFieldToBuffer(testBattleField).toString('hex'),
+        utils.formatBytes32String('') // Empty bytes 32
+      );
+
+      const deadline = await instance.getWithdrawDeadline();
+
+      // Should fail because deadline not passed
+      await instance.withdrawRemainder(accounts[1], { from: accounts[0] })
+        .catch((e: Error) => expect(e).to.not.be.null);
+
+      // Reach deadline
+      await advanceTimeAndBlock(604800 + 100); // 7 Days + buffer
+
+      await instance.withdraw({ from: accounts[1] })
+        .catch((e: Error) => expect(e).to.not.be.null);
+
+      await instance.withdrawRemainder(accounts[1], { from: accounts[0] });
+    });
   });
 
   // describe('game with oracle', () => {

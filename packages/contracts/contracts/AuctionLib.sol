@@ -1,4 +1,4 @@
-pragma solidity ^0.5.5;
+pragma solidity ^0.6.0;
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import './AuctionListener.sol';
