@@ -55,6 +55,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
         variant='outlined'
         color='primary'
         endIcon={<img src={MetaMask} style={{ height: '25px'}}/>}
+        style={{ whiteSpace: 'nowrap' }}
       >
         Connect to
       </Button>
