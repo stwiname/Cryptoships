@@ -95,6 +95,11 @@ export default createMuiTheme({
         color: `${red} !important`,
         backgroundImage: `linear-gradient(0deg, rgba(255,114,232,1) 0%, rgba(115,0,252,1) 25%, rgba(58,0,126,1) 50%, rgba(254,168,251,1) 51%, rgba(2,117,229,1) 95%, rgba(2,117,229,1) 100%);`
       }
+    },
+    MuiTableCell: {
+      root: {
+        borderBottom: undefined,
+      }
     }
   }
 });

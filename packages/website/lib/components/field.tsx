@@ -139,7 +139,7 @@ const Field: React.FunctionComponent<Props> = props => {
   return (
       <div style={{overflowX: 'auto'}}>
         <Table
-          className={clsx(classes.paper, isRedTeam ? themeClasses.borderAlt : themeClasses.border)}
+          className={classes.paper}
         >
           <TableHead>
             <TableRow>

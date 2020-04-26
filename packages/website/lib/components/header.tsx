@@ -92,7 +92,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
           <Link to='/'>
             <img
               src={Logo}
-              style={{ width: '100%', minHeight: '80px', /*paddingTop: '10px'*/ }}
+              style={{ width: '100%', height: '80px', /*paddingTop: '10px'*/ }}
             />
           </Link>
         </Box>
