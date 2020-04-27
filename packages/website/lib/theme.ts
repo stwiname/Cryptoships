@@ -12,7 +12,7 @@ import { createMuiTheme, makeStyles } from '@material-ui/core/styles';
 
 const lightBlue = '#2DE2E6'; // Blue
 const darkBlue = '#0275E5';
-const darkestBlue= '#261447'; // Background
+const darkestBlue = '#261447'; // Background
 const darkPink = '#FF3864';
 const pink = '#F706CF'; // Pink
 const purple = '#7200FC';

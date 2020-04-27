@@ -39,7 +39,7 @@ const About: React.FunctionComponent<Props> = props => {
       alignItems='center'
       display='flex'
       flexDirection='column'
-      height='100vh'
+      height='100%'
     >
       <Link to='/'>
         <img src={Logo} style={{ height: '200px', width: '100vw', paddingBottom: '50px', paddingTop: '50px' }}/>

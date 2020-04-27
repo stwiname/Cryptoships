@@ -5,14 +5,14 @@ import * as React from 'react';
 import { HashRouter as Router, Link, Route, Switch } from 'react-router-dom';
 import { Web3ReactProvider, useWeb3React } from '@web3-react/core';
 import { providers } from 'ethers';
-import Field from './components/field';
 import connectors from './connectors';
 import Game from './routes/game';
 import Home from './routes/home';
 import About from './routes/about';
 import NotFound from './routes/notFound';
 import theme from './theme';
-import { useConnector } from './hooks'
+import { useConnector } from './hooks';
+import { Footer } from './components';
 
 const connectorKey = '@cryptoships/connectors';
 
@@ -49,6 +49,7 @@ const Providers: React.FunctionComponent<{}> = props => {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <App/>
+        <Footer/>
       </ThemeProvider>
     </Web3ReactProvider>
   );

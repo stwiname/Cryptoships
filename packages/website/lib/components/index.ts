@@ -6,5 +6,6 @@ import FieldItem from './fieldItem';
 import PlaceBid from './placeBid';
 import Header from './header';
 import Loading from './loading';
+import Footer from './footer';
 
-export { Auction, Countdown, Field, FieldItem, PlaceBid, ErrorBoundary, Header, Loading };
+export { Auction, Countdown, Field, FieldItem, PlaceBid, ErrorBoundary, Header, Loading, Footer };
