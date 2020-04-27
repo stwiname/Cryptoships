@@ -158,7 +158,7 @@ function useGame(contractAddress: string) {
         result: hit ? AuctionResult.hit : AuctionResult.miss,
         address: auctionAddress,
       };
-      console.log(`Move confirmed, ${auctionMove}`);
+      console.log(`Move confirmed, ${JSON.stringify(auctionMove)}`);
       setAuctionResults(updateAuctionResults(auctionResults, [auctionMove]));
     },
     game

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
 import { Auction as AuctionInstance } from 'contracts/types/ethers-contracts/Auction';
@@ -24,6 +24,7 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   const [duration, setDuration] = useState<number>(null);
   const [, updateState] = useState(); // Used to force a rerender
   const [pendingBid, setPendingBid] = useState<AuctionMove>(null);
+  const pendingBidRef = useRef<AuctionMove>(null); // Need ref as well because we need immediate state change
   const [result, setResult] = useState<AuctionResult>(AuctionResult.unset);
 
   useEffect(() => {
@@ -129,23 +130,28 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
         // gasLimit: 200000
       });
 
-      // Set bid as pending once tx submitted
-      setPendingBid({
+      const bid = {
         move: [position.x, position.y],
         address: context.account,
         result: AuctionResult.unset
-      });
+      };
+
+      // Set bid as pending once tx submitted
+      setPendingBid(bid);
+      pendingBidRef.current = bid;
 
       tx.wait(1)
         .finally(() => {
           // After 1 block we know the TX has happend and is no longer pending
           // Another move could have been made so we check they are the same position
-          if (pendingBid && movesEqual(pendingBid.move, [position.x, position.y])) {
+          if (movesEqual(pendingBidRef?.current?.move, [position.x, position.y])) {
             setPendingBid(null);
           }
+
         });
     }
     catch(e) {
+      console.log('Failed to place bid', e);
       setPendingBid(null);
     }
 
