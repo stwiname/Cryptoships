@@ -28,7 +28,7 @@ const Home: React.FunctionComponent<Props> = props => {
       flexDirection='column'
       height='100vh'
     >
-      <img src={Logo} style={{ height: '200px', width: '100vw' }}/>
+      <img src={Logo} style={{ height: '200px', width: '100vw', paddingLeft: '20px', paddingRight: '20px' }}/>
       <TextField
         label="Address"
         value={address || ensAddress || ''}

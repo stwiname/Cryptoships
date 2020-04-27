@@ -22,6 +22,9 @@ const Game: React.FunctionComponent<Props> = props => {
   const history = useHistory();
 
   const handleSetTeam = (team: Team) => {
+    if (getTeam() === team) {
+      return;
+    }
     history.push({
       pathname: history.location.pathname,
       search: `?team=${team.toString()}`
