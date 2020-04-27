@@ -8,7 +8,7 @@ import { AuctionResult, FieldStates } from '../contracts';
 import FieldItem from '../components/fieldItem';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-const Logo = require('../../assets/cryptoships_wording_8.svg');
+const Logo = require('../../dist/assets/cryptoships_wording_8.svg');
 
 type Props = {
 

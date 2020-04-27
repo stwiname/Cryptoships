@@ -27,7 +27,7 @@ export default function useConnector() {
       const usedConnector = window.localStorage.getItem(connectorKey);
       switch (usedConnector) {
         case "metamask":
-          activateMetamask();
+          await activateMetamask();
           break;
         default:
           // activateDefault();

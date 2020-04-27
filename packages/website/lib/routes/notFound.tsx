@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { useWeb3React } from '@web3-react/core';
 import connectors from '../connectors';
 import { useThemeStyles } from '../theme';
-const Logo = require('../../assets/cryptoships_wording_8.svg');
+const Logo = require('../../dist/assets/cryptoships_wording_8.svg');
 
 type Props = {
   subTitle?: string;

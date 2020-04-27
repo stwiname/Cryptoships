@@ -11,8 +11,8 @@ import { AuctionResult, FieldStates } from '../contracts';
 import theme from '../theme';
 import { hexToRgb, createRadial } from '../utils';
 import clsx from 'clsx';
-const Flame = require('../../assets/flame_1.svg');
-const Crosshair = require('../../assets/crosshair_6.svg');
+const Flame = require('../../dist/assets/flame_1.svg');
+const Crosshair = require('../../dist/assets/crosshair_6.svg');
 
 const useStyles = makeStyles<Theme>({
   button: {

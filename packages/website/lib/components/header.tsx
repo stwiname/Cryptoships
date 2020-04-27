@@ -8,9 +8,9 @@ import { useWeb3React } from '@web3-react/core';
 import { truncateAddress } from '../utils';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 
-const Logo = require('../../assets/logo_blue.svg');
-const Wording = require('../../assets/cryptoships_wording_8.svg');
-const MetaMask = require('../../assets/metamask.svg');
+const Logo = require('../../dist/assets/logo_blue.svg');
+const Wording = require('../../dist/assets/cryptoships_wording_8.svg');
+const MetaMask = require('../../dist/assets/metamask.svg');
 
 type Props = {
   connectAccount?: () => void;

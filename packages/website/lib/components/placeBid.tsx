@@ -106,6 +106,9 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   };
 
   const connectAccount = () => {
+    if (!(window as any).ethereum) {
+      return window.open('https://metamask.io', '_blank');
+    }
     web3.activate(connectors.MetaMask);
   }
 
