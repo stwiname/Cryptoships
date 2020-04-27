@@ -7,6 +7,7 @@ import { LeadingBid, Team, AuctionResult } from '../contracts';
 import useContract from '../hooks/useContract';
 import GameContainer, { AuctionMove } from './game';
 import { utils, ContractTransaction } from 'ethers';
+import { movesEqual } from '../utils';
 
 function useAuction({ team, address }: { team: Team; address?: string }) {
   const context = useWeb3React();
@@ -138,7 +139,10 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
       tx.wait(1)
         .finally(() => {
           // After 1 block we know the TX has happend and is no longer pending
-          setPendingBid(null);
+          // Another move could have been made so we check they are the same position
+          if (pendingBid && movesEqual(pendingBid.move, [position.x, position.y])) {
+            setPendingBid(null);
+          }
         });
     }
     catch(e) {
