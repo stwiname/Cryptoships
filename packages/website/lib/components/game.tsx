@@ -150,7 +150,7 @@ const Game: React.FunctionComponent<Props> = props => {
   };
 
   const renderLargeScreen = () => {
-    return <Grid container={true} direction="row" spacing={2} justify="center">
+    return <Grid container={true} direction="row" spacing={2} justify="center" style={{ maxWidth: 1400}}>
       {renderTeam(Team.red)}
       {renderTeam(Team.blue)}
     </Grid>;
@@ -162,7 +162,9 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <RedProvider initialState={{ team: Team.red }}>
       <BlueProvider initialState={{ team: Team.blue }}>
-        {largeLayout ? renderLargeScreen() : renderSmallScreen()}
+        <Box display='flex' justifyContent='center' width='100%'>
+          {largeLayout ? renderLargeScreen() : renderSmallScreen()}
+        </Box>
         <PlaceBid
           {...dialogParams}
           auctionContainer={

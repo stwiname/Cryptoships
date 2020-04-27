@@ -26,6 +26,6 @@ export enum GameResult {
 
 export type BattleField<T = boolean> = T[][];
 
-export const MEDIA_QUERY_COND = '(min-width:1200px)';
+export const MEDIA_QUERY_COND = '(min-width:1400px)';
 
 export type FieldStates = AuctionResult | "aiming" | "unplayed";
