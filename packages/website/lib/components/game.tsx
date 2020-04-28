@@ -92,7 +92,7 @@ const Game: React.FunctionComponent<Props> = props => {
 
   const renderTeam = (team: Team, xs=6) => {
     return (
-      <Grid key={team} item={true} xs={xs as any} style={{ maxWidth: 800 }}>
+      <Grid key={team} item={true} xs={xs as any} style={{ maxWidth: 800, width: '100%' }}>
         <Card style={{ marginBottom: 16 }}>
           <CardContent className={clsx(!largeLayout && tabClasses.cardMobile)}>
             <Auction container={AuctionContainers[team]} />
@@ -122,7 +122,7 @@ const Game: React.FunctionComponent<Props> = props => {
   const renderSmallScreen = (): any => {
     const selectedTab = props.team == Team.blue ? 1 : 0;
 
-    return <Box alignItems="center" flexDirection='column' pt={2} style={{ maxWidth: 800}}>
+    return <Box alignItems="center" display='flex' flexDirection='column' pt={2} width='100%' style={{ maxWidth: 700}}>
       <ButtonGroup
         color="primary"
         aria-label="outlined primary button group"

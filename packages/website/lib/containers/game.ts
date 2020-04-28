@@ -172,7 +172,8 @@ function useGame(contractAddress: string) {
           ? setRedAuctionAddress
           : setBlueAuctionAddress;
       console.log(`Auction created ${Team[team]} ${newAuctionAddress}`);
-      setAuctionAddress(newAuctionAddress);
+      // Auction canno't be found sometimes without this timeout
+      setTimeout(() => setAuctionAddress(newAuctionAddress), 200);
     },
     game
   );

@@ -15,6 +15,7 @@ function useWinnings(contractAddress: string) {
   const [winningTeam, setWinningTeam] = useState<Team>(null);
   const [redWinnings, setRedWinnings] = useState<utils.BigNumber>(new utils.BigNumber('0'));
   const [blueWinnings, setBlueWinnings] = useState<utils.BigNumber>(new utils.BigNumber('0'));
+  const [hasWithdrawn, setHasWithdrawn] = useState<boolean>(false);
 
   const getWinnings = () => {
     if (!game) {
@@ -24,6 +25,8 @@ function useWinnings(contractAddress: string) {
     if (!context.account || context.account === '#0') {
       return;
     }
+
+    const hasWithdrawnWinnings = game.functions.hasWithdrawnWinnings as (overrides?: { from?: string; gasLimit?: number}) => Promise<boolean>;
 
     return CancellablePromise.all([
       CancellablePromise.makeCancellable(game.functions.getPotentialWinnings(context.account, Team.red))
@@ -45,6 +48,9 @@ function useWinnings(contractAddress: string) {
           }
         })
         .mapError(logNotCancelledError('Failed to get game result')),
+      CancellablePromise.makeCancellable(hasWithdrawnWinnings({ from: context.account }))
+        .map(setHasWithdrawn)
+        .mapError(logNotCancelledError('Failed to get whether has withdrawn winnings'))
     ]);
   }
 
@@ -60,12 +66,19 @@ function useWinnings(contractAddress: string) {
     game
   );
 
-  const withdrawWinnings = () => {
+  const withdrawWinnings = async () => {
     if (!game) {
       throw new Error('No game found');
     }
 
-    return game.functions.withdraw();
+    const tx = await game.functions.withdraw();
+
+    tx.wait(1)
+      .then(() => {
+        setHasWithdrawn(true);
+      });
+
+    return tx;
   }
 
   return {
@@ -73,6 +86,7 @@ function useWinnings(contractAddress: string) {
     blueWinnings,
     winningTeam,
     withdrawWinnings,
+    hasWithdrawn,
   }
 }
 

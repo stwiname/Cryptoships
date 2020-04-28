@@ -107,10 +107,13 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
             </Typography>
           }
         </Box>
-        <Countdown
-          endTime={auction?.hasEnded() ? null : (auction?.endTime || auction?.startTime)}
-          duration={auction?.endTime ? auction?.duration : auction?.duration/2}
-        />
+        {
+          !gameCompleted &&
+          <Countdown
+            endTime={auction?.hasEnded() ? null : (auction?.endTime || auction?.startTime)}
+            duration={auction?.endTime ? auction?.duration : auction?.duration/2}
+          />
+        }
       </Box>
       <Typography variant='subtitle1' color='secondary' noWrap={true}>
         {getSubtitle()}
