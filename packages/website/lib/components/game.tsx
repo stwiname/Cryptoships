@@ -10,7 +10,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Theme } from '@material-ui/core/styles/createMuiTheme';
 import { Link } from 'react-router-dom';
 import * as React from 'react';
-import { AuctionResult, Team, MEDIA_QUERY_COND, FieldStates } from '../contracts';
+import { AuctionResult, Team, MEDIA_QUERY_COND, FieldStates, GameResult } from '../contracts';
 import { Auction, Field, Loading } from '../components';
 import Winnings from './winnings';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
@@ -64,10 +64,14 @@ const Game: React.FunctionComponent<Props> = props => {
     result: FieldStates,
     address?: string
   ) => {
+
     switch (result) {
       case 'aiming':
         break;
       case 'unplayed':
+        if (game.result !== GameResult.unset) {
+          return;
+        }
         setDialogParams({ team, position: { x, y } });
         break;
       default:
