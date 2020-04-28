@@ -162,10 +162,14 @@ export default class Oracle {
         `Starting auction for other team (${Team[otherTeam]})`,
         await this.instance.estimate.startAuction(otherTeam)
       );
-      await this.instance.functions.startAuction(otherTeam).catch(e => {
+      const tx = await this.instance.functions.startAuction(otherTeam).catch(e => {
         logger.error('Failed to start auction for other team', e);
         throw e;
       });
+
+      logger.info(`[${tx.hash}] Start auction (${Team[otherTeam]}) submitted`);
+
+      this.logTxResult(tx);
     }
 
     this.createPendingConfirmation(
@@ -223,13 +227,15 @@ export default class Oracle {
 
       logger.info('Finalizing game');
 
-      await this.instance.functions.finalize(
+      const tx = await this.instance.functions.finalize(
         team,
         battleFieldToBuffer(this.state.battleFields[team]),
         utils.formatBytes32String('') // TODO get actual salt
       );
 
-      logger.info('Game finalized');
+      logger.info(`[${tx.hash}] Finalize game submitted`);
+
+      this.logTxResult(tx);
 
       // No more moves to confirm, game is over
       return;
@@ -258,16 +264,13 @@ export default class Oracle {
     const tx: ContractTransaction = await this.instance.functions.confirmMove(team, hit, auction.address, { gasLimit: 2000000 })
       .catch(retry);
 
-    logger.info(`Success submitting move ${tx.hash}`);
+    logger.info(`[${tx.hash}] Confirm move tx submitted`);
+
+
+    this.logTxResult(tx);
 
     tx.wait(1)
-      .then(() => {
-        logger.info(`Tx (${tx.hash}) confirmed`);
-      })
-      .catch(e => {
-        logger.warn(`Tx (${tx.hash}) failed `, e);
-        return retry(e);
-      });
+      .catch((e) => retry(e));
 
     return tx;
   }
@@ -297,5 +300,15 @@ export default class Oracle {
 
   private otherTeam(team: Team): Team {
     return Team[team] === Team[Team.red] ? Team.blue : Team.red;
+  }
+
+  private logTxResult(tx: ContractTransaction) {
+    tx.wait(1)
+      .then(() => {
+        logger.info(`[${tx.hash}] confirmed`);
+      })
+      .catch(e => {
+        logger.warn(`[${tx.hash}] failed ${JSON.stringify(e)}`);
+      });
   }
 }
