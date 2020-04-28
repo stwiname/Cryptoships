@@ -35,6 +35,8 @@ export default class State {
     auctionResults.map(result => {
       field[result.move[0]][result.move[1]] = result.result;
     });
+
+    this.movesMade[team] = field;
   }
 
   public setMoveMade(team: Team, x: number, y: number): boolean {

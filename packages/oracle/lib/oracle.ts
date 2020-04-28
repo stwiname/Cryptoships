@@ -4,7 +4,7 @@ import moment from 'moment';
 import { range } from 'ramda';
 import Web3 from 'web3';
 import winston, { format } from 'winston';
-import { AuctionResult, Team } from './contracts';
+import { AuctionResult, Team, GameResult } from './contracts';
 import { battleFieldToBuffer } from './generator';
 import State from './state';
 
@@ -54,6 +54,7 @@ export default class Oracle {
 
   constructor(private instance: Game, private state: State) {
     logger.info(`Running oracle for game at ${instance.address}`);
+
     this.setup()
       .then(() => logger.info('Setup success'))
       .catch(e => logger.error('Setup failed', e));
@@ -75,6 +76,13 @@ export default class Oracle {
   }
 
   private async setup() {
+    const result = await this.instance.functions.getResult();
+
+    if (result !== GameResult.unset) {
+      logger.info('Game already completed');
+      process.exit(0);
+    }
+
     await this.setupForTeam(Team.red);
     await this.setupForTeam(Team.blue);
   }
@@ -118,6 +126,10 @@ export default class Oracle {
     );
 
     this.state.setMovesMade(team, auctionResults);
+
+    if (this.state.checkAllShipsHit(team)) {
+      await this.finalizeGame(team);
+    }
 
     const currentAuction = await this.getCurrentAuctionForTeam(team).catch(
       e => null
@@ -223,22 +235,10 @@ export default class Oracle {
     const hit = this.state.setMoveMade(team, leadingMove[0], leadingMove[1]);
 
     if (this.state.checkAllShipsHit(team)) {
-      // TODO double check all moves
+      await this.finalizeGame(team);
 
-      logger.info('Finalizing game');
-
-      const tx = await this.instance.functions.finalize(
-        team,
-        battleFieldToBuffer(this.state.battleFields[team]),
-        utils.formatBytes32String('') // TODO get actual salt
-      );
-
-      logger.info(`[${tx.hash}] Finalize game submitted`);
-
-      this.logTxResult(tx);
-
-      // No more moves to confirm, game is over
-      return;
+      logger.info(`Game won by ${Team[team]}`);
+      process.exit(0);
     }
 
     const retry = async (e: Error) => {
@@ -296,6 +296,22 @@ export default class Oracle {
       (await auction.functions.hasEnded()) &&
       (await auction.functions.getResult()) === AuctionResult.unset
     );
+  }
+
+  private async finalizeGame(team: Team) {
+    logger.info('Finalizing game');
+
+    const tx = await this.instance.functions.finalize(
+      team,
+      battleFieldToBuffer(this.state.battleFields[team]),
+      utils.formatBytes32String('') // TODO get actual salt
+    );
+
+    logger.info(`[${tx.hash}] Finalize game submitted`);
+
+    this.logTxResult(tx);
+
+    await tx.wait(1);
   }
 
   private otherTeam(team: Team): Team {
