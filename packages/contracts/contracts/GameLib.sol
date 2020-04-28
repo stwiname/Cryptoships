@@ -69,7 +69,6 @@ library GameLib {
 
    // Gets called by the oracle when the first bid is made for an auction
   function startAuction(Data storage data, Team team, AuctionListener listener) public returns(Auction) {
-
     // We might be starting the first auction for the team
     if (data.auctionsCount[uint(team)] > 0) {
       require(
@@ -87,7 +86,6 @@ library GameLib {
 
     return createAuction(data, team, otherAuction.getEndTime() - data.auctionDuration/2, listener);
   }
-
 
   function confirmMove(Data storage data, Team team, bool hit, address auctionAddress, AuctionListener listener) public {
     Auction auction = auctionAddress == address(0)

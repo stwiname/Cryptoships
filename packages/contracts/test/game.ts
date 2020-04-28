@@ -36,6 +36,22 @@ enum Team {
 
 const AUCTION_TIME = 10;
 
+const expectFailingPromise = async (promise: Promise<any>, errorMessage?: string) => {
+  try {
+    await promise;
+  }
+  catch(e) {
+    if (errorMessage) {
+      expect(e.message).to.equal(errorMessage);
+      return;
+    }
+    expect(e).to.not.be.null;
+    return;
+  }
+
+  assert.isOk(false, 'Expected an error');
+}
+
 contract('Game', accounts => {
   const oracleAccount = accounts[0];
   let snapshotId;
@@ -65,9 +81,10 @@ contract('Game', accounts => {
 
   describe('initialisation', () => {
     it('should not be able to create a game with units greater than the field size', async () => {
-      await Game.new(redHash, blueHash, 2, 5, AUCTION_TIME, Team.red, {
+
+      await expectFailingPromise(Game.new(redHash, blueHash, 2, 5, AUCTION_TIME, Team.red, {
         from: accounts[1],
-      }).catch((e: Error) => expect(e).to.not.be.null);
+      }));
     });
   });
 
@@ -122,13 +139,13 @@ contract('Game', accounts => {
 
     it('should not be able to make a move outside the field', async () => {
       const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction
+      await expectFailingPromise(redAuction
         .placeBid([0, 2], { from: accounts[1], value: '1' })
-        .catch((e: Error) => expect(e).not.to.be.null);
+      );
 
-      await redAuction
+      await expectFailingPromise(redAuction
         .placeBid([2, 0], { from: accounts[1], value: '1' })
-        .catch((e: Error) => expect(e).not.to.be.null);
+      );
     });
 
     it('should be able to check that a move has not been made', async () => {
@@ -156,9 +173,10 @@ contract('Game', accounts => {
     });
 
     it('should not be able to start the auction for the 2nd team before 1st team bids', async () => {
-      await instance
+      await expectFailingPromise(instance
         .startAuction(Team.blue, { from: oracleAccount })
-        .catch((e: Error) => expect(e).not.to.be.null);
+      );
+        //.catch((e: Error) => expect(e).not.to.be.null);
     });
 
     // No longer relevant because the blue auction will not exist
@@ -171,9 +189,9 @@ contract('Game', accounts => {
 
       const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
 
-      await blueAuction
+      await expectFailingPromise(blueAuction
         .placeBid([0, 0], { from: accounts[2], value: '1' })
-        .catch((e: Error) => expect(e).not.to.be.null);
+      );
     });
 
     it('should be able to outbid a move', async () => {
@@ -217,9 +235,9 @@ contract('Game', accounts => {
 
       const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
 
-      await blueAuction
+      await expectFailingPromise(blueAuction
         .placeBid([0, 0], { from: accounts[2], value: '1' })
-        .catch((e: Error) => expect(e).not.to.be.null);
+      );
     });
 
     it('should be able to get the end time after a bid has been placed', async () => {
@@ -324,9 +342,9 @@ contract('Game', accounts => {
       await instance.startAuction(Team.red, { from: oracleAccount });
 
       const redAuction2 = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction2
+      await expectFailingPromise(redAuction2
         .placeBid([0, 0], { from: accounts[1], value: '1' })
-        .catch((e: Error) => expect(e).not.to.be.null);
+      );
     });
 
     it('should be able to get the number of auctions and get one of them', async () => {
@@ -394,6 +412,27 @@ contract('Game', accounts => {
         firstAuction, // TODO get first auction address
         { from: oracleAccount }
       );
+    });
+
+    it('should not be able to play a move after game finalized', async() => {
+
+      await playMoveAndCompleteAuction(Team.red, [0, 1], 1);
+      await playMoveAndCompleteAuction(Team.blue, [0, 0], 2);
+      await playMoveAndCompleteAuction(Team.red, [1, 0], 1); // Winning move
+
+      const balanceBefore = await getBalance(1);
+
+      const result = await instance.finalize(
+        Team.red,
+        '0x' + battleFieldToBuffer(testBattleField).toString('hex'),
+        utils.formatBytes32String('') // Empty bytes 32
+      );
+
+      await expectFailingPromise(instance.startAuction(Team.blue));
+      await expectFailingPromise(instance.startAuction(Team.red));
+
+      await expectFailingPromise(playMoveAndCompleteAuction(Team.blue, [1, 0], 2));
+      await expectFailingPromise(playMoveAndCompleteAuction(Team.red, [1, 1], 2));
     });
 
     describe('Potential winnings', () => {
@@ -464,8 +503,8 @@ contract('Game', accounts => {
       );
 
       await instance.withdraw({ from: accounts[1] });
-      instance.withdraw({ from: accounts[1] })
-        .catch((e: Error) => expect(e).to.not.be.null);
+      await expectFailingPromise(instance.withdraw({ from: accounts[1] }))
+        // .catch((e: Error) => expect(e).to.not.be.null);
     });
 
     it('should fail to withdraw after deadline', async() => {
@@ -483,14 +522,14 @@ contract('Game', accounts => {
       const deadline = await instance.getWithdrawDeadline();
 
       // Should fail because deadline not passed
-      await instance.withdrawRemainder(accounts[1], { from: accounts[0] })
-        .catch((e: Error) => expect(e).to.not.be.null);
+      await expectFailingPromise(instance.withdrawRemainder(accounts[1], { from: accounts[0] }));
+        // .catch((e: Error) => expect(e).to.not.be.null);
 
       // Reach deadline
       await advanceTimeAndBlock(604800 + 100); // 7 Days + buffer
 
-      await instance.withdraw({ from: accounts[1] })
-        .catch((e: Error) => expect(e).to.not.be.null);
+      await expectFailingPromise(instance.withdraw({ from: accounts[1] }));
+        // .catch((e: Error) => expect(e).to.not.be.null);
 
       await instance.withdrawRemainder(accounts[1], { from: accounts[0] });
     });
