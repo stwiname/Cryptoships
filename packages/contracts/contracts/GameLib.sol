@@ -1,16 +1,17 @@
 pragma solidity ^0.6.0;
-
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import './Auction.sol';
-import './AuctionListener.sol';
+import './AuctionLib.sol';
 
 library GameLib {
 
   using Address for address payable;
   using SafeMath for uint256;
   using SafeMath for uint;
+  using AuctionLib for AuctionLib.Data;
 
   enum Result {
     UNSET,
@@ -36,30 +37,20 @@ library GameLib {
      * Auctions support a max dimension of 2^16
      * So we need to support at least 2^16 * 2 moves
      */
-    mapping(uint32 => Auction)[2] auctions;
+    mapping(uint32 => AuctionLib.Data)[2] auctions;
     uint32[2] auctionsCount;
   }
 
-  event HighestBidPlaced(Team team, address bidder, uint amount, uint16[2] move, uint256 endTime);
-  event MoveConfirmed(Team team, bool hit, uint16[2] move, address auctionAddress);
-  event AuctionCreated(Team team, address auctionAddress);
+  event HighestBidPlaced(Team team, address bidder, uint amount, uint16[2] move, uint256 endTime, uint32 auctionIndex);
+  event MoveConfirmed(Team team, bool hit, uint16[2] move, uint32 auctionIndex);
+  event AuctionCreated(Team team, uint32 auctionIndex);
   event GameCompleted(Team winningTeam);
-
-  /*****************************
-   * AuctionListener methods
-   *****************************/
-
-  function bidPlaced(Data storage data, uint16[2] calldata move, uint amount, address sender, uint256 endTime) external {
-    Team team = address(getCurrentAuction(data, Team.RED)) == msg.sender ? Team.RED : Team.BLUE;
-    emit HighestBidPlaced(team, sender, amount, move, endTime);
-  }
 
   function isMoveInField(Data storage data, uint16[2] memory move) public view returns(bool) {
     return move[0] < data.fieldSize && move[1] < data.fieldSize;
   }
 
-  function isValidMove(Data storage data, uint16[2] calldata move) external view returns(bool) {
-    Team team = address(getCurrentAuction(data, Team.RED)) == msg.sender ? Team.RED : Team.BLUE;
+  function isValidMove(Data storage data, uint16[2] memory move, Team team) private view returns(bool) {
     return isMoveInField(data, move) && !hasMoveBeenMade(data, team, move);
   }
 
@@ -67,8 +58,37 @@ library GameLib {
    * AuctionListener methods end
    *****************************/
 
+  function placeBid(
+    Data storage data,
+    uint16[2] memory move,
+    Team team,
+    uint32 auctionIndex
+  ) public returns(uint256){
+
+    require(isValidMove(data, move, team), "Move is out of field bounds");
+
+    AuctionLib.Data storage auction = getAuctionByIndex(data, team, auctionIndex);
+
+    uint256 endTime = auction.placeBid(move);
+
+    uint32 otherCount = getAuctionsCount(data, otherTeam(team));
+    if (otherCount == 0) {
+      startAuction(data, otherTeam(team));
+    } else {
+      AuctionLib.Data storage otherAuction = getCurrentAuction(data, otherTeam(team));
+
+      if (otherAuction.hasEnded()) {
+        startAuction(data, otherTeam(team));
+      }
+    }
+
+    emit HighestBidPlaced(team, msg.sender, msg.value, move, endTime, auctionIndex);
+
+    return endTime;
+  }
+
    // Gets called by the oracle when the first bid is made for an auction
-  function startAuction(Data storage data, Team team, AuctionListener listener) public returns(Auction) {
+  function startAuction(Data storage data, Team team) public returns(AuctionLib.Data memory) {
     // We might be starting the first auction for the team
     if (data.auctionsCount[uint(team)] > 0) {
       require(
@@ -77,44 +97,39 @@ library GameLib {
       );
     }
 
-    Auction otherAuction = getCurrentAuction(data, otherTeam(team));
+    AuctionLib.Data memory otherAuction = getCurrentAuction(data, otherTeam(team));
 
     require(
-      otherAuction.getEndTime() > 0,
+      otherAuction.endTime > 0,
       "First bid must be made on other auction first"
     );
 
-    return createAuction(data, team, otherAuction.getEndTime() - data.auctionDuration/2, listener);
+    return createAuction(data, team, otherAuction.endTime - data.auctionDuration/2);
   }
 
-  function confirmMove(Data storage data, Team team, bool hit, address auctionAddress, AuctionListener listener) public {
-    Auction auction = auctionAddress == address(0)
-      ? getCurrentAuction(data, team)
-      : Auction(auctionAddress);
+  function confirmMove(Data storage data, Team team, bool hit, uint32 auctionIndex) public {
+    AuctionLib.Data storage auction = getAuctionByIndex(data, team, auctionIndex);
 
     auction.setResult(hit);
-
-    // Withdraw funds to make it easier when finalising 
-    auction.withdrawFunds();
 
     // This auction has finished but the othe team has none,
     // we can now create it though
     if (data.auctionsCount[uint(otherTeam(team))] <= 0) {
-      startAuction(data, otherTeam(team), listener);
+      startAuction(data, otherTeam(team));
     }
 
-    Auction otherAuction = getCurrentAuction(data, otherTeam(team));
+    AuctionLib.Data storage otherAuction = getCurrentAuction(data, otherTeam(team));
 
     // Auction has ended or has had a bid (has an end time)
-    if ((otherAuction.hasEnded() || otherAuction.getEndTime() > 0)
+    if ((otherAuction.hasEnded() || otherAuction.endTime > 0)
         // Only start auction if we're confirming the currentAuction
-        && address(auction) == address(getCurrentAuction(data, team))
+        && auctionIndex == getAuctionsCount(data, team) - 1
     ) {
       // Start the next auction
-      startAuction(data, team, listener);
+      startAuction(data, team);
     }
 
-    emit MoveConfirmed(team, hit, auction.getLeadingMove(), address(auction));
+    emit MoveConfirmed(team, hit, auction.leadingBid.move, auctionIndex);
   }
 
   function finalize(Data storage data, Team winner, bytes32 fieldData, bytes32 salt) public {
@@ -126,13 +141,13 @@ library GameLib {
     data.result = winner == Team.RED ? Result.RED_WINNER : Result.BLUE_WINNER;
 
     /* Set the current auction as a hit, */
-    Auction currentAuction = getCurrentAuction(data, winner);
-    if (currentAuction.hasEnded() && currentAuction.getResult() == AuctionLib.Result.UNSET)  {
+    AuctionLib.Data storage currentAuction = getCurrentAuction(data, winner);
+    if (currentAuction.hasEnded() && currentAuction.result == AuctionLib.Result.UNSET)  {
       currentAuction.setResult(true);
     }
 
     /* Stop current auction of losing team, return funds to latest bidder */
-    Auction losingAuction = getCurrentAuction(data, otherTeam(winner));
+    AuctionLib.Data storage losingAuction = getCurrentAuction(data, otherTeam(winner));
     losingAuction.cancel();
 
     emit GameCompleted(winner);
@@ -161,30 +176,21 @@ library GameLib {
     uint teamId = uint(team);
 
     for(uint32 i = 0; i < data.auctionsCount[teamId]; i++) {
-      Auction auction = data.auctions[teamId][i];
+      AuctionLib.Data storage auction = getAuctionByIndex(data, team, i);
 
       // Move isnt considered made if the auction has not ended
       if (!auction.hasEnded()) {
         continue;
       }
 
-      (address bidder, , uint16[2] memory leadingMove) = auction.getLeadingBid();
+      AuctionLib.Bid memory bid = auction.leadingBid;
 
-      if (bidder != address(0) && leadingMove[0] == move[0] && leadingMove[1] == move[1]) {
+      if (bid.bidder != address(0) && bid.move[0] == move[0] && bid.move[1] == move[1]) {
         return true;
       }
     }
 
     return false;
-  }
-
-  function getCurrentAuction(Data storage data, Team team) public view returns(Auction) {
-    uint32 count = getAuctionsCount(data, team);
-    require(count > 0, "No auction exists for this team");
-
-    uint teamId = uint(team);
-
-    return data.auctions[teamId][count - 1];
   }
 
   function getAuctionsCount(Data storage data, Team team) public view returns(uint32) {
@@ -193,18 +199,45 @@ library GameLib {
     return data.auctionsCount[teamId];
   }
 
-  function getAuctionByIndex(Data storage data, Team team, uint32 index) public view returns(Auction) {
+  function getCurrentAuctionIndex(Data storage data, Team team) public view returns(uint32) {
+    uint32 count = getAuctionsCount(data, team);
+
+    require(count > 0, "No auctions exist for this team");
+    return count - 1;
+  }
+
+  function getCurrentAuction(Data storage data, Team team) public view returns(AuctionLib.Data storage) {
+    uint32 count = getAuctionsCount(data, team);
+    require(count > 0, "No auction exists for this team");
+
+    return getAuctionByIndex(data, team, count - 1);
+  }
+
+  function getAuctionByIndex(Data storage data, Team team, uint32 index) public view returns(AuctionLib.Data storage) {
     uint teamId = uint(team);
 
     return data.auctions[teamId][index];
   }
 
-  function createAuction(Data storage data, Team team, uint256 startTime, AuctionListener listener) internal returns(Auction) {
+  function createAuction(Data storage data, Team team, uint256 startTime) internal returns(AuctionLib.Data memory) {
     uint teamId = uint(team);
 
+    AuctionLib.Data memory auction = AuctionLib.Data({
+      startTime: startTime,
+      endTime: 0,
+      duration: data.auctionDuration,
+      result: AuctionLib.Result.UNSET,
+      leadingBid: AuctionLib.Bid({
+        bidder: address(0),
+        amount: 0,
+        move: [uint16(0), uint16(0)]
+      })
+    });
+
     data.auctionsCount[teamId] ++;
-    Auction auction = data.auctions[teamId][data.auctionsCount[teamId]-1] = new Auction(startTime, data.auctionDuration, listener);
-    emit AuctionCreated(team, address(auction));
+    uint32 auctionIndex = data.auctionsCount[teamId]-1;
+    data.auctions[teamId][auctionIndex] = auction;
+    emit AuctionCreated(team, auctionIndex);
     return auction;
   }
 
@@ -215,8 +248,7 @@ library GameLib {
   function getRewardPool(Data storage data, Team team) public view returns(uint) {
     uint rewardPool = 0;
     for (uint32 i = 0; i < getAuctionsCount(data, team); i++) {
-      (, uint256 amount, ) = getAuctionByIndex(data, team, i).getLeadingBid();
-      rewardPool += amount;
+      rewardPool += getAuctionByIndex(data, team, i).leadingBid.amount;
     }
 
     return rewardPool;
@@ -234,7 +266,7 @@ library GameLib {
     }
 
     // Exclude current auction if no bids made
-    (, uint256 leadingAmount,) = getCurrentAuction(data, team).getLeadingBid();
+    uint256 leadingAmount = getCurrentAuction(data, team).leadingBid.amount;
     if (leadingAmount <= 0) {
       numAuctions--;
     }
@@ -250,10 +282,10 @@ library GameLib {
     uint reward = 0;
     /* Return move cost + reward to each player on the winning team */
     for (uint32 i = 0; i < numAuctions; i++) {
-      (address payable bidder, uint256 amount,) = getAuctionByIndex(data, team, i).getLeadingBid();
+      AuctionLib.Bid memory bid = getAuctionByIndex(data, team, i).leadingBid;
 
-      if (bidder == player) {
-        reward += rewardPerMove + amount;
+      if (bid.bidder == player) {
+        reward += rewardPerMove + bid.amount;
       }
     }
 
