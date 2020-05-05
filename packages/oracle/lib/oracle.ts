@@ -75,7 +75,7 @@ export default class Oracle {
         amount: utils.BigNumber,
         move: [number, number],
         endTime: utils.BigNumber,
-        auctionIndex: utils.BigNumber,
+        auctionIndex: number,
       ) => {
         logger.info('HigestBidPlaced');
 
@@ -123,34 +123,33 @@ export default class Oracle {
       await this.finalizeGame(team);
     }
 
-    const currentAuction = await this.getCurrentAuctionForTeam(team).catch(
-      e => null
-    ); // Swallow error, auction wont exist yet
+    const index = await this.instance.getCurrentAuctionIndex(team)
+      .catch(e => null);  // Swallow error, auction wont exist yet
 
-    if (!currentAuction) {
+    if (index == null) {
       return;
     }
+    const currentAuction: AuctionExt = await this.getAuctionByIndex(team, index);
 
-    if (!(await currentAuction.functions.hasEnded())) {
-      const endTime = await currentAuction.functions.getEndTime();
-      logger.debug('END TIME', endTime.toString(), endTime.toNumber());
-      if (endTime.isZero()) {
+    if (!(await this.instance.hasAuctionEnded(team, index))) {
+      logger.debug('END TIME', currentAuction.endTime.toString(), currentAuction.endTime.toNumber());
+      if (currentAuction.endTime.isZero()) {
         // Auction not yet started
         logger.info(
-          `Running auction (${currentAuction.address})for team ${Team[team]} has not yet got an end time`,
-          await currentAuction.functions.hasEnded()
+          `Running auction (${index}) for team ${Team[team]} has not yet got an end time`,
+          await this.instance.hasAuctionEnded(team, index)
         );
         return;
       }
       await this.createPendingConfirmation(
         team,
         currentAuction,
-        endTime.toNumber() * 1000
+        currentAuction.endTime.toNumber() * 1000
       );
     }
   }
 
-  private async handleBidPlaced(team: Team, auctionIndex: utils.BigNumber, endTime: number) {
+  private async handleBidPlaced(team: Team, auctionIndex: number, endTime: number) {
     this.createPendingConfirmation(
       team,
       await this.getAuctionByIndex(team, auctionIndex),
@@ -241,8 +240,8 @@ export default class Oracle {
     return tx;
   }
 
-  private async getAuctionByIndex(team: Team, index: utils.BigNumberish): Promise<AuctionExt> {
-    return { ...await this.instance.getAuctionAtIndex(team, index), index };
+  private async getAuctionByIndex(team: Team, index: number): Promise<AuctionExt> {
+    return { ...await this.instance.getAuctionByIndex(team, index), index };
   }
 
   private async getCurrentAuctionForTeam(team: Team): Promise<Auction> {
