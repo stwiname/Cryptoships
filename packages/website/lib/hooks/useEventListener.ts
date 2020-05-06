@@ -1,10 +1,11 @@
 import { Contract } from 'ethers';
 import { useEffect, useRef } from 'react';
 
-const useEventListener = (
-  eventName: string,
+// TODO support cancellation of handler
+const useEventListener = <C extends Contract>(
+  element: C,
+  eventName: Extract<keyof C['interface']['events'], string>,
   handler: (...args: any[]) => void,
-  element: Contract
 ) => {
   const savedHandler = useRef<typeof handler>();
 

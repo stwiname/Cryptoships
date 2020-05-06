@@ -5,7 +5,7 @@ import { utils } from 'ethers';
 import equals from 'ramda/src/equals';
 import * as React from 'react';
 import { useWeb3React } from '@web3-react/core';
-import { AuctionResult, MEDIA_QUERY_COND } from '../contracts';
+import { AuctionResult, MEDIA_QUERY_COND, Team } from '../contracts';
 import { createAuctionContainer } from '../containers';
 import { truncateAddress } from '../utils';
 import Dialog from './dialog';
@@ -14,37 +14,38 @@ const AuctionContainer = createAuctionContainer();
 
 export type Props = {
   result?: AuctionResult;
-  address?: string;
+  team?: Team;
+  index?: number;
   onClose: () => void;
 };
 
 const PlacedMoveContent: React.FunctionComponent<{}> = () => {
-  const auction = AuctionContainer.useContainer();
+  const { auction } = AuctionContainer.useContainer();
   const web3 = useWeb3React();
   const largeLayout = useMediaQuery(MEDIA_QUERY_COND);
 
   // Render nothing if the leadingBid is not loaded, easiest to check the move
-  const amount = new utils.BigNumber(auction.leadingBid.amount);
-  if (amount.isZero()) {
+  if (auction?.leadingBid.amount.isZero()) {
     return null;
   }
 
   const bidder =
-    auction.leadingBid.bidder === web3.account
+    auction?.leadingBid.bidder === web3.account
       ? 'You'
       : largeLayout
-        ? auction.leadingBid.bidder
+        ? auction?.leadingBid.bidder
         : truncateAddress(auction.leadingBid.bidder);
 
   return (
-    <Typography>{`Move was made by ${bidder}\n for ${utils.formatEther(amount)} ETH`}</Typography>
+    <Typography>{`Move was made by ${bidder}\n for ${utils.formatEther(auction?.leadingBid.amount ?? new utils.BigNumber(0))} ETH`}</Typography>
   );
 };
 
 const PlacedMove: React.FunctionComponent<Props> = ({
   onClose,
   result,
-  address,
+  index,
+  team,
 }) => {
   const title =
     result === AuctionResult.hit
@@ -56,7 +57,7 @@ const PlacedMove: React.FunctionComponent<Props> = ({
   const renderPlacedMove = () => <PlacedMoveContent />;
 
   return (
-    <AuctionContainer.Provider initialState={{ team: null, address }}>
+    <AuctionContainer.Provider initialState={{ team, index }}>
       <Dialog
         title={title}
         onClose={onClose}

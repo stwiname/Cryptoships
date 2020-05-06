@@ -1,123 +1,108 @@
 import { useEffect, useState, useRef } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
-import { Auction as AuctionInstance } from 'contracts/types/ethers-contracts/Auction';
-import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
-import { LeadingBid, Team, AuctionResult } from '../contracts';
+import { LeadingBid, Team, AuctionResult, Auction } from '../contracts';
+import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import useContract from '../hooks/useContract';
 import GameContainer, { AuctionMove } from './game';
 import { utils, ContractTransaction } from 'ethers';
-import { movesEqual } from '../utils';
+import CancellablePromise, { PromiseCancelledError, logNotCancelledError } from '../cancellablePromise';
+import { movesEqual, bnToDate, isBnDateAfterNow } from '../utils';
+import { useEventListener } from '../hooks';
 
-function useAuction({ team, address }: { team: Team; address?: string }) {
+function useAuction({ team, index: auctionIndex }: { team: Team; index?: number }) {
   const context = useWeb3React();
-  const game = GameContainer.useContainer();
+  const { contractAddress: gameAddress, getCurrentAuctionIndex } = GameContainer.useContainer();
+  const game = useContract(gameAddress, GameFactory.connect);
 
-  const auctionAddress = address || game.getTeamAuctionAddress(team);
-  const gameLeadingBid = game.getTeamLeadingBid(team);
+  const getIndex = () => auctionIndex ?? getCurrentAuctionIndex(team);
+  const fetchTask = useRef<CancellablePromise<void>>(null);
 
-  const auction = useContract(auctionAddress, AuctionFactory.connect);
+  const [auction, setAuction] = useState<Auction>(null);
 
-  const [leadingBid, setLeadingBid] = useState<LeadingBid>(null);
-  const [startTime, setStartTime] = useState<Date>(null);
-  const [endTime, setEndTime] = useState<Date>(null);
-  const [duration, setDuration] = useState<number>(null);
-  const [, updateState] = useState(); // Used to force a rerender
+  useEffect(() => {
+    const index = getIndex();
+    if (index === null || index === undefined) {
+      return;
+    }
+    fetchTask.current = fetchAuction();
+
+    return fetchTask.current?.cancel;
+
+  }, [team, getIndex(), game]);
+
+  useEventListener(
+    game,
+    'HighestBidPlaced',
+    (
+      t: Team,
+      bidder: string,
+      amount: utils.BigNumber,
+      move: [number, number],
+      endTime: utils.BigNumber,
+      auctionIndex: number,
+    ) => {
+
+      if (team === t && auctionIndex === getIndex()) {
+        fetchTask.current = fetchAuction();
+      }
+    },
+  );
+
+  useEventListener(
+    game,
+    'MoveConfirmed',
+    (
+      t: Team,
+      hit: boolean,
+      move: [number, number],
+      auctionIndex: number,
+    ) => {
+      if (team === t && auctionIndex === getIndex()) {
+        fetchTask.current = fetchAuction();
+      }
+    }
+  );
+
+  const fetchAuction = () => {
+    const index = getIndex();
+    if (team === undefined || team === null ||
+        index === undefined || index === null
+    ) {
+      return null;;
+    }
+    return CancellablePromise.makeCancellable(game?.getAuctionByIndex(team, index))
+      .map((a) => {
+        console.log('Fetch auction', a);
+        return a;
+      })
+      .map(setAuction)
+      .mapError(logNotCancelledError(`Failed to get auction by index`));
+  }
+
   const [pendingBid, setPendingBid] = useState<AuctionMove>(null);
   const pendingBidRef = useRef<AuctionMove>(null); // Need ref as well because we need immediate state change
-  const [result, setResult] = useState<AuctionResult>(AuctionResult.unset);
 
-  useEffect(() => {
-    if (auction) {
-
-      auction.functions
-        .getLeadingBid()
-        .then(b => {
-          console.log('leading bid', b);
-          return { bidder: b.bidder, amount: b.amount, move: b.move };
-        })
-        .then(setLeadingBid);
-
-      getStartTime(auction);
-      getEndTime(auction);
-
-      auction.functions.getDuration()
-        .then(duration => {
-          setDuration(duration.toNumber() * 1000);
-        });
+  const hasStarted = () => {
+    if (auction?.startTime.isZero()) {
+      return false;
     }
-  }, [auction]);
+    return !isBnDateAfterNow(auction?.startTime);
+  }
 
-  useEffect(() => {
-    let timer: number = null;
-    if (startTime) {
-      timer = window.setTimeout(
-        () => updateState({}),
-        startTime.getTime() - Date.now()
-      );
+  const hasEnded = () => {
+    if (auction?.endTime.isZero()) {
+      return false;
     }
-    return () => clearTimeout(timer);
-  }, [startTime]);
-
-  useEffect(() => {
-    let timer: number = null;
-    if (endTime) {
-      timer = window.setTimeout(() => updateState({}), endTime.getTime() - Date.now());
-    }
-    return () => clearTimeout(timer);
-  }, [endTime]);
-
-  const getStartTime = (auction: AuctionInstance) => {
-    auction?.functions.getStartTime()
-      .then(startBN => {
-        console.log('AUCTION start BN', startBN.toString())
-        setStartTime(new Date(startBN.toNumber() * 1000))
-      })
-      .catch(e => {
-        console.log('Failed to get auction start time', e);
-      });
-  };
-
-  const getEndTime = (auction: AuctionInstance) => {
-    auction?.functions.getEndTime()
-      .then(endBN => {
-        setEndTime(endBN.isZero() ? null : new Date(endBN.toNumber() * 1000));
-      })
-      .catch(e => {
-        console.log('Failed to get auction end time', e);
-      });
-  };
-
-  const hasStarted = () => startTime && Date.now() > startTime.getTime();
-  const hasEnded = () => endTime && Date.now() > endTime.getTime();
-
-  useEffect(() => {
-    console.log('useAuction, leading bid', gameLeadingBid);
-    setLeadingBid(gameLeadingBid);
-
-    if (!startTime) {
-      getStartTime(auction);
-    }
-
-    if (!endTime) {
-      getEndTime(auction);
-    }
-  }, [gameLeadingBid]);
-
-  useEffect(() => {
-
-    auction?.getResult()
-      .then(res => {
-        setResult(res);
-      });
-
-  }, [game.getTeamAuctionResults(team)]);
+    return !isBnDateAfterNow(auction?.endTime);
+  }
 
   const placeBid = async (
     position: { x: number; y: number },
     value: utils.BigNumber
   ) => {
-    if (!auction) {
+    const index = getIndex();
+    if (index === undefined || index === null) {
       throw new Error('No game found');
     }
 
@@ -125,14 +110,14 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
 
     try {
       console.log('Place bid', position, value.toString());
-      tx = await auction.functions.placeBid([position.x, position.y], {
-        value: value,
+      tx = await game.placeBid([position.x, position.y], team, index, {
+        value,
         // gasLimit: 200000
       });
 
       const bid = {
         move: [position.x, position.y],
-        address: context.account,
+        index,
         result: AuctionResult.unset
       };
 
@@ -147,7 +132,6 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
           if (movesEqual(pendingBidRef?.current?.move, [position.x, position.y])) {
             setPendingBid(null);
           }
-
         });
     }
     catch(e) {
@@ -159,17 +143,14 @@ function useAuction({ team, address }: { team: Team; address?: string }) {
   };
 
   return {
-    auctionAddress,
+    index: getIndex(),
     team,
-    leadingBid,
-    startTime,
-    duration,
-    endTime,
+    auction,
     hasStarted,
     hasEnded,
     placeBid,
     pendingBid,
-    result,
+    // result,
   };
 }
 

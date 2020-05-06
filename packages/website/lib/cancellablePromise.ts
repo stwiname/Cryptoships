@@ -49,6 +49,10 @@ export default class CancellablePromise<T> implements Promise<T> {
   public static makeCancellable = <V>(pendingValue: Promise<V>): CancellablePromise<V> => {
     let isCancelled = false;
 
+    if (!pendingValue) {
+      return CancellablePromise.resolve<V>(pendingValue as any);
+    }
+
     return new CancellablePromise<V>(pendingValue, () => isCancelled = true)
       .map(val => {
         if (isCancelled) {

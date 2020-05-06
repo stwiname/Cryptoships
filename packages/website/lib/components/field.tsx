@@ -10,7 +10,7 @@ import find from 'ramda/src/find';
 import range from 'ramda/src/range';
 import * as React from 'react';
 import { AuctionResult, FieldStates, Team } from '../contracts';
-import { Game } from '../containers';
+import { Game, Auction as AuctionContainer } from '../containers';
 import theme, { useThemeStyles } from '../theme';
 import { movesEqual, numToBase64 } from '../utils';
 import FieldItem from './fieldItem';
@@ -18,13 +18,13 @@ import clsx from 'clsx';
 
 type Props = {
   team: Team;
-  container: any;
+  container: ReturnType<typeof AuctionContainer>;
   trailingVHeader?: boolean;
   onItemPress?: (
     x: number,
     y: number,
     result?: FieldStates,
-    address?: string
+    index?: number,
   ) => void;
 };
 
@@ -82,24 +82,24 @@ const Field: React.FunctionComponent<Props> = props => {
 
     const {
       result,
-      address,
-    }: { result: FieldStates; address?: string } =
+      index,
+    }: { result: FieldStates; index?: number } =
       find(m => movesEqual(m.move, [x, y]), auctionResults) ||
       (
         auction.pendingBid &&
         movesEqual(auction.pendingBid.move, [x, y])
-      ) && { result: 'aiming', address: null } ||
+      ) && { result: 'aiming', index: auction.index } ||
       (
-        auction.leadingBid &&
-        movesEqual(auction.leadingBid.move, [x, y]) &&
-        !auction.leadingBid.amount.isZero()
+        auction?.auction?.leadingBid &&
+        movesEqual(auction.auction.leadingBid.move, [x, y]) &&
+        !auction.auction.leadingBid.amount.isZero()
       ) &&
-      { result: null, address: auction.leadingBid.bidder } ||
+      { result: null, index: auction.index } ||
       { result: 'unplayed', }
 
     const handlePress = () => {
       if (props.onItemPress) {
-        props.onItemPress(x, y, result, address);
+        props.onItemPress(x, y, result, index);
       }
     };
 

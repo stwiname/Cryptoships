@@ -61,9 +61,9 @@ function useWinnings(contractAddress: string) {
   }, [game, context.account]);
 
   useEventListener(
+    game,
     'HighestBidPlaced',
     () => getWinnings(),
-    game
   );
 
   const withdrawWinnings = async () => {

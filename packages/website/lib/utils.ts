@@ -1,3 +1,5 @@
+import { utils } from 'ethers';
+
 export const numToBase64 = (num: number): string => {
   let s = '';
   let t;
@@ -59,4 +61,14 @@ export const createRadial = (
   catch(e) {
     return color;
   }
+}
+
+export const bnToDate = (num: utils.BigNumber) =>
+  !!num && new Date(num.toNumber() * 1000);
+
+export const isBnDateAfterNow = (num: utils.BigNumber) => {
+  if (!num) {
+    return null;
+  }
+  return Date.now() < bnToDate(num).getTime();
 }

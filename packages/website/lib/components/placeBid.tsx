@@ -8,7 +8,7 @@ import { utils } from 'ethers';
 import path from 'ramda/src/path';
 import * as React from 'react';
 import { Team } from '../contracts';
-import { Game as Container } from '../containers';
+import { Game as Container, Auction as AuctionContainer } from '../containers';
 import { moveToString } from '../utils';
 import Dialog from './dialog';
 import connectors from '../connectors';
@@ -21,7 +21,7 @@ type Position = {
 export type Props = {
   team?: Team;
   position?: Position;
-  auctionContainer?: any;
+  auctionContainer?: ReturnType<typeof AuctionContainer>;
   onClose: () => void;
 };
 
@@ -37,7 +37,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   const web3 = useWeb3React();
   const auction = auctionContainer.useContainer();
 
-  const getAuctionAmount = () => utils.formatEther((path(['leadingBid', 'amount'], auction) || '0'))
+  const getAuctionAmount = () => utils.formatEther((path(['auction', 'leadingBid', 'amount'], auction) || '0'))
 
   const [amount, setAmount] = React.useState<string>(getAuctionAmount());
   const [loading, setLoading] = React.useState(false);
@@ -47,7 +47,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     setAmount(getAuctionAmount());
 
     if (team !== undefined) {
-      console.log('Auction', auction.auctionAddress, auction.hasStarted(), auction.hasEnded())
+      console.log('Auction', auction?.auction?.endTime.toString(), auction.hasStarted(), auction.hasEnded())
       setAuctionRunning(auction.hasStarted() && !auction.hasEnded());
     }
   }, [team]);

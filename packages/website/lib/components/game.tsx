@@ -62,7 +62,7 @@ const Game: React.FunctionComponent<Props> = props => {
     x: number,
     y: number,
     result: FieldStates,
-    address?: string
+    index?: number,
   ) => {
 
     switch (result) {
@@ -75,7 +75,7 @@ const Game: React.FunctionComponent<Props> = props => {
         setDialogParams({ team, position: { x, y } });
         break;
       default:
-        setDialogParamsPlaced({ result, address });
+        setDialogParamsPlaced({ team, result, index });
         break;
     }
   };
@@ -164,8 +164,12 @@ const Game: React.FunctionComponent<Props> = props => {
   const BlueProvider = AuctionContainers[Team.blue].Provider;
 
   return (
-    <RedProvider initialState={{ team: Team.red }}>
-      <BlueProvider initialState={{ team: Team.blue }}>
+    <RedProvider
+      initialState={{ team: Team.red, }}
+    >
+      <BlueProvider
+        initialState={{ team: Team.blue }}
+      >
         <Box display='flex' justifyContent='center' width='100%'>
           {largeLayout ? renderLargeScreen() : renderSmallScreen()}
         </Box>
@@ -176,7 +180,7 @@ const Game: React.FunctionComponent<Props> = props => {
           }
           onClose={closeDialog}
         />
-        <PlacedMove {...dialogParamsPlaced} onClose={closeDialogPlaced} />
+        <PlacedMove {...dialogParamsPlaced} onClose={closeDialogPlaced}/>
       </BlueProvider>
     </RedProvider>
   );

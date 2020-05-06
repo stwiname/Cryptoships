@@ -1,23 +1,20 @@
 import { utils } from 'ethers';
-import append from 'ramda/src/append';
-import range from 'ramda/src/range';
-import uniqBy from 'ramda/src/uniqBy';
-import concat from 'ramda/src/concat';
+import { append, range, uniqBy, concat } from 'ramda';
 import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
-import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
+// import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
 import { LeadingBid, AuctionResult, Team, GameResult } from '../contracts';
-import useEventListener from '../hooks/useEventListener';
-import useContract from '../hooks/useContract';
+import { useContract, useEventListener } from '../hooks';
 import CancellablePromise, { PromiseCancelledError, logNotCancelledError } from '../cancellablePromise';
+import { AuctionExt } from '../contracts';
 
 export type AuctionMove = {
   move: number[];
   result: AuctionResult;
-  address: string; // Auction address
+  index: number;
 };
 
 function useGame(contractAddress: string) {
@@ -36,8 +33,8 @@ function useGame(contractAddress: string) {
   const [loading, setLoading] = useState<boolean>(false);
   const [fieldSize, setFieldSize] = useState<number>(0);
   const [result, setResult] = useState<GameResult>(GameResult.unset);
-  const [redAuctionAddress, setRedAuctionAddress] = useState<string>(null);
-  const [blueAuctionAddress, setBlueAuctionAddress] = useState<string>(null);
+  const [redAuctionIndex, setRedAuctionIndex] = useState<number>(null);
+  const [blueAuctionIndex, setBlueAuctionIndex] = useState<number>(null);
   const [redAuctionResults, setRedAuctionResults] = useState<AuctionMove[]>([]);
   const [blueAuctionResults, setBlueAuctionResults] = useState<AuctionMove[]>(
     []
@@ -57,8 +54,8 @@ function useGame(contractAddress: string) {
     setLoading(false);
     setFieldSize(0);
     setResult(GameResult.unset);
-    setRedAuctionAddress(null);
-    setBlueAuctionAddress(null);
+    setRedAuctionIndex(null);
+    setBlueAuctionIndex(null);
     setRedAuctionResults([]);
     setBlueAuctionResults([]);
     setRedLeadingBid(null);
@@ -93,11 +90,11 @@ function useGame(contractAddress: string) {
         .map(setResult)
         .mapError(logNotCancelledError(`Failed to get game result`)),
       // Get current auctions
-      CancellablePromise.makeCancellable(game.functions.getCurrentAuction(Team.red))
-        .map(setRedAuctionAddress)
+      CancellablePromise.makeCancellable(game.functions.getCurrentAuctionIndex(Team.red))
+        .map(setRedAuctionIndex)
         .mapError(logNotCancelledError(`Failed to get auction for red team`)),
-      CancellablePromise.makeCancellable(game.functions.getCurrentAuction(Team.blue))
-        .map(setBlueAuctionAddress)
+      CancellablePromise.makeCancellable(game.functions.getCurrentAuctionIndex(Team.blue))
+        .map(setBlueAuctionIndex)
         .mapError(logNotCancelledError(`Failed to get auction for blue team`)),
       // Get results
       CancellablePromise.makeCancellable(getAllResultsForTeam(game, Team.red))
@@ -123,6 +120,7 @@ function useGame(contractAddress: string) {
   }, [error, loading, fieldSize]);
 
   useEventListener(
+    game,
     'HighestBidPlaced',
     (
       team: Team,
@@ -137,16 +135,16 @@ function useGame(contractAddress: string) {
 
       setLeadingBid({ bidder, amount, move });
     },
-    game
   );
 
   useEventListener(
+    game,
     'MoveConfirmed',
     (
       team: Team,
       hit: boolean,
       move: [number, number],
-      auctionAddress: string
+      auctionIndex: number,
     ) => {
       const setAuctionResults =
         Team[team] === Team[Team.red]
@@ -156,29 +154,29 @@ function useGame(contractAddress: string) {
       const auctionMove: AuctionMove = {
         move,
         result: hit ? AuctionResult.hit : AuctionResult.miss,
-        address: auctionAddress,
+        index: auctionIndex,
       };
       console.log(`Move confirmed, ${JSON.stringify(auctionMove)}`);
       setAuctionResults(updateAuctionResults(auctionResults, [auctionMove]));
     },
-    game
   );
 
   useEventListener(
+    game,
     'AuctionCreated',
-    (team: Team, newAuctionAddress: string) => {
-      const setAuctionAddress =
+    (team: Team, auctionIndex: number) => {
+      const setAuctionIndex =
         Team[team] === Team[Team.red]
-          ? setRedAuctionAddress
-          : setBlueAuctionAddress;
-      console.log(`Auction created ${Team[team]} ${newAuctionAddress}`);
+          ? setRedAuctionIndex
+          : setBlueAuctionIndex;
+      console.log(`Auction created ${Team[team]} ${auctionIndex}`);
       // Auction canno't be found sometimes without this timeout
-      setTimeout(() => setAuctionAddress(newAuctionAddress), 200);
+      setTimeout(() => setAuctionIndex(auctionIndex), 200);
     },
-    game
   );
 
   useEventListener(
+    game,
     'GameCompleted',
     (winningTeam: Team) => {
       console.log(`Game won by ${Team[winningTeam]}`);
@@ -190,7 +188,6 @@ function useGame(contractAddress: string) {
           : GameResult.blueWinner
       );
     },
-    game
   );
 
   const getAllResultsForTeam = async (
@@ -205,33 +202,22 @@ function useGame(contractAddress: string) {
       )
     );
 
-    const results = await Promise.all(
-      auctionAddresses.map(async address => {
-        const auction = AuctionFactory.connect(
-          address,
-          context.library
-        );
+    const auctions = await Promise.all<AuctionExt>(range(0, auctionsCount).map(async idx => {
+      return {
+        ...await game.getAuctionByIndex(team, idx),
+        hasEnded: await game.hasAuctionEnded(team, idx),
+        index: idx
+      };
+    }));
 
-        const [move, result, ended] = await Promise.all([
-          auction.functions.getLeadingMove(),
-          auction.functions.getResult(),
-          auction.functions.hasEnded(),
-        ]);
+    return auctions
+      .filter(a => a.hasEnded)
+      .map(a => ({ move: a.leadingBid.move, result: a.result, index: a.index }));
 
-        // Allows excluding unfinished auctions
-        if (!ended) {
-          return null;
-        }
-
-        return { move, result: result as AuctionResult, address };
-      })
-    );
-
-    return results.filter(Boolean);
   };
 
-  const getTeamAuctionAddress = (team: Team) =>
-    Team[team] === Team[Team.red] ? redAuctionAddress : blueAuctionAddress;
+  const getCurrentAuctionIndex = (team: Team) =>
+    Team[team] === Team[Team.red] ? redAuctionIndex : blueAuctionIndex;
 
   const getTeamAuctionResults = (team: Team) =>
     Team[team] === Team[Team.red] ? redAuctionResults : blueAuctionResults;
@@ -240,10 +226,11 @@ function useGame(contractAddress: string) {
     Team[team] === Team[Team.red] ? redLeadingBid : blueLeadingBid;
 
   return {
+    contractAddress,
     error,
     loading,
     fieldSize,
-    getTeamAuctionAddress,
+    getCurrentAuctionIndex,
     getTeamAuctionResults,
     getTeamLeadingBid,
     result
