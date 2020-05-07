@@ -148,10 +148,10 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
       }
     }
 
-    const displayAmount = auctionState !== AuctionState.Completed && auctionState !== AuctionState.Confirming;
+    const displayTimer = auctionState !== AuctionState.Completed && auctionState !== AuctionState.Confirming;
     const countdownTime = hasEnded()
-      ? null :
-      auction?.endTime.isZero()
+      ? null
+      : auction?.endTime.isZero()
         ? bnToDate(auction?.startTime)
         : bnToDate(auction?.endTime)
 
@@ -161,21 +161,21 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           <Typography
             variant='h2'
             color='primary'
-            style={{ fontSize: !largeLayout && '7vw', color: '#0275E5'}}
+            style={{ fontSize: !largeLayout && '7vw', color: '#0275E5', lineHeight: 1.2 }}
+            noWrap={true}
           >
             <Box fontWeight={400}>
               {getTitle()}
             </Box>
           </Typography>
           {
-            displayAmount &&
             <Typography variant='h5'>
               {`${utils.formatEther(auction?.leadingBid.amount ?? new utils.BigNumber(0))} ETH`}
             </Typography>
           }
         </Box>
         {
-          displayAmount &&
+          displayTimer &&
           <Countdown
             endTime={countdownTime}
             duration={auction?.duration.toNumber() / (!auction?.endTime.isZero() ? 1 : 2) * 1000}

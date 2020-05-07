@@ -1,4 +1,4 @@
-import Box from '@material-ui/core/Box';
+import Box, { BoxProps } from '@material-ui/core/Box';
 import Paper from '@material-ui/core/Paper';
 import { makeStyles, Theme } from '@material-ui/core/styles';
 import Table from '@material-ui/core/Table';
@@ -30,40 +30,76 @@ type Props = {
 
 const HEADER_HEIGHT = 2;
 const HEADER_WIDTH = 5;
+const MIN_WIDTH = 50;
+const HEADER_MIN_WIDTH = 30;
 
-const useStyles = makeStyles<Theme, { dimension: number }, 'paper' | 'cell' | 'header'>({
+const useStyles = makeStyles<Theme, { dimension: number }, 'paper' | 'cell' | 'header' | 'corner' | 'row' | 'headerHoriz' |'headerTitle'>({
   paper: {
-    overflow: 'hidden',
+    overflow: 'auto',
     marginTop: theme.spacing(2),
-    borderRadius: '2px'
+    borderRadius: '2px',
   },
   cell: {
-    minWidth: 50,
-    minHeight: 50,
+    minWidth: MIN_WIDTH,
+    minHeight: MIN_WIDTH,
     position: 'relative',
-    paddingTop: ({ dimension }) => `${(100-HEADER_WIDTH)/dimension}%`,
-    width: ({ dimension }) => `${(100-HEADER_WIDTH)/dimension}%`,
+    boxSizing: 'border-box',
+    paddingTop: ({ dimension }) => `${(100-HEADER_HEIGHT)/dimension}%`,
+    // '&:after': {
+    //   content: "",
+    //   display: 'block',
+    //   paddingTop: '100%',
+    // },
+    // '&:before': {
+    //   content: "",
+    //   display: 'table',
+    //   paddingTop: '100%',
+    // },
+  },
+  row: {
+    "&:hover": {
+      backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    },
+    '&>:first-child': {
+      borderLeftWidth: `2px`,
+      borderLeftStyle: 'solid',
+    }
+    // "&>:nth-child(2)": {
+    //   backgroundColor: 'rgba(255, 255, 255, 0.14)',
+    // }
+  },
+  headerTitle: {
+    minWidth: HEADER_MIN_WIDTH,
+    color: theme.palette.tertiary.main,
   },
   header: {
-    color: theme.palette.tertiary.main,
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingTop: () => `${HEADER_HEIGHT}%`, // Keep these as a function, hack to fix css ordering
-    width: () => `${HEADER_WIDTH}%`, // Keep these as a function, hack to fix css ordering
-  }
+    minWidth: HEADER_MIN_WIDTH,
+    minHeight: HEADER_MIN_WIDTH,
+  },
+  headerHoriz: {
+    borderTopWidth: `2px`,
+    borderTopStyle: 'solid',
+    minWidth: MIN_WIDTH,
+  },
+  corner: {
+    '&>:first-child': {
+      borderTopWidth: `2px`,
+      borderTopStyle: 'solid',
+    }
+  },
 });
 
-const Cell: React.FunctionComponent<TableCellProps & { className?: any }> = props => {
-  return (
-    <TableCell
-      align="center"
-      padding="none"
-      {...props}
-      className={props.className}
-    >
-      {props.children}
-    </TableCell>
-  );
-};
+const Header: React.FunctionComponent<BoxProps> = (props) => {
+  return <Box
+    display='flex'
+    justifyContent='center'
+    alignItems='center'
+    {...props}
+  >
+    {props.children}
+  </Box>
+}
 
 const Field: React.FunctionComponent<Props> = props => {
   const game = Game.useContainer();
@@ -74,9 +110,7 @@ const Field: React.FunctionComponent<Props> = props => {
   const isRedTeam = Team[auction.team] === Team[Team.red];
   const cellClass = isRedTeam ? themeClasses.cellAlt : themeClasses.cell;
 
-  const headerClass = clsx(classes.header, classes.cell, cellClass);
-
-  const renderCell = (x: number, y: number) => {
+  const renderFieldItem = (x: number, y: number) => {
     // For display perposes the numbers start at 0
     const auctionResults = game.getTeamAuctionResults(props.team);
 
@@ -103,61 +137,51 @@ const Field: React.FunctionComponent<Props> = props => {
       }
     };
 
-    return (
-      <Cell key={x} className={clsx(classes.cell, cellClass)}>
-        <FieldItem onClick={handlePress} result={result} />
-      </Cell>
-    );
-  };
+    return <FieldItem onClick={handlePress} result={result} />;
+  }
 
-  const renderRow = (xs: number[], y: number) => {
-    return (
-      <TableRow key={y} hover={true}>
-        {!props.trailingVHeader && (
-          <Cell
-            component="th"
-            scope="row"
-            className={headerClass}
-          >
-            {y + 1}
-          </Cell>
-        )}
-        {xs.map(x => renderCell(x, y))}
-        {props.trailingVHeader && (
-          <Cell
-            component="th"
-            scope="row"
-            className={headerClass}
-          >
-            {y + 1}
-          </Cell>
-        )}
-      </TableRow>
-    );
-  };
+  const renderHorizHeader = (x: number) => {
+    return <Header
+      flexGrow={1}
+      className={clsx(cellClass, classes.header, classes.headerHoriz)}
+    >
+      <Box className={classes.headerTitle} textAlign='center'>
+        {numToBase64(x + 1)}
+      </Box>
+    </Header>;
+  }
+
+  const renderVertHeader = (y?: number) => {
+    return <Header className={clsx(cellClass, classes.header)}>
+      <Box className={classes.headerTitle} textAlign='center'>
+        {y !== undefined && y + 1 }
+      </Box>
+    </Header>;
+  }
+
+  const renderCell = (x: number, y: number) => {
+    return <Box display='flex' flexGrow={1} className={clsx(classes.cell, cellClass)}>
+      {renderFieldItem(x, y)}
+    </Box>
+  }
+
+  const renderRow = (y: number) => {
+    return <Box display='flex' flexDirection='row' className={classes.row}>
+      {renderVertHeader(y)}
+      {n.map(x => renderCell(x, y))}
+    </Box>
+  }
 
   return (
-      <div style={{overflowX: 'auto'}}>
-        <Table
-          className={classes.paper}
-        >
-          <TableHead>
-            <TableRow>
-              {!props.trailingVHeader && <Cell key="x" className={headerClass}/>}
-              {n.map(v => (
-                <Cell
-                  key={v}
-                  className={headerClass}
-                >
-                  {numToBase64(v + 1)}
-                </Cell>
-              ))}
-              {props.trailingVHeader && <Cell key="x" className={headerClass}/>}
-            </TableRow>
-          </TableHead>
-          <TableBody>{n.map(i => renderRow(n, i))}</TableBody>
-        </Table>
-      </div>
+    <Box display='flex' flexDirection='column' className={classes.paper}>
+      <Box display='flex' flexDirection='row' className={clsx(classes.row, classes.corner)}>
+        {renderVertHeader()}
+        {n.map(renderHorizHeader)}
+      </Box>
+      {
+        n.map(renderRow)
+      }
+    </Box>
   );
 };
 

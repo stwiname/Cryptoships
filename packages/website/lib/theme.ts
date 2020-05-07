@@ -115,10 +115,14 @@ export const useThemeStyles = makeStyles(theme => ({
     border: `2px solid ${pink}`,
   },
   cell: {
-    border: `2px solid ${lightBlue}`,
+    borderColor: lightBlue,
+    borderRight: `2px solid ${lightBlue}`,
+    borderBottom: `2px solid ${lightBlue}`,
   },
   cellAlt: {
-    border: `2px solid ${pink}`,
+    borderColor: pink,
+    borderRight: `2px solid ${pink}`,
+    borderBottom: `2px solid ${pink}`,
   },
   comingSoon: {
     fontFamily: "'Permanent Marker', cursive",
