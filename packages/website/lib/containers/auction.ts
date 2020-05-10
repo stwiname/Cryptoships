@@ -19,6 +19,8 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
   const fetchTask = useRef<CancellablePromise<void>>(null);
 
   const [auction, setAuction] = useState<Auction>(null);
+  const [pendingBid, setPendingBid] = useState<AuctionMove>(null);
+  const pendingBidRef = useRef<AuctionMove>(null); // Need ref as well because we need immediate state change
 
   useEffect(() => {
     const index = getIndex();
@@ -30,6 +32,10 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
     return fetchTask.current?.cancel;
 
   }, [team, getIndex(), game]);
+
+  useEffect(() => {
+    setPendingBid(null);
+  }, [context.account]);
 
   useEventListener(
     game,
@@ -79,9 +85,6 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
       .map(setAuction)
       .mapError(logNotCancelledError(`Failed to get auction by index`));
   }
-
-  const [pendingBid, setPendingBid] = useState<AuctionMove>(null);
-  const pendingBidRef = useRef<AuctionMove>(null); // Need ref as well because we need immediate state change
 
   const hasStarted = () => {
     if (auction?.startTime.isZero()) {
