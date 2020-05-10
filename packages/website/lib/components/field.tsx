@@ -144,6 +144,7 @@ const Field: React.FunctionComponent<Props> = props => {
     return <Header
       flexGrow={1}
       className={clsx(cellClass, classes.header, classes.headerHoriz)}
+      key={`x${x}`}
     >
       <Box className={classes.headerTitle} textAlign='center'>
         {numToBase64(x + 1)}
@@ -152,7 +153,7 @@ const Field: React.FunctionComponent<Props> = props => {
   }
 
   const renderVertHeader = (y?: number) => {
-    return <Header className={clsx(cellClass, classes.header)}>
+    return <Header className={clsx(cellClass, classes.header)} key={`y${y}`}>
       <Box className={classes.headerTitle} textAlign='center'>
         {y !== undefined && y + 1 }
       </Box>
@@ -160,13 +161,18 @@ const Field: React.FunctionComponent<Props> = props => {
   }
 
   const renderCell = (x: number, y: number) => {
-    return <Box display='flex' flexGrow={1} className={clsx(classes.cell, cellClass)}>
+    return <Box
+      display='flex'
+      flexGrow={1}
+      className={clsx(classes.cell, cellClass)}
+      key={`${x}${y}`}
+    >
       {renderFieldItem(x, y)}
     </Box>
   }
 
   const renderRow = (y: number) => {
-    return <Box display='flex' flexDirection='row' className={classes.row}>
+    return <Box display='flex' flexDirection='row' className={classes.row} key={y}>
       {renderVertHeader(y)}
       {n.map(x => renderCell(x, y))}
     </Box>

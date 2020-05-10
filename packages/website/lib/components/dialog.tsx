@@ -1,4 +1,4 @@
-import Button from '@material-ui/core/Button';
+import ButtonBase from '@material-ui/core/ButtonBase';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
 import MUIDialog from '@material-ui/core/Dialog';
@@ -64,13 +64,17 @@ const Dialog: React.FunctionComponent<Props> = ({
       {onSubmit && (
         <DialogActions>
           <div className={classes.wrapper}>
-            <Button
-              variant="contained"
+            <ButtonBase
               onClick={onSubmit}
               disabled={disabled || loading}
             >
-              {submitTitle || 'Submit'}
-            </Button>
+              <Typography
+                className={themeClasses.play}
+                variant='h5'
+              >
+                {submitTitle || 'SUBMIT'}
+              </Typography>
+            </ButtonBase>
             {loading && (
               <CircularProgress size={24} className={classes.buttonProgress} />
             )}

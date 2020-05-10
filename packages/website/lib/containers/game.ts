@@ -3,7 +3,6 @@ import { append, range, uniqBy, concat } from 'ramda';
 import { useEffect, useState } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
-// import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
 import { Game as GameInstance } from 'contracts/types/ethers-contracts/Game';
 import { LeadingBid, AuctionResult, Team, GameResult } from '../contracts';
@@ -30,7 +29,7 @@ function useGame(contractAddress: string) {
   }
 
   const [error, setError] = useState<Error>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [fieldSize, setFieldSize] = useState<number>(0);
   const [result, setResult] = useState<GameResult>(GameResult.unset);
   const [redAuctionIndex, setRedAuctionIndex] = useState<number>(null);
@@ -129,7 +128,7 @@ function useGame(contractAddress: string) {
       move: [number, number],
       endTime: utils.BigNumber
     ) => {
-      console.log('Highest bid placed', Team[team]);
+      console.log('[EVENT] HighestBidPlaced', Team[team]);
       const setLeadingBid =
         Team[team] === Team[Team.red] ? setRedLeadingBid : setBlueLeadingBid;
 
@@ -156,7 +155,7 @@ function useGame(contractAddress: string) {
         result: hit ? AuctionResult.hit : AuctionResult.miss,
         index: auctionIndex,
       };
-      console.log(`Move confirmed, ${JSON.stringify(auctionMove)}`);
+      console.log(`[EVENT] MoveConfirmed, ${JSON.stringify(auctionMove)}`);
       setAuctionResults(updateAuctionResults(auctionResults, [auctionMove]));
     },
   );
@@ -169,7 +168,7 @@ function useGame(contractAddress: string) {
         Team[team] === Team[Team.red]
           ? setRedAuctionIndex
           : setBlueAuctionIndex;
-      console.log(`Auction created ${Team[team]} ${auctionIndex}`);
+      console.log(`[EVENT] AuctionCreated ${Team[team]} ${auctionIndex}`);
       // Auction canno't be found sometimes without this timeout
       setTimeout(() => setAuctionIndex(auctionIndex), 200);
     },
@@ -179,7 +178,7 @@ function useGame(contractAddress: string) {
     game,
     'GameCompleted',
     (winningTeam: Team) => {
-      console.log(`Game won by ${Team[winningTeam]}`);
+      console.log(`[EVENT] GameCompleted by ${Team[winningTeam]}`);
 
       // TODO set result of final move
       setResult(
@@ -233,7 +232,7 @@ function useGame(contractAddress: string) {
     getCurrentAuctionIndex,
     getTeamAuctionResults,
     getTeamLeadingBid,
-    result
+    result,
   };
 }
 

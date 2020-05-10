@@ -155,6 +155,13 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
         ? bnToDate(auction?.startTime)
         : bnToDate(auction?.endTime)
 
+    const amount = utils.formatEther(
+      (auctionState === AuctionState.Running ||
+      auctionState === AuctionState.Leading ||
+      auctionState === AuctionState.Confirming) &&
+      auction?.leadingBid.amount || new utils.BigNumber(0)
+    )
+
     return <Box>
       <Box flexDirection='row' display='flex' justifyContent='space-between'>
         <Box>
@@ -170,7 +177,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
           </Typography>
           {
             <Typography variant='h5'>
-              {`${utils.formatEther(auction?.leadingBid.amount ?? new utils.BigNumber(0))} ETH`}
+              {`${amount} ETH`}
             </Typography>
           }
         </Box>

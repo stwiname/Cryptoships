@@ -48,7 +48,7 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
       endTime: utils.BigNumber,
       auctionIndex: number,
     ) => {
-
+      console.log('[EVENT] Auction HighestBidPlaced');
       if (team === t && auctionIndex === getIndex()) {
         fetchTask.current = fetchAuction();
       }
@@ -64,6 +64,7 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
       move: [number, number],
       auctionIndex: number,
     ) => {
+      console.log('[EVENT] Auction MoveConfirmed');
       if (team === t && auctionIndex === getIndex()) {
         fetchTask.current = fetchAuction();
       }

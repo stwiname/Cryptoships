@@ -14,14 +14,19 @@ const useEventListener = <C extends Contract>(
   }, [handler]);
 
   useEffect(() => {
-    const isSupported = element && element.addListener;
+    const isSupported = element?.addListener;
     if (!isSupported) {
       return;
     }
 
-    const eventListener = (...args: any[]) => savedHandler.current(...args);
+    const eventListener = (...args: any[]) => {
+      console.log(`[EVENT][RAW] ${eventName}`);
+      savedHandler.current(...args)
+    };
+    console.log('[EVENT][ADD]', eventName);
     element.addListener(eventName, eventListener);
     return () => {
+      console.log('[EVENT][REMOVE]', eventName);
       element.removeListener(eventName, eventListener);
     };
   }, [eventName, element]);

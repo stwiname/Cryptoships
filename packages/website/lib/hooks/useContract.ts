@@ -1,16 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWeb3React } from '@web3-react/core';
 import { Contract, Signer } from 'ethers';
 
 const useContract = <C extends Contract>(contractAddress: string, factory: (address: string, signer: Signer) => C): C => {
   const context = useWeb3React();
 
-  const [contractInstance, setContractInstance] = useState<C>(null);
+  const contractInstance = useRef<C>(null);
 
   useEffect(() => {
-    setContractInstance(null);
 
     if (!contractAddress) {
+      contractInstance.current = null;
       return;
     }
 
@@ -22,11 +22,11 @@ const useContract = <C extends Contract>(contractAddress: string, factory: (addr
       contractAddress,
       signerOrProvider,
     );
-    setContractInstance(contract);
+    contractInstance.current = contract;
 
   }, [contractAddress, context.chainId]);
 
-  return contractInstance;
+  return contractInstance.current;
 }
 
 export default useContract;

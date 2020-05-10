@@ -136,7 +136,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
       loading={loading}
       disabled={!isValid()}
       onSubmit={auctionRunning && handlePlaceBid}
-      submitTitle="Place Bid!"
+      submitTitle="PLACE BID!"
       renderContent={auctionRunning && renderContent}
     />
   );

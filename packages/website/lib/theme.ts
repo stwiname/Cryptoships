@@ -130,4 +130,11 @@ export const useThemeStyles = makeStyles(theme => ({
     '-webkit-background-clip': 'text',
     '-webkit-text-fill-color': 'transparent',
   },
+  play: {
+    textShadow: '-0px 0 1px rgb(30,242,241) , 0px 0 1px rgb(246,5,10)',
+    color: 'white',
+    '&:hover': {
+      textShadow: '-3px 0 1px rgb(30,242,241) , 3px 0 1px rgb(246,5,10)',
+    }
+  }
 }));
