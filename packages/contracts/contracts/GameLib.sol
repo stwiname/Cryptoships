@@ -54,10 +54,6 @@ library GameLib {
     return isMoveInField(data, move) && !hasMoveBeenMade(data, team, move);
   }
 
-  /*****************************
-   * AuctionListener methods end
-   *****************************/
-
   function placeBid(
     Data storage data,
     uint16[2] memory move,

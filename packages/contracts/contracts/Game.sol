@@ -55,10 +55,6 @@ contract Game is /*AuctionListener,*/ Ownable {
   // Required in order to transfer funds from Auctions
   receive() external payable { }
 
-  /*****************************
-   * AuctionListener methods end
-   *****************************/
-
   function placeBid(
     uint16[2] memory move,
     GameLib.Team team,
