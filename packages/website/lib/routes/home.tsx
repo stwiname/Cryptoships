@@ -1,13 +1,10 @@
-import ButtonBase from '@material-ui/core/ButtonBase';
 import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import Box from '@material-ui/core/Box';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { useWeb3React } from '@web3-react/core';
-import connectors from '../connectors';
 import useEnsGame from '../hooks/useEnsGame';
 import { useThemeStyles } from '../theme';
+import { ThreeDButton } from '../components'
 
 const Logo = require('../../dist/assets/cryptoships_wording_8.svg');
 
@@ -39,18 +36,14 @@ const Home: React.FunctionComponent<Props> = props => {
         margin="normal"
         variant='outlined'
       />
-      <ButtonBase
+      <ThreeDButton
         to={`/game/${address || ensAddress}`}
         component={Link}
         disabled={!address && !ensAddress}
+        variant='h3'
       >
-        <Typography
-          className={themeClasses.play}
-          variant='h3'
-        >
-          PLAY!
-        </Typography>
-      </ButtonBase>
+        PLAY!
+      </ThreeDButton>
     </Box>
   );
 };
