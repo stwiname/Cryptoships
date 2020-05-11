@@ -97,6 +97,8 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
       return AuctionState.NotStarted;
     }
 
+    console.log("Auction state is unknown", JSON.stringify(auction));
+
     return AuctionState.Unknown;
   }
 
