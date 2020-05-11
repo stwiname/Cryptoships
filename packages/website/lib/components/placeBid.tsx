@@ -58,6 +58,9 @@ const PlaceBid: React.FunctionComponent<Props> = ({
 
   const handlePlaceBid = async () => {
     try {
+      if (!isValid(false)) {
+        return;
+      }
       setLoading(true);
       await auction.placeBid(position, utils.parseEther(amount));
 
@@ -91,16 +94,18 @@ const PlaceBid: React.FunctionComponent<Props> = ({
             {`At postion: ${moveToString(position.x, position.y)}`}
           </DialogContentText>
         )}
-        <TextField
-          label="Amount (ETH)"
-          value={amount}
-          onChange={handleAmountChange}
-          margin="normal"
-          type="tel" // Hides the up/down arrows
-          error={!isValid(true)}
-          variant='outlined'
-          autoFocus={true}
-        />
+        <form onSubmit={handlePlaceBid}>
+          <TextField
+            label="Amount (ETH)"
+            value={amount}
+            onChange={handleAmountChange}
+            margin="normal"
+            type="tel" // Hides the up/down arrows
+            error={!isValid(true)}
+            variant='outlined'
+            autoFocus={true}
+          />
+        </form>
       </>
     );
   };
