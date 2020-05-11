@@ -162,18 +162,9 @@ contract('Game', accounts => {
     });
 
     // No longer relevant because the blue auction will not exist
-    xit('should be able to make a move for the other team before the auction has started', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
-
-      const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
-
-      await expectFailingPromise(blueAuction
-        .placeBid([0, 0], { from: accounts[2], value: '1' })
-      );
+    it('should be able to make a move for the other team before the auction has started', async () => {
+      await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
+      await expectFailingPromise(placeBidForCurrentAuction(Team.blue, [0, 0], '1', 2));
     });
 
     it('should be able to outbid a move', async () => {
@@ -184,7 +175,7 @@ contract('Game', accounts => {
     it('should be able to make a move for the other team after half first auction time', async () => {
       await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
-      await advanceTimeAndBlock(AUCTION_TIME);
+      await advanceTimeAndBlock(AUCTION_TIME / 2 + 1);
 
       await placeBidForCurrentAuction(Team.blue, [0, 0], '1', 2);
     });
