@@ -12,6 +12,7 @@ import { Game as Container, Auction as AuctionContainer } from '../containers';
 import { moveToString } from '../utils';
 import Dialog from './dialog';
 import connectors from '../connectors';
+import { useConnector} from '../hooks';
 
 type Position = {
   x: number;
@@ -35,6 +36,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     return null;
   }
   const web3 = useWeb3React();
+  const connector = useConnector();
   const auction = auctionContainer.useContainer();
 
   const getAuctionAmount = () => utils.formatEther((path(['auction', 'leadingBid', 'amount'], auction) || '0'))
@@ -111,10 +113,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   };
 
   const connectAccount = () => {
-    if (!(window as any).ethereum) {
-      return window.open('https://metamask.io', '_blank');
-    }
-    web3.activate(connectors.MetaMask);
+    connector.activateMetamask();
   }
 
   if (!web3.account) {

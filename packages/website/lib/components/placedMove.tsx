@@ -34,7 +34,7 @@ const PlacedMoveContent: React.FunctionComponent<{}> = () => {
       ? 'You'
       : largeLayout
         ? auction?.leadingBid.bidder
-        : truncateAddress(auction.leadingBid.bidder);
+        : truncateAddress(auction?.leadingBid.bidder);
 
   return (
     <Typography>{`Move was made by ${bidder}\n for ${utils.formatEther(auction?.leadingBid.amount ?? new utils.BigNumber(0))} ETH`}</Typography>

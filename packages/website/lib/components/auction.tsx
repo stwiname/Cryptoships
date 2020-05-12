@@ -132,7 +132,7 @@ const Auction: React.FunctionComponent<Props> = (props: Props) => {
         case AuctionState.Won:
           return 'Congratulations';
         case AuctionState.Lost:
-          return 'Better luck netxt time';
+          return 'Better luck next time';
         case AuctionState.Started:
           return 'This teams turn';
         case AuctionState.Running:
