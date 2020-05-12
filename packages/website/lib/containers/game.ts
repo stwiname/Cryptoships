@@ -41,7 +41,7 @@ function useGame(contractAddress: string) {
   const [redLeadingBid, setRedLeadingBid] = useState<LeadingBid>(null);
   const [blueLeadingBid, setBlueLeadingBid] = useState<LeadingBid>(null);
 
-  const updateAuctionResults = (existing: AuctionMove[], newMoves: AuctionMove[]) => 
+  const updateAuctionResults = (existing: AuctionMove[], newMoves: AuctionMove[]) =>
     {
       const up = uniqBy<AuctionMove, number[]>(a => a.move, concat(existing, newMoves))
       console.log("Moves", up)
@@ -105,7 +105,7 @@ function useGame(contractAddress: string) {
     ]);
 
     return tasks.cancel;
-  }, [game]);
+  }, [game?.address, context.chainId]);
 
   useEffect(() => {
 

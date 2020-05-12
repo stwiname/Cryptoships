@@ -8,13 +8,12 @@ import './Auction.sol';
 import './AuctionLib.sol';
 import './GameLib.sol';
 
-contract Game is /*AuctionListener,*/ Ownable {
+contract Game is Ownable {
   using Address for address payable;
   using SafeMath for uint256;
   using SafeMath for uint;
   using GameLib for GameLib.Data;
   using AuctionLib for AuctionLib.Data;
-
 
   uint256 withdrawDeadline;
 
@@ -72,7 +71,7 @@ contract Game is /*AuctionListener,*/ Ownable {
     return data.confirmMove(team, hit, auctionIndex);
   }
 
-  // TODO find better way to encode the field data 
+  // TODO find better way to encode the field data
   function finalize(GameLib.Team winner, bytes32 fieldData, bytes32 salt) public onlyOwner gameRunning {
     data.finalize(winner, fieldData, salt);
 

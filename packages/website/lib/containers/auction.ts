@@ -115,9 +115,13 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
     try {
       console.log('Place bid', position, value.toString());
 
+      const estimate = await (game.estimate.placeBid as any)([position.x, position.y], team, index, {
+        value,
+      }).catch((e: Error) => 0);
+
       tx = await game.placeBid([position.x, position.y], team, index, {
         value,
-        gasLimit: 600000 // Set this to fix out of gas errors
+        gasLimit: Math.max(600000, estimate) // Set this to fix out of gas errors
       });
 
       const bid = {
