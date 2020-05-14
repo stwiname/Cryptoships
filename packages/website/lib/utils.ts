@@ -1,4 +1,5 @@
 import { utils } from 'ethers';
+import BigNumber from 'bignumber.js';
 
 export const numToBase64 = (num: number): string => {
   let s = '';
@@ -25,7 +26,7 @@ export const hexToRgb = (hex: string, opacity?: number) => {
 
   if (!result) {
     return null;
-  } 
+  }
   const rgb = {
     r: parseInt(result[1], 16),
     g: parseInt(result[2], 16),
@@ -71,4 +72,8 @@ export const isBnDateAfterNow = (num: utils.BigNumber) => {
     return null;
   }
   return Date.now() < bnToDate(num).getTime();
+}
+
+export const formatEtherRounded = (num: utils.BigNumber, dp: number = 4) => {
+  return new BigNumber(utils.formatEther(num)).toFormat(4);
 }

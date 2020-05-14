@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^3.0.0",
+    "bignumber.js": "^9.0.0",
     "truffle": "^5.1.23"
   }
 }
