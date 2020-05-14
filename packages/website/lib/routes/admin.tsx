@@ -31,6 +31,10 @@ const Admin: React.FunctionComponent<Props> = props => {
     </Typography>
 
     <Typography>
+      {`Is Admin: ${admin.isAdmin}`}
+    </Typography>
+
+    <Typography>
       {`Contract balance ${utils.formatEther(admin.balance ?? new utils.BigNumber(0))}ETH`}
     </Typography>
 
@@ -41,7 +45,7 @@ const Admin: React.FunctionComponent<Props> = props => {
     <Button
       variant="contained"
       onClick={admin.claim}
-      disabled={withdrawDate && new Date().getTime() < withdrawDate.getTime()}
+      disabled={admin.isAdmin && withdrawDate && new Date().getTime() < withdrawDate.getTime()}
     >
       Claim!
     </Button>
