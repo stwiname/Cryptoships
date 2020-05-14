@@ -1,18 +1,19 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import './Auction.sol';
-import './AuctionListener.sol';
+import './AuctionLib.sol';
 import './GameLib.sol';
 
-contract Game is AuctionListener, Ownable {
+contract Game is Ownable {
   using Address for address payable;
   using SafeMath for uint256;
   using SafeMath for uint;
   using GameLib for GameLib.Data;
-
+  using AuctionLib for AuctionLib.Data;
 
   uint256 withdrawDeadline;
 
@@ -23,19 +24,10 @@ contract Game is AuctionListener, Ownable {
     _;
   }
 
-  modifier currentAuctions() {
-    require(
-      address(data.getCurrentAuction(GameLib.Team.RED)) == msg.sender ||
-      address(data.getCurrentAuction(GameLib.Team.BLUE)) == msg.sender,
-      "This can only be called from current auctions"
-    );
-    _;
-  }
-
   // Duplicate events from GameLib so we can get the abi
-  event HighestBidPlaced(GameLib.Team team, address bidder, uint amount, uint16[2] move, uint256 endTime);
-  event MoveConfirmed(GameLib.Team team, bool hit, uint16[2] move, address auctionAddress);
-  event AuctionCreated(GameLib.Team team, address auctionAddress);
+  event HighestBidPlaced(GameLib.Team team, address bidder, uint amount, uint16[2] move, uint256 endTime, uint32 auctionIndex);
+  event MoveConfirmed(GameLib.Team team, bool hit, uint16[2] move, uint32 auctionIndex);
+  event AuctionCreated(GameLib.Team team, uint32 auctionIndex);
   event GameCompleted(GameLib.Team winningTeam);
 
   /*
@@ -56,41 +48,30 @@ contract Game is AuctionListener, Ownable {
     data.fieldUnits = _fieldUnits;
     data.auctionDuration = _auctionDuration;
 
-    data.createAuction(startTeam, now, this);
+    data.createAuction(startTeam, now/*, this*/);
   }
 
   // Required in order to transfer funds from Auctions
   receive() external payable { }
 
-  /*****************************
-   * AuctionListener methods
-   *****************************/
-  function bidPlaced(uint16[2] calldata move, uint amount, address sender, uint256 endTime) external override currentAuctions {
-    return data.bidPlaced(move, amount, sender, endTime);
+  function placeBid(
+    uint16[2] memory move,
+    GameLib.Team team,
+    uint32 auctionIndex
+  ) public payable returns(uint256){
+    return data.placeBid(move, team, auctionIndex);
   }
-
-  function isMoveInField(uint16[2] memory move) public view returns(bool) {
-    return data.isMoveInField(move);
-  }
-
-  function isValidMove(uint16[2] calldata move) external override currentAuctions view returns(bool) {
-    return data.isValidMove(move);
-  }
-
-  /*****************************
-   * AuctionListener methods end
-   *****************************/
 
   // Gets called by the oracle when the first bid is made for an auction
-  function startAuction(GameLib.Team team) public onlyOwner gameRunning returns(Auction) {
-    return data.startAuction(team, this);
+  function startAuction(GameLib.Team team) public onlyOwner gameRunning returns(AuctionLib.Data memory) {
+    return data.startAuction(team/*, this*/);
   }
 
-  function confirmMove(GameLib.Team team, bool hit, address auctionAddress) public onlyOwner {
-    return data.confirmMove(team, hit, auctionAddress, this);
+  function confirmMove(GameLib.Team team, bool hit, uint32 auctionIndex) public onlyOwner {
+    return data.confirmMove(team, hit, auctionIndex);
   }
 
-  // TODO find better way to encode the field data 
+  // TODO find better way to encode the field data
   function finalize(GameLib.Team winner, bytes32 fieldData, bytes32 salt) public onlyOwner gameRunning {
     data.finalize(winner, fieldData, salt);
 
@@ -112,7 +93,7 @@ contract Game is AuctionListener, Ownable {
     return data.hasMoveBeenMade(team, move);
   }
 
-  function getCurrentAuction(GameLib.Team team) public view returns(Auction) {
+  function getCurrentAuction(GameLib.Team team) public view returns(AuctionLib.Data memory) {
     return data.getCurrentAuction(team);
   }
 
@@ -120,12 +101,16 @@ contract Game is AuctionListener, Ownable {
     return data.getAuctionsCount(team);
   }
 
-  function getAuctionByIndex(GameLib.Team team, uint32 index) public view returns(Auction) {
+  function getCurrentAuctionIndex(GameLib.Team team) public view returns(uint32) {
+    return data.getCurrentAuctionIndex(team);
+  }
+
+  function getAuctionByIndex(GameLib.Team team, uint32 index) public view returns(AuctionLib.Data memory) {
     return data.getAuctionByIndex(team, index);
   }
 
-  function createAuction(GameLib.Team team, uint256 startTime) private returns(Auction) {
-    return data.createAuction(team, startTime, this);
+  function createAuction(GameLib.Team team, uint256 startTime) private returns(AuctionLib.Data memory) {
+    return data.createAuction(team, startTime/*, this*/);
   }
 
   // Cant use lib function for some reason https://github.com/ethereum-ts/TypeChain/issues/216
@@ -155,5 +140,11 @@ contract Game is AuctionListener, Ownable {
 
   function getWithdrawDeadline() public view returns(uint256) {
     return withdrawDeadline;
+  }
+
+  function hasAuctionEnded(GameLib.Team team, uint32 index) public view returns (bool) {
+    AuctionLib.Data storage auction = data.getAuctionByIndex(team, index);
+
+    return auction.hasEnded();
   }
 }

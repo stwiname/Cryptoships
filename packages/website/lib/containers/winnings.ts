@@ -16,6 +16,7 @@ function useWinnings(contractAddress: string) {
   const [redWinnings, setRedWinnings] = useState<utils.BigNumber>(new utils.BigNumber('0'));
   const [blueWinnings, setBlueWinnings] = useState<utils.BigNumber>(new utils.BigNumber('0'));
   const [hasWithdrawn, setHasWithdrawn] = useState<boolean>(false);
+  const [withdrawDeadline, setWithdrawDeadline] = useState<utils.BigNumber>(null);
 
   const getWinnings = () => {
     if (!game) {
@@ -35,6 +36,8 @@ function useWinnings(contractAddress: string) {
       CancellablePromise.makeCancellable(game.functions.getPotentialWinnings(context.account, Team.blue))
         .map(setBlueWinnings)
         .mapError(logNotCancelledError('Failed to get blue potential winnings')),
+      CancellablePromise.makeCancellable(game.getWithdrawDeadline())
+        .map(setWithdrawDeadline),
       CancellablePromise.makeCancellable(game.functions.getResult())
         .map(result => {
           if (GameResult[result] === GameResult[GameResult.blueWinner] ||
@@ -61,9 +64,15 @@ function useWinnings(contractAddress: string) {
   }, [game, context.account]);
 
   useEventListener(
+    game,
     'HighestBidPlaced',
     () => getWinnings(),
-    game
+  );
+
+  useEventListener(
+    game,
+    'GameCompleted',
+    (result: Team) => setWinningTeam(result)
   );
 
   const withdrawWinnings = async () => {
@@ -86,6 +95,7 @@ function useWinnings(contractAddress: string) {
     blueWinnings,
     winningTeam,
     withdrawWinnings,
+    withdrawDeadline,
     hasWithdrawn,
   }
 }

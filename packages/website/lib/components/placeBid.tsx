@@ -8,10 +8,11 @@ import { utils } from 'ethers';
 import path from 'ramda/src/path';
 import * as React from 'react';
 import { Team } from '../contracts';
-import { Game as Container } from '../containers';
+import { Game as Container, Auction as AuctionContainer } from '../containers';
 import { moveToString } from '../utils';
 import Dialog from './dialog';
 import connectors from '../connectors';
+import { useConnector} from '../hooks';
 
 type Position = {
   x: number;
@@ -21,7 +22,7 @@ type Position = {
 export type Props = {
   team?: Team;
   position?: Position;
-  auctionContainer?: any;
+  auctionContainer?: ReturnType<typeof AuctionContainer>;
   onClose: () => void;
 };
 
@@ -35,9 +36,10 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     return null;
   }
   const web3 = useWeb3React();
+  const connector = useConnector();
   const auction = auctionContainer.useContainer();
 
-  const getAuctionAmount = () => utils.formatEther((path(['leadingBid', 'amount'], auction) || '0'))
+  const getAuctionAmount = () => utils.formatEther((path(['auction', 'leadingBid', 'amount'], auction) || '0'))
 
   const [amount, setAmount] = React.useState<string>(getAuctionAmount());
   const [loading, setLoading] = React.useState(false);
@@ -47,7 +49,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     setAmount(getAuctionAmount());
 
     if (team !== undefined) {
-      console.log('Auction', auction.auctionAddress, auction.hasStarted(), auction.hasEnded())
+      console.log('Auction', auction?.auction?.endTime.toString(), auction.hasStarted(), auction.hasEnded())
       setAuctionRunning(auction.hasStarted() && !auction.hasEnded());
     }
   }, [team]);
@@ -58,6 +60,9 @@ const PlaceBid: React.FunctionComponent<Props> = ({
 
   const handlePlaceBid = async () => {
     try {
+      if (!isValid(false)) {
+        return;
+      }
       setLoading(true);
       await auction.placeBid(position, utils.parseEther(amount));
 
@@ -91,25 +96,24 @@ const PlaceBid: React.FunctionComponent<Props> = ({
             {`At postion: ${moveToString(position.x, position.y)}`}
           </DialogContentText>
         )}
-        <TextField
-          label="Amount (ETH)"
-          value={amount}
-          onChange={handleAmountChange}
-          margin="normal"
-          type="tel" // Hides the up/down arrows
-          error={!isValid(true)}
-          variant='outlined'
-          autoFocus={true}
-        />
+        <form onSubmit={handlePlaceBid}>
+          <TextField
+            label="Amount (ETH)"
+            value={amount}
+            onChange={handleAmountChange}
+            margin="normal"
+            type="tel" // Hides the up/down arrows
+            error={!isValid(true)}
+            variant='outlined'
+            autoFocus={true}
+          />
+        </form>
       </>
     );
   };
 
   const connectAccount = () => {
-    if (!(window as any).ethereum) {
-      return window.open('https://metamask.io', '_blank');
-    }
-    web3.activate(connectors.MetaMask);
+    connector.activateMetamask();
   }
 
   if (!web3.account) {
@@ -136,7 +140,7 @@ const PlaceBid: React.FunctionComponent<Props> = ({
       loading={loading}
       disabled={!isValid()}
       onSubmit={auctionRunning && handlePlaceBid}
-      submitTitle="Place Bid!"
+      submitTitle="PLACE BID!"
       renderContent={auctionRunning && renderContent}
     />
   );

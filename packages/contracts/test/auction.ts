@@ -24,7 +24,7 @@ contract('Auction', accounts => {
   });
 
   beforeEach(async () => {
-    instance = await Auction.new(0, DURATION, nullAddress, { from: accounts[0] });
+    instance = await Auction.new(0, DURATION, { from: accounts[0] });
   });
 
   async function getBalance(index: number) {

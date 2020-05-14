@@ -1,12 +1,12 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import Button from '@material-ui/core/Button';
-import MUILink from '@material-ui/core/Link';
 import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import { useWeb3React } from '@web3-react/core';
 import { truncateAddress } from '../utils';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
+import ThreeDButton from './3dbutton';
 
 const Logo = require('../../dist/assets/logo_blue.svg');
 const Wording = require('../../dist/assets/cryptoships_wording_8.svg');
@@ -66,25 +66,20 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
 
   const renderHowItWorks = () => {
 
-    return (
-      <Box m={2} fontWeight='fontWeightBold'>
-        <MUILink
-          to='/how-it-works'
-          component={Link}
-          color='secondary'
-          variant='button'
-          style={{ whiteSpace: 'nowrap' }}
-        >
-          How it works
-        </MUILink>
-      </Box>
-    );
+    return <Box m={2}>
+      <ThreeDButton
+        component={Link}
+        to='/how-it-works'
+        variant='button'
+      >
+        HOW IT WORKS
+      </ThreeDButton>
+    </Box>
   }
 
   return <Box
     display='flex'
     flexDirection='row'
-
   >
     <Box alignItems='flex-start' display='flex' width='100%'>
       <Link to='/'>

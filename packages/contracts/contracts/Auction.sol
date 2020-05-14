@@ -3,7 +3,6 @@ pragma solidity ^0.6.0;
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-import './AuctionListener.sol';
 import './AuctionLib.sol';
 
 contract Auction is ReentrancyGuard {
@@ -19,10 +18,9 @@ contract Auction is ReentrancyGuard {
     _;
   }
 
-  constructor(uint256 _startTime, uint256 _duration, AuctionListener _listener) public {
+  constructor(uint256 _startTime, uint256 _duration) public {
     data.startTime = _startTime;
     data.duration = _duration;
-    data.listener = _listener;
     owner = msg.sender;
   }
 

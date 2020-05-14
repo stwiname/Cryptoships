@@ -1,7 +1,7 @@
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/utils/Address.sol";
-import './AuctionListener.sol';
 
 library AuctionLib {
 
@@ -29,8 +29,6 @@ library AuctionLib {
     uint256 duration;
     // When the auction ends
     uint256 endTime;
-
-    AuctionListener listener;
   }
 
   function placeBid(
@@ -41,9 +39,6 @@ library AuctionLib {
     require(hasStarted(data), "Auction has not started");
     require(!hasEnded(data), "Auction has ended");
 
-    if (address(data.listener) != address(0)) {
-      require(data.listener.isValidMove(move), "Move is not valid");
-    }
     // Validate input
     require(msg.value > data.leadingBid.amount, "Bid must be greater than current bid");
 
@@ -54,17 +49,11 @@ library AuctionLib {
     // First bid, auction is started and will end after duration from now
     if (data.endTime == 0) {
       data.endTime = now + data.duration;
-
     }
-
 
     // Transfer the bid back to the previous bidder
     if (previousBid.bidder != address(0)) {
       previousBid.bidder.sendValue(previousBid.amount);
-    }
-
-    if (address(data.listener) != address(0)) {
-      data.listener.bidPlaced(move, msg.value, msg.sender, data.endTime);
     }
 
     return data.endTime;
@@ -82,7 +71,7 @@ library AuctionLib {
    */
   function cancel(Data storage data) public {
     if (!hasEnded(data)) {
-      data.endTime = now;
+      data.endTime = now - 1;
     }
 
     if (data.leadingBid.bidder != address(0)) {

@@ -115,10 +115,14 @@ export const useThemeStyles = makeStyles(theme => ({
     border: `2px solid ${pink}`,
   },
   cell: {
-    border: `2px solid ${lightBlue}`,
+    borderColor: lightBlue,
+    borderRight: `2px solid ${lightBlue}`,
+    borderBottom: `2px solid ${lightBlue}`,
   },
   cellAlt: {
-    border: `2px solid ${pink}`,
+    borderColor: pink,
+    borderRight: `2px solid ${pink}`,
+    borderBottom: `2px solid ${pink}`,
   },
   comingSoon: {
     fontFamily: "'Permanent Marker', cursive",
@@ -126,4 +130,11 @@ export const useThemeStyles = makeStyles(theme => ({
     '-webkit-background-clip': 'text',
     '-webkit-text-fill-color': 'transparent',
   },
+  play: {
+    textShadow: '-0px 0 1px rgb(30,242,241) , 0px 0 1px rgb(246,5,10)',
+    color: 'white',
+    '&:hover': {
+      textShadow: '-3px 0 1px rgb(30,242,241) , 3px 0 1px rgb(246,5,10)',
+    }
+  }
 }));

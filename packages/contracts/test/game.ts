@@ -1,8 +1,4 @@
 import { utils } from 'ethers';
-// import { Team } from '../lib/contracts';
-// import Oracle from '../lib/oracle';
-// import State from '../lib/state';
-// import BN from 'bn.js';
 import LogDecoder from './LogDecoder';
 import { battleFieldToBuffer, computeFieldHash } from 'oracle/lib/generator';
 import { GameContract, GameInstance } from '../types/truffle-contracts';
@@ -17,7 +13,6 @@ import {
   assertEvent,
   assertAuctionBid,
   getGasInfo,
-  nullAddress
 } from './util';
 
 const { abi: gameAbi } = require('../build/contracts/Game.json');
@@ -93,26 +88,24 @@ contract('Game', accounts => {
 
     const bidAmount = 1000;
 
+    const placeBidForCurrentAuction = async(team: Team, position: [number, number], amount: string, accountNumber: number) => {
+      const index = await instance.getCurrentAuctionIndex(team);
+
+      return instance.placeBid(position, team, index, { from: accounts[accountNumber], value: amount});
+    }
+
     const playMoveAndStartOtherTeam = async (team: Team, position: [number, number], accountNumber: number) => {
-      const auction = await Auction.at(await instance.getCurrentAuction(team));
-      await auction.placeBid(position, {
-        from: accounts[accountNumber],
-        value: bidAmount.toString(),
-      });
+      await placeBidForCurrentAuction(team, position, bidAmount.toString(), accountNumber);
 
 
       // Atempt to start auction for other team
-      let otherTeamAddress: string =  null;
+      let otherAuction: any = null;
       const otherTeam = team === Team.red ? Team.blue : Team.red;
       try {
-        otherTeamAddress = await instance.getCurrentAuction(otherTeam);
+        otherAuction = await instance.getCurrentAuction(otherTeam);
       }
       catch(e) {
         // Do nothing aution wont exist
-      }
-
-      if (!otherTeamAddress || await Auction.at(otherTeamAddress).then(a => a.hasEnded())) {
-        await instance.startAuction(otherTeam, { from: oracleAccount });
       }
     }
 
@@ -123,10 +116,11 @@ contract('Game', accounts => {
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       // Confirm the move for the auction just made
+      const index = await instance.getCurrentAuctionIndex(team);
       await instance.confirmMove(
         team,
         testBattleField[position[0]][position[1]],
-        nullAddress,
+        index,
         { from: oracleAccount }
       );
     }
@@ -138,14 +132,9 @@ contract('Game', accounts => {
     });
 
     it('should not be able to make a move outside the field', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await expectFailingPromise(redAuction
-        .placeBid([0, 2], { from: accounts[1], value: '1' })
-      );
 
-      await expectFailingPromise(redAuction
-        .placeBid([2, 0], { from: accounts[1], value: '1' })
-      );
+      await expectFailingPromise(placeBidForCurrentAuction(Team.red, [0, 2], '1', 1));
+      await expectFailingPromise(placeBidForCurrentAuction(Team.red, [2, 0], '1', 1));
     });
 
     it('should be able to check that a move has not been made', async () => {
@@ -155,112 +144,63 @@ contract('Game', accounts => {
     });
 
     it('should be able to make a move', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      const tx = await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
-      const leadingBid = await redAuction.getLeadingBid();
+      const { leadingBid } = await instance.getCurrentAuction(Team.red);
 
       assertAuctionBid(leadingBid, {
         move: [0, 0],
         amount: 1,
         bidder: accounts[1],
       });
-
-      return tx;
     });
 
     it('should not be able to start the auction for the 2nd team before 1st team bids', async () => {
       await expectFailingPromise(instance
         .startAuction(Team.blue, { from: oracleAccount })
       );
-        //.catch((e: Error) => expect(e).not.to.be.null);
     });
 
     // No longer relevant because the blue auction will not exist
-    xit('should be able to make a move for the other team before the auction has started', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
-
-      const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
-
-      await expectFailingPromise(blueAuction
-        .placeBid([0, 0], { from: accounts[2], value: '1' })
-      );
+    it('should be able to make a move for the other team before the auction has started', async () => {
+      await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
+      await expectFailingPromise(placeBidForCurrentAuction(Team.blue, [0, 0], '1', 2));
     });
 
     it('should be able to outbid a move', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      const result1 = await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
-      const result2 = await redAuction.placeBid([0, 0], {
-        from: accounts[2],
-        value: '2',
-      });
+      await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
+      await placeBidForCurrentAuction(Team.red, [0, 0], '2', 1);
     });
 
     it('should be able to make a move for the other team after half first auction time', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
-      await advanceTimeAndBlock(AUCTION_TIME);
+      await advanceTimeAndBlock(AUCTION_TIME / 2 + 1);
 
-      await instance.startAuction(Team.blue, { from: oracleAccount });
-
-      const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
-      await blueAuction.placeBid([0, 0], {
-        from: accounts[2],
-        value: '1',
-      });
+      await placeBidForCurrentAuction(Team.blue, [0, 0], '1', 2);
     });
 
     it('should not be able to make a move for the other team before half first auction time', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
-      await instance.startAuction(Team.blue, { from: oracleAccount });
-
-      const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
-
-      await expectFailingPromise(blueAuction
-        .placeBid([0, 0], { from: accounts[2], value: '1' })
-      );
+      await expectFailingPromise(placeBidForCurrentAuction(Team.blue, [0, 0], '1', 2));
     });
 
     it('should be able to get the end time after a bid has been placed', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
-      const endTime = await redAuction.getEndTime();
+      const { endTime } = await instance.getCurrentAuction(Team.red);
 
-      expect(!endTime.isZero());
-      expect(endTime.toNumber() * 1000).to.be.gt(Date.now());
+      const endBN = new utils.BigNumber(endTime as any);
+
+      expect(!endBN.isZero());
+      expect(endBN.toNumber() * 1000).to.be.gt(Date.now());
     });
 
     it('should be able to make a move and emit an event', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      const result = await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      const result = await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
-      const { args } = logDecoder.decodeLogs(result.receipt.rawLogs)[0];
+      const { args } = logDecoder.decodeLogs(result.receipt.rawLogs)[1];
 
       expect(args.team).to.equal(Team.red);
       expect(args.endTime.toNumber()).to.be.below(
@@ -271,80 +211,51 @@ contract('Game', accounts => {
     });
 
     it('should be able to set the result once the auction is finished', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      const result = await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      const result = await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
       // Wait until the auction has finished
 
-      const { args } = logDecoder.decodeLogs(result.receipt.rawLogs)[0];
+      // Firse event is auction created
+      const { args } = logDecoder.decodeLogs(result.receipt.rawLogs)[1];
       const advance =
         args.endTime.toString() * 1000 - new Date().getTime();
       await advanceTimeAndBlock(advance);
 
-      await instance.confirmMove(Team.red, true, nullAddress, { from: oracleAccount });
+      const index = await instance.getCurrentAuctionIndex(Team.red);
+
+      await instance.confirmMove(Team.red, true, index, { from: oracleAccount });
     });
 
     it('should be able to set the auction result and play again, once the other team has played', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      const result = await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      const result = await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
       // Wait until the auction has finished
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       // Starts blue auction
-      await instance.confirmMove(Team.red, true, nullAddress, { from: oracleAccount });
+      const index = await instance.getCurrentAuctionIndex(Team.red);
+      await instance.confirmMove(Team.red, true, index, { from: oracleAccount });
 
-      const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
-      await blueAuction.placeBid([0, 1], {
-        from: accounts[2],
-        value: '1',
-      });
-
-      // Red auction is now ready to start because blue bid
-      await instance.startAuction(Team.red, { from: oracleAccount });
+      await placeBidForCurrentAuction(Team.blue, [0, 1], '1', 2);
 
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
-
-      const redAuction2 = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await redAuction2.placeBid([0, 1], {
-        from: accounts[1],
-        value: '1',
-      });
+      await placeBidForCurrentAuction(Team.red, [0, 1], '1', 1);
     });
 
     it('should not be able to play the same move twice', async () => {
-      const redAuction = await Auction.at(await instance.getCurrentAuction(Team.red));
-      const result = await redAuction.placeBid([0, 0], {
-        from: accounts[1],
-        value: '1',
-      });
+      const result = await placeBidForCurrentAuction(Team.red, [0, 0], '1', 1);
 
       // Wait until the auction has finished
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
       // Starts blue auction
-      await instance.confirmMove(Team.red, true, nullAddress, { from: oracleAccount });
+      const index = await instance.getCurrentAuctionIndex(Team.red);
+      await instance.confirmMove(Team.red, true, index, { from: oracleAccount });
 
-      const blueAuction = await Auction.at(await instance.getCurrentAuction(Team.blue));
-      await blueAuction.placeBid([0, 1], {
-        from: accounts[2],
-        value: '1',
-      });
+      await placeBidForCurrentAuction(Team.blue, [0, 1], '1', 2);
 
-      // Red auction is now ready to start because blue bid
-      await instance.startAuction(Team.red, { from: oracleAccount });
-
-      const redAuction2 = await Auction.at(await instance.getCurrentAuction(Team.red));
-      await expectFailingPromise(redAuction2
-        .placeBid([0, 0], { from: accounts[1], value: '1' })
-      );
+      await expectFailingPromise(placeBidForCurrentAuction(Team.red, [0, 0], '1', 1));
     });
 
     it('should be able to get the number of auctions and get one of them', async () => {
@@ -396,7 +307,7 @@ contract('Game', accounts => {
 
       await playMoveAndStartOtherTeam(Team.red, [0, 1], 1);
 
-      const firstAuction = await instance.getCurrentAuction(Team.red);
+      const firstAuction = await instance.getCurrentAuctionIndex(Team.red);
 
       await advanceTimeAndBlock(AUCTION_TIME + 1);
 
@@ -409,7 +320,7 @@ contract('Game', accounts => {
       await instance.confirmMove(
         Team.red,
         testBattleField[0][1],
-        firstAuction, // TODO get first auction address
+        firstAuction,
         { from: oracleAccount }
       );
     });
@@ -428,11 +339,8 @@ contract('Game', accounts => {
         utils.formatBytes32String('') // Empty bytes 32
       );
 
-      await expectFailingPromise(instance.startAuction(Team.blue));
-      await expectFailingPromise(instance.startAuction(Team.red));
-
-      await expectFailingPromise(playMoveAndCompleteAuction(Team.blue, [1, 0], 2));
       await expectFailingPromise(playMoveAndCompleteAuction(Team.red, [1, 1], 2));
+      await expectFailingPromise(playMoveAndCompleteAuction(Team.blue, [1, 0], 2));
     });
 
     describe('Potential winnings', () => {

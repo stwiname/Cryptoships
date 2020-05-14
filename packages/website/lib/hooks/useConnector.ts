@@ -12,6 +12,9 @@ export default function useConnector() {
   }
 
   const activateMetamask = async () => {
+    if (!(window as any).ethereum) {
+      return window.open('https://metamask.io', '_blank');
+    }
     await context.activate(
       connectors.MetaMask,
       activateNetwork,

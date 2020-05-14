@@ -49,7 +49,7 @@ const fieldItem: React.FunctionComponent<Props> = ({ result, onClick }) => {
   let colorClass;
   let renderIcon: () => React.ReactElement;
 
-  const classes = useStyles({ /*color: createRadial(color.main) as any*/ });
+  const classes = useStyles({ });
 
   const renderImage = (src: string) => {
     return <img src={src} style={{ height: '75%', width: '75%' }}/>;

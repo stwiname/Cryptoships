@@ -11,10 +11,18 @@ import State from './state';
 const { abi: gameAbi } = require('contracts/build/contracts/Game.json');
 const { abi: auctionAbi } = require('contracts/build/contracts/Auction.json');
 
-import { Auction } from 'contracts/types/ethers-contracts/Auction';
-import { AuctionFactory } from 'contracts/types/ethers-contracts/AuctionFactory';
 import { Game } from 'contracts/types/ethers-contracts/Game';
 import { GameFactory } from 'contracts/types/ethers-contracts/GameFactory';
+
+type Unwrap<T> =
+  T extends Promise<infer U> ? U :
+  T extends (...args: any) => Promise<infer U> ? U :
+  T extends (...args: any) => infer U ? U :
+  T;
+
+type Auction = Unwrap<ReturnType<Game["getAuctionByIndex"]>>;
+
+type AuctionExt = Auction & { index: number, hasEnded?: boolean };
 
 function truncateAddress(address: string) {
   return `${address.substr(0, 4)}...${address.substr(address.length -4)}`;
@@ -66,11 +74,12 @@ export default class Oracle {
         bidder: string,
         amount: utils.BigNumber,
         move: [number, number],
-        endTime: utils.BigNumber
+        endTime: utils.BigNumber,
+        auctionIndex: number,
       ) => {
         logger.info('HigestBidPlaced');
 
-        this.handleBidPlaced(team, endTime.toNumber() * 1000);
+        this.handleBidPlaced(team, auctionIndex, endTime.toNumber() * 1000);
       }
     );
   }
@@ -92,108 +101,69 @@ export default class Oracle {
 
     logger.info(`${Team[team]} has ${auctionsCount} auctions`);
 
-    const auctionAddresses = await Promise.all(
-      range(0, auctionsCount).map(n =>
-        this.instance.functions.getAuctionByIndex(team, n)
-      )
-    );
-
-    const auctionResults = await Promise.all(
-      auctionAddresses.map(async address => {
-        const auction = this.getAuctionAtAddress(address);
-
-        const [move, result, hasEnded] = await Promise.all([
-          auction.functions.getLeadingMove(),
-          auction.functions.getResult(),
-          auction.functions.hasEnded(),
-        ]);
-
-        logger.info(`${truncateAddress(address)} ended: ${hasEnded}, move: ${move}, result: ${result}`);
-
-        return { move, result: result as AuctionResult };
-      })
-    );
+    const auctions = (await Promise.all<AuctionExt>(range(0, auctionsCount).map(async idx => {
+      return {
+        ...await this.getAuctionByIndex(team, idx),
+        hasEnded: await this.instance.hasAuctionEnded(team, idx),
+        index: idx
+      };
+    })))
+      .filter(a => !a.leadingBid.amount.isZero()); // Filter out any unplayed auctions
 
     // Check if any auctions need to be confirmed
-    await Promise.all(
-      auctionAddresses.map(async address => {
-        const auction = this.getAuctionAtAddress(address);
+    await Promise.all(auctions.map(async a => {
+      if (a.hasEnded && a.result === AuctionResult.unset) {
+        await this.confirmMove(a, team);
+      }
+    }));
 
-        if (await this.auctionNeedsToHaveMovedConfirmed(auction)) {
-          await this.confirmMove(auction, team);
-        }
-      })
-    );
-
-    this.state.setMovesMade(team, auctionResults);
+    // this.state.setMovesMade(team, auctionResults);
+    this.state.setMovesMade(team, auctions.map(a => ({ result: a.result, move: a.leadingBid.move })));
 
     if (this.state.checkAllShipsHit(team)) {
       await this.finalizeGame(team);
+      process.exit(0);
+    } else {
+      logger.info(`Not all ships hit for team ${Team[team]}, continuing game`);
     }
 
-    const currentAuction = await this.getCurrentAuctionForTeam(team).catch(
-      e => null
-    ); // Swallow error, auction wont exist yet
+    const index = await this.instance.getCurrentAuctionIndex(team)
+      .catch(e => null);  // Swallow error, auction wont exist yet
 
-    if (!currentAuction) {
+    if (index == null) {
       return;
     }
+    const currentAuction: AuctionExt = await this.getAuctionByIndex(team, index);
 
-    if (!(await currentAuction.functions.hasEnded())) {
-      const endTime = await currentAuction.functions.getEndTime();
-      logger.debug('END TIME', endTime.toString(), endTime.toNumber());
-      if (endTime.isZero()) {
+    if (!(await this.instance.hasAuctionEnded(team, index))) {
+      logger.debug('END TIME', currentAuction.endTime.toString(), currentAuction.endTime.toNumber());
+      if (currentAuction.endTime.isZero()) {
         // Auction not yet started
         logger.info(
-          `Running auction (${currentAuction.address})for team ${Team[team]} has not yet got an end time`,
-          await currentAuction.functions.hasEnded()
+          `Running auction (${index}) for team ${Team[team]} has not yet got an end time`,
+          await this.instance.hasAuctionEnded(team, index)
         );
         return;
       }
       await this.createPendingConfirmation(
         team,
         currentAuction,
-        endTime.toNumber() * 1000
+        currentAuction.endTime.toNumber() * 1000
       );
     }
   }
 
-  private async handleBidPlaced(team: Team, endTime: number) {
-    const otherTeam = this.otherTeam(team);
-
-    logger.info(
-      `Checking if other team (${Team[otherTeam]}) needs auction created`
-    );
-    // Start auction if necessary
-    const otherAuction = await this.getCurrentAuctionForTeam(otherTeam).catch(
-      e => null
-    ); // Swallow error, auction wont exist yet
-
-    if (!otherAuction || (await otherAuction.functions.hasEnded())) {
-      logger.info(
-        `Starting auction for other team (${Team[otherTeam]})`,
-        await this.instance.estimate.startAuction(otherTeam)
-      );
-      const tx = await this.instance.functions.startAuction(otherTeam).catch(e => {
-        logger.error('Failed to start auction for other team', e);
-        throw e;
-      });
-
-      logger.info(`[${tx.hash}] Start auction (${Team[otherTeam]}) submitted`);
-
-      this.logTxResult(tx);
-    }
-
+  private async handleBidPlaced(team: Team, auctionIndex: number, endTime: number) {
     this.createPendingConfirmation(
       team,
-      await this.getCurrentAuctionForTeam(team),
+      await this.getAuctionByIndex(team, auctionIndex),
       endTime
     );
   }
 
   private createPendingConfirmation(
     team: Team,
-    auction: Auction,
+    auction: AuctionExt,
     endTime: number
   ) {
     // We already have a timeout for this
@@ -215,11 +185,12 @@ export default class Oracle {
     }, endTime - Date.now() + 2000);
   }
 
-  private async confirmMove(auction: Auction, team: Team, retries = 1): Promise<ContractTransaction> {
-    logger.info(`Confirming move for ${auction.address}, has finished ${await auction.functions.hasEnded()}`);
+  private async confirmMove(auction: AuctionExt, team: Team, retries = 1): Promise<ContractTransaction> {
+    const hasEnded = auction.hasEnded ?? await this.instance.hasAuctionEnded(team, auction.index);
+    logger.info(`Confirming move for ${auction.index}, has finished ${hasEnded}`);
     // For some reason this is thinking it hasn't ended
 
-    if (!await auction.functions.hasEnded()) {
+    if (!hasEnded) {
       logger.warn('Auction has not yet ended, attempting to confirm move');
     //   const endTime = await auction.functions.getEndTime();
     //   logger.debug('END TIME', endTime.toNumber(), Date.now()/1000);
@@ -230,15 +201,15 @@ export default class Oracle {
     }
 
     // Check if hit or miss
-    const leadingMove = await auction.functions.getLeadingMove();
-
-    const hit = this.state.setMoveMade(team, leadingMove[0], leadingMove[1]);
+    const hit = this.state.setMoveMade(team, auction.leadingBid.move[0], auction.leadingBid.move[1]);
 
     if (this.state.checkAllShipsHit(team)) {
       await this.finalizeGame(team);
 
       logger.info(`Game won by ${Team[team]}`);
       process.exit(0);
+    } else {
+      logger.info(`Not all ships hit by ${Team[team]}`);
     }
 
     const retry = async (e: Error) => {
@@ -247,7 +218,7 @@ export default class Oracle {
         logger.warn("Transaction failed, retrying", e);
         // Wait 10% of auction time to try again
         const time =
-          (await auction.functions.getDuration()).toNumber() *
+          auction.duration.toNumber() *
           100; /* 1000 / 10 */
         await new Promise(resolve => {
           setTimeout(resolve, time);
@@ -261,7 +232,7 @@ export default class Oracle {
 
     // Set move on game and possibly start next auction
     // Have to manually specify gas because it's not always estimated properly, this is due to contracts calling contracts
-    const tx: ContractTransaction = await this.instance.functions.confirmMove(team, hit, auction.address, { gasLimit: 2000000 })
+    const tx: ContractTransaction = await this.instance.functions.confirmMove(team, hit, auction.index, { gasLimit: 2000000 })
       .catch(retry);
 
     logger.info(`[${tx.hash}] Confirm move tx submitted`);
@@ -275,27 +246,12 @@ export default class Oracle {
     return tx;
   }
 
-  private getAuctionAtAddress(address: string) {
-    return AuctionFactory.connect(
-      address,
-      this.instance.signer || this.instance.provider
-    );
+  private async getAuctionByIndex(team: Team, index: number): Promise<AuctionExt> {
+    return { ...await this.instance.getAuctionByIndex(team, index), index };
   }
 
   private async getCurrentAuctionForTeam(team: Team): Promise<Auction> {
-    const auctionAddress = await this.instance.functions.getCurrentAuction(
-      team
-    );
-    return this.getAuctionAtAddress(auctionAddress);
-  }
-
-  private async auctionNeedsToHaveMovedConfirmed(
-    auction: Auction
-  ): Promise<boolean> {
-    return (
-      (await auction.functions.hasEnded()) &&
-      (await auction.functions.getResult()) === AuctionResult.unset
-    );
+    return this.instance.functions.getCurrentAuction(team);
   }
 
   private async finalizeGame(team: Team) {

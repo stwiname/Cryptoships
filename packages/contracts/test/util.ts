@@ -75,8 +75,8 @@ const bnMoveToNumber = (move: [utils.BigNumber, utils.BigNumber] | [number, numb
     }
 
     return [
-        move[0].toNumber(),
-        move[1].toNumber(),
+        typeof move[0] === 'string' ? parseInt(move[0], 10) : move[0].toNumber(),
+        typeof move[1] === 'string' ? parseInt(move[1], 10) : move[1].toNumber(),
     ]
 }
 

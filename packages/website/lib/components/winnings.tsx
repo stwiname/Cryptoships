@@ -5,10 +5,11 @@ import CardContent from '@material-ui/core/CardContent';
 import Typography from '@material-ui/core/Typography';
 import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
-import { utils } from 'ethers';
 import { Team } from '../contracts';
 import { Winnings as WinningsCont} from '../containers';
 import theme, { useThemeStyles } from '../theme';
+import { bnToDate, formatEtherRounded } from '../utils';
+import moment from 'moment';
 
 type Props = {
   team: Team;
@@ -26,6 +27,8 @@ const Winnings: React.FunctionComponent<Props> = (props: Props) => {
   const wClasses = useStyles({});
 
   const isRedTeam = Team[props.team] === Team[Team.red];
+  const withdralDate = bnToDate(gameWinnings.withdrawDeadline);
+  const withdrawlClosed = withdralDate && withdralDate.getTime() > new Date().getTime();
 
   if (gameWinnings.blueWinnings.isZero() && gameWinnings.redWinnings.isZero()) {
     return null;
@@ -38,10 +41,12 @@ const Winnings: React.FunctionComponent<Props> = (props: Props) => {
   const message = gameWinnings.hasWithdrawn
     ? `You have claimed your winnings`
     : !gameWinnings.winningTeam
-      ? `Potential winnings: ${utils.formatEther(amount)} ETH`
-      : Team[gameWinnings.winningTeam] === Team[props.team]
-         ? `Congrats! You get ${utils.formatEther(amount)} ETH`
-         : `You win nothing`;
+      ? `Potential winnings: ${formatEtherRounded(amount)} ETH`
+      : withdrawlClosed
+        ? 'The deadline to claim winnings has passed'
+        : Team[gameWinnings.winningTeam] === Team[props.team]
+           ? `Congrats! You get ${formatEtherRounded(amount)} ETH. Claim within ${moment(withdralDate).fromNow()}`
+           : `You win nothing`;
 
   return <Card className={wClasses.paper}>
     <CardContent className={isRedTeam ? classes.borderAlt : classes.border}>
@@ -57,9 +62,11 @@ const Winnings: React.FunctionComponent<Props> = (props: Props) => {
         {
           Team[gameWinnings.winningTeam] === Team[props.team] &&
           !gameWinnings.hasWithdrawn &&
+          !withdrawlClosed &&
           <Button
             variant="contained"
             onClick={gameWinnings.withdrawWinnings}
+            style={{ maxHeight: 35 }}
           >
             Claim!
           </Button>

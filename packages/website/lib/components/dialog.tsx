@@ -1,17 +1,11 @@
-import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { green } from '@material-ui/core/colors';
 import MUIDialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import TextField from '@material-ui/core/TextField';
-import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
-import { useThemeStyles } from '../theme';
-import clsx from 'clsx';
+import ThreeDButton from './3dbutton';
 
 export type Props = {
   open: boolean;
@@ -52,7 +46,6 @@ const Dialog: React.FunctionComponent<Props> = ({
   onClose,
 }) => {
   const classes = useStyles({});
-  const themeClasses = useThemeStyles({});
 
   return (
     <MUIDialog
@@ -64,13 +57,12 @@ const Dialog: React.FunctionComponent<Props> = ({
       {onSubmit && (
         <DialogActions>
           <div className={classes.wrapper}>
-            <Button
-              variant="contained"
+            <ThreeDButton
               onClick={onSubmit}
               disabled={disabled || loading}
             >
-              {submitTitle || 'Submit'}
-            </Button>
+              {submitTitle || 'SUBMIT'}
+            </ThreeDButton>
             {loading && (
               <CircularProgress size={24} className={classes.buttonProgress} />
             )}

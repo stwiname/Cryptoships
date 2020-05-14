@@ -8,6 +8,7 @@ import { AuctionResult, FieldStates } from '../contracts';
 import FieldItem from '../components/fieldItem';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
+import { range } from 'ramda';
 const Logo = require('../../dist/assets/cryptoships_wording_8.svg');
 
 type Props = {
@@ -32,6 +33,12 @@ const About: React.FunctionComponent<Props> = props => {
       default:
         return 'Leading Move';
     }
+  }
+
+  const renderFieldItem = (result: FieldStates, key?: string | number) => {
+    return <div className={themeClasses.border} style={{ width: '54px', height: '54px', minWidth: '54px', position: 'relative' }} key={key}>
+      <FieldItem result={result}/>
+    </div>
   }
 
   return (
@@ -100,11 +107,26 @@ const About: React.FunctionComponent<Props> = props => {
                     ['unplayed', 'aiming', undefined, AuctionResult.unset, AuctionResult.miss, AuctionResult.hit]
                       .map((result: FieldStates, index) => <Grid item xs={2} key={index} style={{ minWidth: '100px'}}>
                           <Grid container justify='center'>
-                            <div className={themeClasses.border} style={{ width: '54px', height: '54px', position: 'relative' }}>
-                              <FieldItem result={result}/>
-                            </div>
+                            {renderFieldItem(result)}
                           </Grid>
                           <Typography align='center'>{resultToString(result)}</Typography>
+                        </Grid>
+                      )
+                  }
+                </Grid>
+              </Box>
+              <Typography variant='h3' className={themeClasses.comingSoon}>
+                Ships
+              </Typography>
+              <Box mt={2}>
+                <Typography>There are 5 ships with the following sizes</Typography>
+                <Grid container direction='row' alignItems='stretch' justify='space-evenly'>
+                  {
+                    [5, 4, 3, 3, 2]
+                      .map((size, index) => <Grid item key={index}>
+                            <Box display='flex' flexDirection='row' p={2}>
+                              { range(0, size).map(n => renderFieldItem(AuctionResult.hit, n)) }
+                            </Box>
                         </Grid>
                       )
                   }
