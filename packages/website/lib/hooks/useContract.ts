@@ -18,6 +18,10 @@ const useContract = <C extends Contract>(contractAddress: string, factory: (addr
       ? context.library.getSigner(context.account)
       : context.library;
 
+    if (!signerOrProvider) {
+      return;
+    }
+
     const contract = factory(
       contractAddress,
       signerOrProvider,

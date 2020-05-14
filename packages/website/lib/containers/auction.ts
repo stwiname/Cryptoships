@@ -167,7 +167,6 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
     hasEnded,
     placeBid,
     pendingBid,
-    // result,
   };
 }
 

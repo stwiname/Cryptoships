@@ -9,6 +9,7 @@ import connectors from './connectors';
 import Game from './routes/game';
 import Home from './routes/home';
 import About from './routes/about';
+import Admin from './routes/admin';
 import NotFound from './routes/notFound';
 import theme from './theme';
 import { useConnector } from './hooks';
@@ -36,6 +37,7 @@ const App: React.FunctionComponent<{}> = props => {
           <Route exact={true} path="/" component={Home} />
           <Route path="/game/:address" component={Game} />
           <Route path="/how-it-works" component={About} />
+          <Route path="/admin/:address" component={Admin} />
           <Route component={NotFound} />
         </Switch>
       </Router>
