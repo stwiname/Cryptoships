@@ -101,13 +101,14 @@ export default class Oracle {
 
     logger.info(`${Team[team]} has ${auctionsCount} auctions`);
 
-    const auctions = await Promise.all<AuctionExt>(range(0, auctionsCount).map(async idx => {
+    const auctions = (await Promise.all<AuctionExt>(range(0, auctionsCount).map(async idx => {
       return {
         ...await this.getAuctionByIndex(team, idx),
         hasEnded: await this.instance.hasAuctionEnded(team, idx),
         index: idx
       };
-    }));
+    })))
+      .filter(a => !a.leadingBid.amount.isZero()); // Filter out any unplayed auctions
 
     // Check if any auctions need to be confirmed
     await Promise.all(auctions.map(async a => {

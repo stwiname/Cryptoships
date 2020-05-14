@@ -66,6 +66,12 @@ function useWinnings(contractAddress: string) {
     () => getWinnings(),
   );
 
+  useEventListener(
+    game,
+    'GameCompleted',
+    (result: Team) => setWinningTeam(result)
+  );
+
   const withdrawWinnings = async () => {
     if (!game) {
       throw new Error('No game found');
