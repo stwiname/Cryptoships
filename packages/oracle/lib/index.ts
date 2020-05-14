@@ -164,7 +164,7 @@ async function getOrInitGame(
     state.getFieldHashForTeam(Team.blue),
     fieldSize,
     sum(SHIPS),
-    60, // 300s, 5min
+    600, // 300s, 5min
     Team.red
   );
 
