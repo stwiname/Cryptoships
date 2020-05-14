@@ -96,11 +96,11 @@ export default class CancellablePromise<T> implements Promise<T> {
     return this.pendingValue.catch(onrejected);
   }
 
-  public map<Y>(f: (x: T) => Y) {
+  public map<Y>(f: (x: T) => Y  | PromiseLike<Y>) {
     return new CancellablePromise(this.pendingValue.then(f), this.cancel);
   }
 
-  public mapError(f: (x: Error) => T) {
+  public mapError(f: (x: Error) => T | PromiseLike<T>) {
     return new CancellablePromise(this.pendingValue.catch(f), this.cancel);
   }
 }

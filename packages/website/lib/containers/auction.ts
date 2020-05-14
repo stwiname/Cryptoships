@@ -79,11 +79,19 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
       return null;;
     }
     return CancellablePromise.makeCancellable(game?.getAuctionByIndex(team, index))
-      .map((a) => {
-        console.log('Fetch auction', a);
+      .map(async (a) => {
+        console.log('Fetch auction', index, a);
+
+        // Sometimes the result has empty values, we retry again, hopefully with the latest state
+        if (a.startTime.isZero()) {
+          console.log('Retrying fetch auction', index);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          fetchAuction();
+          return;
+        }
         return a;
       })
-      .map(setAuction)
+      .map((a) => a && setAuction(a))
       .mapError(logNotCancelledError(`Failed to get auction by index`));
   }
 
