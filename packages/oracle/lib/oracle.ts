@@ -121,6 +121,9 @@ export default class Oracle {
 
     if (this.state.checkAllShipsHit(team)) {
       await this.finalizeGame(team);
+      process.exit(0);
+    } else {
+      logger.info(`Not all ships hit for team ${Team[team]}, continuing game`);
     }
 
     const index = await this.instance.getCurrentAuctionIndex(team)
@@ -204,6 +207,8 @@ export default class Oracle {
 
       logger.info(`Game won by ${Team[team]}`);
       process.exit(0);
+    } else {
+      logger.info(`Not all ships hit by ${Team[team]}`);
     }
 
     const retry = async (e: Error) => {
