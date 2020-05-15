@@ -1,6 +1,6 @@
 {
   "name": "contracts",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Ethereum contracts for game",
   "author": "Scott Twiname <skott.twiname@gmail.com>",
   "homepage": "https://github.com/stwiname/Battleship/tree/master/packages/contracts#readme",
