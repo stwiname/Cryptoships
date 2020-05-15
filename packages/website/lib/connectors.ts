@@ -13,7 +13,7 @@ const Network = new NetworkConnector({
     3: `https://ropsten.infura.io/v3/${INFURA_API_KEY}`,
     1337: `http://localhost:8545`
   },
-  defaultChainId: process.env.NODE_ENV === 'development' ? 3 : 3,
+  defaultChainId: process.env.NODE_ENV === 'development' ? 3 : 1,
 });
 
 export default {
