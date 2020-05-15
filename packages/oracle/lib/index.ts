@@ -32,17 +32,29 @@ yargs
   .command('deploy', 'Deploy the library contracts', () => {}, async argv => {
     const wallet = initWallet(argv.secretKey, argv.web3Endpoint, argv.network);
 
+    console.log('Deploying on network', await wallet.provider.getNetwork());
+
     console.log('Deploying auction lib...');
     const auctionLib = await new AuctionLibFactory(wallet).deploy();
-    console.log(`Deployed auction lib: ${auctionLib.address}`);
+    console.log('Auction TX hash', auctionLib.deployTransaction.hash);
+    console.log(`Auction lib address: ${auctionLib.address}`);
+    await auctionLib.deployed();
+    console.log(`Deployed auctionLib`);
+
     console.log('Deploying game lib...');
     const gameLib = await new GameLibFactory(
       { __AuctionLib____________________________: auctionLib.address},
       wallet
     ).deploy();
-    console.log(`Deployed game lib: ${gameLib.address}`);
+    console.log('Game TX hash', gameLib.deployTransaction.hash);
+    console.log(`Game lib address: ${gameLib.address}`);
 
     console.log(`auctionLibAddress=${auctionLib.address}\ngameLibAddress=${gameLib.address}`);
+
+    console.log('Waiting for tx confirmation');
+    await gameLib.deployed();
+
+    console.log('TXs confirmed');
 
     process.exit(0);
   })

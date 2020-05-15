@@ -50,5 +50,9 @@
     "hooks": {
       "pre-commit": "lint-staged"
     }
+  },
+  "libraryAddresses": {
+    "auction": "0x50e618682b4927fe0C8F61cC11ec9fd1524f0a31",
+    "game": "0xABBFD2A226d5AAA6D15546424Fe8Be0Cfa88dD27"
   }
 }
