@@ -10,6 +10,16 @@ import { useContract, useEventListener } from '../hooks';
 import CancellablePromise, { PromiseCancelledError, logNotCancelledError } from '../cancellablePromise';
 import { AuctionExt } from '../contracts';
 
+const useTeamState = <T extends any>(
+  initialState: Record<Team, T> = { [Team.red]: null, [Team.blue]: null }
+): [Record<Team, T>, (team: Team, value: T) => void, () => void] => {
+  const [state, setState] = useState<Record<Team, T>>(initialState);
+
+  const setForTeam = (team: Team, value: T) => setState(s => ({ ...s, [team]: value }));
+  const reset = () => setState(initialState);
+  return [state, setForTeam, reset];
+}
+
 export type AuctionMove = {
   move: number[];
   result: AuctionResult;
@@ -32,18 +42,13 @@ function useGame(contractAddress: string) {
   const [loading, setLoading] = useState<boolean>(true);
   const [fieldSize, setFieldSize] = useState<number>(0);
   const [result, setResult] = useState<GameResult>(GameResult.unset);
-  const [redAuctionIndex, setRedAuctionIndex] = useState<number>(null);
-  const [blueAuctionIndex, setBlueAuctionIndex] = useState<number>(null);
-  const [redAuctionResults, setRedAuctionResults] = useState<AuctionMove[]>([]);
-  const [blueAuctionResults, setBlueAuctionResults] = useState<AuctionMove[]>(
-    []
-  );
-  const [redLeadingBid, setRedLeadingBid] = useState<LeadingBid>(null);
-  const [blueLeadingBid, setBlueLeadingBid] = useState<LeadingBid>(null);
+  const [currentAuctionIndexes, setAuctionIndex, resetAuctionIndexes] = useTeamState<number>();
+  const [auctionResults, setAuctionResults, resetAucitonResults] = useTeamState<AuctionMove[]>();
+  const [leadingBids, setLeadingBid, resetLeadingBids] = useTeamState<LeadingBid>();
 
   const updateAuctionResults = (existing: AuctionMove[], newMoves: AuctionMove[]) =>
     {
-      const up = uniqBy<AuctionMove, number[]>(a => a.move, concat(existing, newMoves))
+      const up = uniqBy<AuctionMove, number[]>(a => a.move, concat(existing || [], newMoves || []))
       console.log("Moves", up)
       return up;
     }
@@ -53,12 +58,9 @@ function useGame(contractAddress: string) {
     setLoading(false);
     setFieldSize(0);
     setResult(GameResult.unset);
-    setRedAuctionIndex(null);
-    setBlueAuctionIndex(null);
-    setRedAuctionResults([]);
-    setBlueAuctionResults([]);
-    setRedLeadingBid(null);
-    setBlueLeadingBid(null);
+    resetAuctionIndexes();
+    resetAucitonResults();
+    resetLeadingBids();
   }
 
   useEffect(() => {
@@ -90,17 +92,17 @@ function useGame(contractAddress: string) {
         .mapError(logNotCancelledError(`Failed to get game result`)),
       // Get current auctions
       CancellablePromise.makeCancellable(game.functions.getCurrentAuctionIndex(Team.red))
-        .map(setRedAuctionIndex)
+        .map((index) => setAuctionIndex(Team.red, index))
         .mapError(logNotCancelledError(`Failed to get auction for red team`)),
       CancellablePromise.makeCancellable(game.functions.getCurrentAuctionIndex(Team.blue))
-        .map(setBlueAuctionIndex)
+        .map((index) => setAuctionIndex(Team.blue, index))
         .mapError(logNotCancelledError(`Failed to get auction for blue team`)),
       // Get results
       CancellablePromise.makeCancellable(getAllResultsForTeam(game, Team.red))
-        .map(results => setRedAuctionResults(updateAuctionResults(redAuctionResults, results)))
+        .map(results => setAuctionResults(Team.red, updateAuctionResults(auctionResults[Team.red], results)))
         .mapError(logNotCancelledError('Failed to get auction results for red team')),
       CancellablePromise.makeCancellable(getAllResultsForTeam(game, Team.blue))
-        .map(results => setBlueAuctionResults(updateAuctionResults(blueAuctionResults, results)))
+        .map(results => setAuctionResults(Team.blue, updateAuctionResults(auctionResults[Team.blue], results)))
         .mapError(logNotCancelledError('Failed to get auction results for blue team')),
     ]);
 
@@ -129,10 +131,8 @@ function useGame(contractAddress: string) {
       endTime: utils.BigNumber
     ) => {
       console.log('[EVENT] HighestBidPlaced', Team[team]);
-      const setLeadingBid =
-        Team[team] === Team[Team.red] ? setRedLeadingBid : setBlueLeadingBid;
 
-      setLeadingBid({ bidder, amount, move });
+      setLeadingBid(team, { bidder, amount, move });
     },
   );
 
@@ -145,18 +145,13 @@ function useGame(contractAddress: string) {
       move: [number, number],
       auctionIndex: number,
     ) => {
-      const setAuctionResults =
-        Team[team] === Team[Team.red]
-          ? setRedAuctionResults
-          : setBlueAuctionResults;
-      const auctionResults = getTeamAuctionResults(team);
       const auctionMove: AuctionMove = {
         move,
         result: hit ? AuctionResult.hit : AuctionResult.miss,
         index: auctionIndex,
       };
       console.log(`[EVENT] MoveConfirmed, ${JSON.stringify(auctionMove)}`);
-      setAuctionResults(updateAuctionResults(auctionResults, [auctionMove]));
+      setAuctionResults(team, updateAuctionResults(auctionResults[team], [auctionMove]));
     },
   );
 
@@ -164,13 +159,9 @@ function useGame(contractAddress: string) {
     game,
     'AuctionCreated',
     (team: Team, auctionIndex: number) => {
-      const setAuctionIndex =
-        Team[team] === Team[Team.red]
-          ? setRedAuctionIndex
-          : setBlueAuctionIndex;
       console.log(`[EVENT] AuctionCreated ${Team[team]} ${auctionIndex}`);
-      // Auction canno't be found sometimes without this timeout
-      setTimeout(() => setAuctionIndex(auctionIndex), 200);
+      // Auction cannot be found sometimes without this timeout
+      setTimeout(() => setAuctionIndex(team, auctionIndex), 200);
     },
   );
 
@@ -212,26 +203,16 @@ function useGame(contractAddress: string) {
     return auctions
       .filter(a => a.hasEnded)
       .map(a => ({ move: a.leadingBid.move, result: a.result, index: a.index }));
-
   };
-
-  const getCurrentAuctionIndex = (team: Team) =>
-    Team[team] === Team[Team.red] ? redAuctionIndex : blueAuctionIndex;
-
-  const getTeamAuctionResults = (team: Team) =>
-    Team[team] === Team[Team.red] ? redAuctionResults : blueAuctionResults;
-
-  const getTeamLeadingBid = (team: Team) =>
-    Team[team] === Team[Team.red] ? redLeadingBid : blueLeadingBid;
 
   return {
     contractAddress,
     error,
     loading,
     fieldSize,
-    getCurrentAuctionIndex,
-    getTeamAuctionResults,
-    getTeamLeadingBid,
+    currentAuctionIndexes,
+    auctionResults,
+    leadingBids,
     result,
   };
 }

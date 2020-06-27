@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { createContainer } from 'unstated-next';
 import { useWeb3React } from '@web3-react/core';
 import { LeadingBid, Team, AuctionResult, Auction } from '../contracts';
@@ -12,10 +12,13 @@ import { useEventListener } from '../hooks';
 
 function useAuction({ team, index: auctionIndex }: { team: Team; index?: number }) {
   const context = useWeb3React();
-  const { contractAddress: gameAddress, getCurrentAuctionIndex } = GameContainer.useContainer();
+  const { contractAddress: gameAddress, currentAuctionIndexes } = GameContainer.useContainer();
   const game = useContract(gameAddress, GameFactory.connect);
 
-  const getIndex = () => auctionIndex ?? getCurrentAuctionIndex(team);
+  const index = useMemo(
+    () => auctionIndex ?? currentAuctionIndexes[team],
+    [auctionIndex, currentAuctionIndexes[team], team]
+  );
   const fetchTask = useRef<CancellablePromise<void>>(null);
 
   const [auction, setAuction] = useState<Auction>(null);
@@ -23,15 +26,16 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
   const pendingBidRef = useRef<AuctionMove>(null); // Need ref as well because we need immediate state change
 
   useEffect(() => {
-    const index = getIndex();
-    if (index === null || index === undefined) {
+    if (!game || index === null || index === undefined) {
+      console.log('Not fetcing auction', gameAddress, !!game, index, team);
       return;
     }
+    console.log('Fetching auction');
     fetchTask.current = fetchAuction();
 
     return fetchTask.current?.cancel;
 
-  }, [team, getIndex(), game]);
+  }, [team, index, game]);
 
   useEffect(() => {
     setPendingBid(null);
@@ -49,7 +53,7 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
       auctionIndex: number,
     ) => {
       console.log('[EVENT] Auction HighestBidPlaced');
-      if (team === t && auctionIndex === getIndex()) {
+      if (team === t && auctionIndex === index) {
         fetchTask.current = fetchAuction();
       }
     },
@@ -65,14 +69,13 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
       auctionIndex: number,
     ) => {
       console.log('[EVENT] Auction MoveConfirmed');
-      if (team === t && auctionIndex === getIndex()) {
+      if (team === t && auctionIndex === index) {
         fetchTask.current = fetchAuction();
       }
     }
   );
 
   const fetchAuction = () => {
-    const index = getIndex();
     if (team === undefined || team === null ||
         index === undefined || index === null
     ) {
@@ -80,7 +83,7 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
     }
     return CancellablePromise.makeCancellable(game?.getAuctionByIndex(team, index))
       .map(async (a) => {
-        console.log('Fetch auction', index, a);
+        console.log('Fetch auction', !!game, team, index, a);
 
         // Sometimes the result has empty values, we retry again, hopefully with the latest state
         if (a.startTime.isZero()) {
@@ -113,7 +116,6 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
     position: { x: number; y: number },
     value: utils.BigNumber
   ) => {
-    const index = getIndex();
     if (index === undefined || index === null) {
       throw new Error('No game found');
     }
@@ -160,7 +162,7 @@ function useAuction({ team, index: auctionIndex }: { team: Team; index?: number 
   };
 
   return {
-    index: getIndex(),
+    index,
     team,
     auction,
     hasStarted,

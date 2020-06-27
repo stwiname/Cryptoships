@@ -112,7 +112,7 @@ const Field: React.FunctionComponent<Props> = props => {
 
   const renderFieldItem = (x: number, y: number) => {
     // For display perposes the numbers start at 0
-    const auctionResults = game.getTeamAuctionResults(props.team);
+    const auctionResults = game.auctionResults[props.team] || [];
 
     const {
       result,

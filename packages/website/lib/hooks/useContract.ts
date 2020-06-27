@@ -4,33 +4,34 @@ import { Contract, Signer } from 'ethers';
 
 const useContract = <C extends Contract>(contractAddress: string, factory: (address: string, signer: Signer) => C): C => {
   const context = useWeb3React();
+  const [contract, setContact] = useState<C>(null);
+  const signerOrProvider = useRef<Signer>(null);
 
-  const contractInstance = useRef<C>(null);
+  useEffect(() => {
+    signerOrProvider.current = context.account
+      ? context.library.getSigner(context.account)
+      : context.library;
+  }, [context.account, context.connector, context.chainId]);
 
   useEffect(() => {
 
     if (!contractAddress) {
-      contractInstance.current = null;
+      setContact(null);
       return;
     }
 
-    const signerOrProvider = context.account
-      ? context.library.getSigner(context.account)
-      : context.library;
-
-    if (!signerOrProvider) {
+    if (!signerOrProvider.current) {
       return;
     }
 
     const contract = factory(
       contractAddress,
-      signerOrProvider,
+      signerOrProvider.current,
     );
-    contractInstance.current = contract;
+    setContact(contract);
+  }, [contractAddress, signerOrProvider]);
 
-  }, [contractAddress, context.account, context.connector, context.chainId]);
-
-  return contractInstance.current;
+  return contract;
 }
 
 export default useContract;
