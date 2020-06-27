@@ -15,11 +15,12 @@ import { Auction, Field, Loading } from '../components';
 import Winnings from './winnings';
 import PlaceBid, { Props as PlaceBidProps } from '../components/placeBid';
 import PlacedMove, { Props as PlacedMoveProps } from '../components/placedMove';
-import { createAuctionContainer, Game as Container} from '../containers';
+import { createAuctionContainer, Game as Container, Wallet} from '../containers';
 import theme, { useThemeStyles } from '../theme';
 import { numToBase64, createRadial } from '../utils';
 import clsx from 'clsx';
 import NotFound from '../routes/notFound';
+import { useWeb3React } from '@web3-react/core';
 
 const useStyles = makeStyles<Theme>({
   cardMobile: {
@@ -46,6 +47,8 @@ const AuctionContainers: Record<Team, any> = {
 
 const Game: React.FunctionComponent<Props> = props => {
   const game = Container.useContainer();
+  const web3 = useWeb3React();
+  const wallet = Wallet.useContainer();
   const classes = useThemeStyles({});
   const tabClasses = useStyles({});
   const largeLayout = useMediaQuery(MEDIA_QUERY_COND);
@@ -70,6 +73,10 @@ const Game: React.FunctionComponent<Props> = props => {
         break;
       case 'unplayed':
         if (game.result !== GameResult.unset) {
+          return;
+        }
+        if (!web3.account) {
+          wallet.showWallet();
           return;
         }
         setDialogParams({ team, position: { x, y } });

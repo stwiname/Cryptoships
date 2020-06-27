@@ -7,19 +7,19 @@ import { useWeb3React } from '@web3-react/core';
 import { Team } from '../../lib/contracts';
 import { ErrorBoundary, Header } from '../components';
 import View from '../components/game';
-import { Game as Container, Winnings } from '../containers';
-import connectors from '../connectors';
-import { useQuery, useConnector } from '../hooks';
+import { Game as Container, Winnings, Connector, Wallet } from '../containers';
+import { useQuery } from '../hooks';
 
 type Props = {
   match: match<{ address: string }>;
 };
 
 const Game: React.FunctionComponent<Props> = props => {
-  const connector = useConnector();
+  const connector = Connector.useContainer();
   const context = useWeb3React();
   const query = useQuery();
   const history = useHistory();
+  const wallet = Wallet.useContainer();
 
   const handleSetTeam = (team: Team) => {
     if (getTeam() === team) {
@@ -67,9 +67,10 @@ const Game: React.FunctionComponent<Props> = props => {
   return (
     <ErrorBoundary>
       <Header
-        connectAccount={connector.activateMetamask}
+        connectAccount={wallet.showWallet}
       />
       { renderContent() }
+      <wallet.Wallet/>
     </ErrorBoundary>
   );
 };

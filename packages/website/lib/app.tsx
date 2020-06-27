@@ -12,8 +12,8 @@ import About from './routes/about';
 import Admin from './routes/admin';
 import NotFound from './routes/notFound';
 import theme from './theme';
-import { useConnector } from './hooks';
 import { Footer } from './components';
+import { Connector, Wallet } from './containers';
 
 const connectorKey = '@cryptoships/connectors';
 
@@ -24,7 +24,7 @@ function getLibrary(provider: any): providers.Web3Provider {
 }
 
 const App: React.FunctionComponent<{}> = props => {
-  const connectors = useConnector();
+  const connectors = Connector.useContainer();
 
   React.useEffect(() => {
     connectors.activateSaved();
@@ -47,12 +47,16 @@ const App: React.FunctionComponent<{}> = props => {
 
 const Providers: React.FunctionComponent<{}> = props => {
   return (
-    <Web3ReactProvider  getLibrary={getLibrary}>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <App/>
-        <Footer/>
-      </ThemeProvider>
+    <Web3ReactProvider getLibrary={getLibrary}>
+      <Connector.Provider>
+        <ThemeProvider theme={theme}>
+          <Wallet.Provider>
+            <CssBaseline />
+            <App/>
+            <Footer/>
+          </Wallet.Provider>
+        </ThemeProvider>
+      </Connector.Provider>
     </Web3ReactProvider>
   );
 }

@@ -5,12 +5,14 @@ import Grid from '@material-ui/core/Grid';
 import Box from '@material-ui/core/Box';
 import { useWeb3React } from '@web3-react/core';
 import { truncateAddress } from '../utils';
+import { isMobile } from 'react-device-detect';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import ThreeDButton from './3dbutton';
 
 const Logo = require('../../dist/assets/logo_blue.svg');
 const Wording = require('../../dist/assets/cryptoships_wording_8.svg');
 const MetaMask = require('../../dist/assets/metamask.svg');
+const Sylo = require('../../dist/assets/sylo.svg');
 
 type Props = {
   connectAccount?: () => void;
@@ -26,6 +28,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
     setAccountName(truncateAddress(context.account));
 
     if (!context.account) {
+      setAccountName('');
       return;
     }
 
@@ -49,19 +52,23 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
       </Button>
     }
 
-    if (props.connectAccount) {
-      return <Button
-        onClick={props.connectAccount}
-        variant='outlined'
-        color='primary'
-        endIcon={<img src={MetaMask} style={{ height: '25px'}}/>}
-        style={{ whiteSpace: 'nowrap' }}
-      >
-        Connect to
-      </Button>
-    }
+    const image = isMobile
+      ? (window as any)?.ethereum?.isMetaMask
+        ? MetaMask
+        : (window as any)?.ethereum?.isSylo
+          ? Sylo
+          : undefined
+      : undefined
 
-    return null;
+    return <Button
+      onClick={props.connectAccount}
+      variant='outlined'
+      color='primary'
+      endIcon={image && <img src={image} style={{ height: '25px'}}/>}
+      style={{ whiteSpace: 'nowrap' }}
+    >
+      {`Connect ${ image ? 'to ' : 'wallet'}`}
+    </Button>;
   }
 
   const renderHowItWorks = () => {
@@ -93,7 +100,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
         }
         <img
           src={Logo}
-          style={{ height: '80px' }}
+          style={{ height: '60px' }}
         />
         </Box>
       </Link>

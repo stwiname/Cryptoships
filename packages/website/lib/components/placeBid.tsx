@@ -1,4 +1,3 @@
-import { useWeb3React } from '@web3-react/core';
 import { green } from '@material-ui/core/colors';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
@@ -8,11 +7,11 @@ import { utils } from 'ethers';
 import path from 'ramda/src/path';
 import * as React from 'react';
 import { Team } from '../contracts';
-import { Game as Container, Auction as AuctionContainer } from '../containers';
-import { moveToString } from '../utils';
+import { Game as Container, Auction as AuctionContainer, Connector } from '../containers';
+import { moveToString, formatEtherRounded } from '../utils';
 import Dialog from './dialog';
 import connectors from '../connectors';
-import { useConnector} from '../hooks';
+import { useWeb3React } from '@web3-react/core';
 
 type Position = {
   x: number;
@@ -35,15 +34,16 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   if (!auctionContainer) {
     return null;
   }
-  const web3 = useWeb3React();
-  const connector = useConnector();
+  const connector = Connector.useContainer();
   const auction = auctionContainer.useContainer();
+  const web3 = useWeb3React();
 
   const getAuctionAmount = () => utils.formatEther((path(['auction', 'leadingBid', 'amount'], auction) || '0'))
 
   const [amount, setAmount] = React.useState<string>(getAuctionAmount());
   const [loading, setLoading] = React.useState(false);
   const [auctionRunning, setAuctionRunning] = React.useState(false);
+  const [balance, setBalance] = React.useState<utils.BigNumber>(null);
 
   React.useEffect(() => {
     setAmount(getAuctionAmount());
@@ -53,6 +53,11 @@ const PlaceBid: React.FunctionComponent<Props> = ({
       setAuctionRunning(auction.hasStarted() && !auction.hasEnded());
     }
   }, [team]);
+
+  React.useEffect(() => {
+    web3.library.getBalance(web3.account)
+      .then(setBalance);
+  }, [web3.account]);
 
   const handleAmountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setAmount(event.target.value);
@@ -91,9 +96,9 @@ const PlaceBid: React.FunctionComponent<Props> = ({
   const renderContent = () => {
     return (
       <>
-        {position && (
+        {balance && (
           <DialogContentText>
-            {`At postion: ${moveToString(position.x, position.y)}`}
+            {`Your balance ${formatEtherRounded(balance)}ETH`}
           </DialogContentText>
         )}
         <form onSubmit={handlePlaceBid}>
@@ -116,20 +121,10 @@ const PlaceBid: React.FunctionComponent<Props> = ({
     connector.activateMetamask();
   }
 
-  if (!web3.account) {
-    return (
-      <Dialog
-        title='Connect to MetaMask to play'
-        onClose={onClose}
-        open={team !== undefined}
-        submitTitle='Connect'
-        onSubmit={connectAccount}
-      />
-    );
-  }
+  const positionText = position &&` at ${moveToString(position.x, position.y)}`
 
   const title = auctionRunning
-    ? `Place bid for ${Team[team] || ''} team`
+    ? `Place bid for ${Team[team]?.toUpperCase() || ''} team${positionText}`
     : `Waiting for other team to make a move`;
 
   return (

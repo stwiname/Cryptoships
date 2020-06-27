@@ -100,6 +100,16 @@ export default createMuiTheme({
       root: {
         borderBottom: undefined,
       }
+    },
+    MuiDrawer: {
+      paperAnchorBottom: {
+        background,
+        borderTopRightRadius: '10px',
+        borderTopLeftRadius: '10px',
+        borderTop: `2px solid ${lightBlue}`,
+        borderLeft: `2px solid ${lightBlue}`,
+        borderRight: `2px solid ${lightBlue}`,
+      }
     }
   }
 });

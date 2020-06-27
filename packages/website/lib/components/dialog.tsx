@@ -3,9 +3,12 @@ import MUIDialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import { DrawerProps} from '@material-ui/core/Drawer';
+import { Drawer as MUIDrawer } from '@material-ui/core';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
 import * as React from 'react';
 import ThreeDButton from './3dbutton';
+import { isMobile } from 'react-device-detect';
 
 export type Props = {
   open: boolean;
@@ -35,6 +38,13 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
+const Drawer: React.FC<DrawerProps> = props => {
+  return <MUIDrawer
+    anchor='bottom'
+    {...props}
+  />
+}
+
 const Dialog: React.FunctionComponent<Props> = ({
   open,
   title,
@@ -47,8 +57,10 @@ const Dialog: React.FunctionComponent<Props> = ({
 }) => {
   const classes = useStyles({});
 
+  const Container = isMobile ? Drawer : MUIDialog;
+
   return (
-    <MUIDialog
+    <Container
       open={open}
       onClose={onClose}
     >
@@ -69,7 +81,7 @@ const Dialog: React.FunctionComponent<Props> = ({
           </div>
         </DialogActions>
       )}
-    </MUIDialog>
+    </Container>
   );
 };
 
