@@ -100,7 +100,7 @@ const Header: React.FunctionComponent<Props> = (props: Props) => {
         }
         <img
           src={Logo}
-          style={{ height: '60px' }}
+          style={{ height: largeLayout ? '80px' : '60px' }}
         />
         </Box>
       </Link>
